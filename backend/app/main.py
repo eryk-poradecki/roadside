@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.routing import APIRoute
 
 from app.db.migrate import migrate
 from app.errors import install_error_handlers
@@ -12,6 +13,11 @@ from app.routers import meta, vehicles
 from app.settings import Settings
 
 logger = logging.getLogger("roadside")
+
+
+def _operation_id(route: APIRoute) -> str:
+    # The route function name, so generated clients read `listVehicles`, not a path slug.
+    return route.name
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -29,7 +35,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
         yield
 
-    app = FastAPI(title="Roadside API", version="1.0.0", lifespan=lifespan)
+    app = FastAPI(
+        title="Roadside API",
+        version="1.0.0",
+        lifespan=lifespan,
+        generate_unique_id_function=_operation_id,
+    )
     app.state.settings = settings
 
     api = APIRouter(prefix="/api/v1")

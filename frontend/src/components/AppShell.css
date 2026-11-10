@@ -1,0 +1,129 @@
+.shell {
+  max-width: 520px;
+  height: 100dvh;
+  margin: 0 auto;
+  padding: max(16px, env(safe-area-inset-top)) var(--gutter) max(12px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.shell-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin: 0 calc(var(--gutter) * -1);
+  padding: 0 var(--gutter) 12px;
+}
+.shell-dock {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.wordmark {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+}
+.wordmark svg {
+  color: var(--text);
+  flex: none;
+}
+
+.lang {
+  flex: none;
+  display: flex;
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 3px;
+}
+.lang button {
+  min-width: 48px;
+  min-height: 48px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+.lang button[aria-pressed='true'] {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+/* The 112 control: a compact bar, never a second full-height row. */
+.sos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 12px;
+  border-radius: var(--r);
+  background: var(--sos-bg);
+  border: 1px solid var(--sos-line);
+  color: var(--sos-text);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1rem;
+  text-align: center;
+}
+.sos svg {
+  flex: none;
+}
+.sos:active {
+  background: oklch(0.3 0.08 25);
+}
+
+.tabbar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 4px;
+  background: var(--surface);
+  border-radius: var(--r);
+}
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 56px;
+  border-radius: var(--r-sm);
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.tab[aria-current='page'] {
+  background: var(--surface-2);
+  color: var(--text);
+}
+.tab[aria-current='page'] svg {
+  color: var(--amber);
+}
+
+@media (min-width: 900px) {
+  .shell {
+    max-width: 960px;
+  }
+}
