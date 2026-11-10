@@ -9,7 +9,7 @@ The single person using the app; there are no accounts in the MVP.
 _Avoid_: user, customer, account
 
 **Problem type**:
-What happened, as one of the quick picks: flat tyre, flat battery, out of fuel, pothole damage, something else.
+What happened, as one of the quick picks: flat tyre, flat battery, out of fuel, pothole damage, something else. For an electric vehicle, out of fuel means out of charge; it is the same problem type under another label. Flat battery always means the small starter battery, never the battery that drives an electric car.
 _Avoid_: tile (that is the UI control that picks it), category, incident type
 
 **Incident**:
@@ -37,8 +37,12 @@ The part of an AI answer that says what is probably wrong, next to the steps and
 _Avoid_: using it for the whole AI answer
 
 **Vehicle**:
-One of the driver's cars, with the details the assistant relies on: model, tyre size, spare wheel, wheel lock key, assistance insurance. A driver may keep several (e.g. the family's cars).
+One of the driver's cars, with the details the assistant relies on: name, model, year, fuel type, transmission, tyre size, spare wheel, wheel locks and where their key is, registration, assistance insurance. Only the name is required; any detail left empty is unknown, which is not the same as "none" (an unknown spare wheel is not "no spare wheel"). A driver may keep several (e.g. the family's cars).
 _Avoid_: car, vehicle profile
+
+**Vehicle facts**:
+What the assistant is told about the vehicle chosen for a help request: everything on the Vehicle except the registration, the assistance phone number and the policy number. Assistance counts only when a phone number is known. The AI answer keeps the vehicle facts it was answered for.
+_Avoid_: vehicle context, profile
 
 **Default vehicle**:
 The driver's daily driver: the vehicle a new help request uses unless the driver picks another. At most one vehicle is the default; there may be none.
