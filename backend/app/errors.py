@@ -17,16 +17,35 @@ _DEFAULT_REASONS = {
 
 
 class AppError(Exception):
-    def __init__(self, status: int, reason: str, detail: str | None = None) -> None:
+    def __init__(
+        self,
+        status: int,
+        reason: str,
+        detail: str | None = None,
+        errors: list[dict[str, str]] | None = None,
+    ) -> None:
         super().__init__(reason)
         self.status = status
         self.reason = reason
         self.detail = detail
+        self.errors = errors
 
 
 class NotFoundError(AppError):
     def __init__(self, what: str = "Resource") -> None:
         super().__init__(404, "not_found", f"{what} not found")
+
+
+class FieldValidationError(AppError):
+    """A 422 found by a service (e.g. an unknown id), shaped like request validation."""
+
+    def __init__(self, field: str, message: str) -> None:
+        super().__init__(
+            422,
+            "validation_error",
+            "Invalid request",
+            [{"field": field, "message": message}],
+        )
 
 
 def problem(
@@ -62,7 +81,9 @@ def _title(status: int) -> str:
 def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(AppError)
     async def _app_error(request: Request, exc: AppError) -> JSONResponse:
-        return problem(exc.status, exc.reason, _title(exc.status), request.url.path, exc.detail)
+        return problem(
+            exc.status, exc.reason, _title(exc.status), request.url.path, exc.detail, exc.errors
+        )
 
     @app.exception_handler(RequestValidationError)
     async def _validation(request: Request, exc: RequestValidationError) -> JSONResponse:

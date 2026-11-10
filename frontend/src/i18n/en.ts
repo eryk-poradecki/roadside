@@ -1,3 +1,11 @@
+// Safety checklist items shared by several problem types (docs/copy/safety-checklist.md).
+const getOut =
+  'Put on a reflective vest if you have one. Get everyone out on the side away from traffic, behind the barrier or well away from the road.'
+const triangle =
+  'Place the warning triangle behind the car: right behind it in town, 30–50 m outside built-up areas, 100 m on a motorway or expressway.'
+const call112 =
+  'Anyone hurt, smoke, fire, leaking fuel, or the car standing in a live lane: call 112.'
+
 /** English is the source of truth. `pl.ts` is typed against it, so a missing key fails `tsc`. */
 export const en = {
   appName: 'Roadside',
@@ -16,22 +24,121 @@ export const en = {
     heading: 'What happened?',
     subheading: "Pick one and we'll take it from there.",
     tilesLabel: 'What happened',
-    soon: 'Getting help from here arrives in the next update.',
     tiles: {
       tyre: 'Flat tyre',
       battery: 'Flat battery',
       fuel: 'Out of fuel',
+      charge: 'Out of charge',
       pothole: 'Pothole damage',
       other: 'Something else',
     },
+  },
+  location: {
+    label: 'Your location',
+    detecting: 'Finding your location…',
+    found: 'Your location',
+    denied: 'Location is off',
+    unavailable: "Can't find your location",
+    accuracy: 'Accurate to ~{{meters}} m',
+    noFix: 'You can still get help without it.',
+    retry: 'Try again',
+    north: 'N',
+    south: 'S',
+    east: 'E',
+    west: 'W',
+  },
+  sheet: {
+    close: 'Close',
+    intro: 'Add a few words if you like, or skip it.',
+    noteLabel: 'Anything we should know?',
+    notePlaceholder: 'For example: a warning light is on',
+    vehicleLabel: 'Which vehicle?',
+    noVehicle: 'No vehicle',
+    getHelp: 'Get help now',
+    sending: 'Getting help…',
   },
   history: {
     heading: 'History',
     soon: 'Your past incidents will show up here.',
   },
   incident: {
-    heading: 'Incident',
-    soon: 'This incident screen arrives in the next update.',
+    saved: 'Saved to your incidents',
+    resolved: 'Resolved',
+    noLocation: 'No location',
+    loadFailed: "We couldn't load this incident.",
+    aiTitle: 'Personalised steps',
+    aiBadge: 'AI',
+    aiSoon:
+      'Steps from the assistant arrive in the next update. The safety steps above work without it.',
+    nearbyTitle: 'Nearby',
+    nearbyBadge: 'Map data, not AI',
+    nearbySoon: 'Nearby tyre shops, fuel stations and garages arrive in the next update.',
+    addVehicle: 'Add your car so the next advice fits it.',
+    addVehicleLink: 'Add a vehicle',
+    callInsurer: 'Call {{insurer}}',
+    callAssistance: 'Call your assistance',
+    policy: 'Policy {{number}}',
+  },
+  checklist: {
+    firstLabel: 'Do this first',
+    checklistTitle: 'Then',
+    checklistBadge: 'Safety basics · not AI',
+    checklistSummary_one: '{{count}} more safety step',
+    checklistSummary_other: '{{count}} more safety steps',
+    resolvedSummary: 'Safety steps',
+    lists: {
+      tyre: {
+        first: 'Hazard lights on. Then stop as far from traffic as you safely can.',
+        items: [
+          getOut,
+          triangle,
+          "Don't change the tyre next to moving traffic or on the hard shoulder.",
+          call112,
+        ],
+      },
+      battery: {
+        first: 'Hazard lights on. Turn off the radio, air con and anything else drawing power.',
+        items: [
+          getOut,
+          triangle,
+          "Don't jump-start next to moving traffic or on the hard shoulder.",
+          call112,
+        ],
+      },
+      fuel: {
+        first:
+          'Hazard lights on. If the car is still rolling, steer to the safest spot off the road.',
+        items: [
+          getOut,
+          triangle,
+          "On a motorway or expressway, don't walk along the road to fetch fuel. Wait behind the barrier and call for help.",
+          call112,
+        ],
+      },
+      charge: {
+        first:
+          'Hazard lights on. While the car still moves, steer to the safest spot off the road.',
+        items: [
+          getOut,
+          triangle,
+          "Ask for a flatbed truck. Many electric cars can't be towed on their wheels.",
+          call112,
+        ],
+      },
+      pothole: {
+        first: "Slow down and stop only where it's safe. Hazard lights on.",
+        items: [
+          getOut,
+          "Don't drive on if a tyre, a wheel or the steering feels wrong.",
+          'Take photos of the hole and the damage, and note the exact place. They help with a claim later.',
+          call112,
+        ],
+      },
+      other: {
+        first: 'Hazard lights on. Then move away from traffic if you safely can.',
+        items: [getOut, triangle, call112],
+      },
+    },
   },
   vehicles: {
     heading: 'Vehicles',

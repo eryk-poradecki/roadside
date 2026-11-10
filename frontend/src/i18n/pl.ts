@@ -5,7 +5,18 @@ type PluralExtras = Record<`${string}_${'zero' | 'two' | 'few' | 'many'}`, strin
 /** Same shape as `en`, with every string free to differ. Polish adds the `_few` and `_many` plural forms. */
 type Localised<T> = { [K in keyof T]: T[K] extends string ? string : Localised<T[K]> }
 
-export const pl: Localised<Translation> & { vehicles: PluralExtras } = {
+// Safety checklist items shared by several problem types (docs/copy/safety-checklist.md).
+const getOut =
+  'Jeśli masz kamizelkę odblaskową, załóż ją. Wysiądźcie od strony pobocza i stańcie za barierą albo z dala od jezdni.'
+const triangle =
+  'Ustaw trójkąt ostrzegawczy za autem: w terenie zabudowanym tuż za nim, poza nim 30–50 m, na autostradzie lub drodze ekspresowej 100 m.'
+const call112 =
+  'Ktoś jest ranny, widać dym lub ogień, cieknie paliwo albo auto stoi na pasie ruchu: dzwoń pod 112.'
+
+export const pl: Localised<Translation> & {
+  vehicles: PluralExtras
+  checklist: PluralExtras
+} = {
   appName: 'Roadside',
   callEmergency: 'Zagrożenie? Dzwoń 112',
   call112Label: 'Zadzwoń pod numer alarmowy 112',
@@ -22,22 +33,124 @@ export const pl: Localised<Translation> & { vehicles: PluralExtras } = {
     heading: 'Co się stało?',
     subheading: 'Wybierz jedno, a my pomożemy dalej.',
     tilesLabel: 'Co się stało',
-    soon: 'Wezwanie pomocy z tego miejsca pojawi się w następnej aktualizacji.',
     tiles: {
       tyre: 'Przebita opona',
       battery: 'Rozładowany akumulator',
       fuel: 'Brak paliwa',
+      charge: 'Rozładowane auto',
       pothole: 'Dziura w drodze',
       other: 'Coś innego',
     },
+  },
+  location: {
+    label: 'Twoja lokalizacja',
+    detecting: 'Szukamy Twojej lokalizacji…',
+    found: 'Twoja lokalizacja',
+    denied: 'Lokalizacja wyłączona',
+    unavailable: 'Nie udało się ustalić lokalizacji',
+    accuracy: 'Dokładność ok. {{meters}} m',
+    noFix: 'Pomoc działa także bez niej.',
+    retry: 'Spróbuj ponownie',
+    north: 'N',
+    south: 'S',
+    east: 'E',
+    west: 'W',
+  },
+  sheet: {
+    close: 'Zamknij',
+    intro: 'Jeśli chcesz, dopisz kilka słów. Możesz też to pominąć.',
+    noteLabel: 'Coś jeszcze, co warto wiedzieć?',
+    notePlaceholder: 'Na przykład: świeci się kontrolka',
+    vehicleLabel: 'Który pojazd?',
+    noVehicle: 'Bez pojazdu',
+    getHelp: 'Potrzebuję pomocy',
+    sending: 'Wzywamy pomoc…',
   },
   history: {
     heading: 'Historia',
     soon: 'Tutaj pojawią się Twoje dawne zdarzenia.',
   },
   incident: {
-    heading: 'Zdarzenie',
-    soon: 'Ten ekran zdarzenia pojawi się w następnej aktualizacji.',
+    saved: 'Zapisane w Twoich zdarzeniach',
+    resolved: 'Rozwiązane',
+    noLocation: 'Brak lokalizacji',
+    loadFailed: 'Nie udało się wczytać tego zdarzenia.',
+    aiTitle: 'Kroki dopasowane do Ciebie',
+    aiBadge: 'AI',
+    aiSoon:
+      'Kroki od asystenta pojawią się w następnej aktualizacji. Kroki bezpieczeństwa powyżej działają bez nich.',
+    nearbyTitle: 'W pobliżu',
+    nearbyBadge: 'Dane z mapy, nie AI',
+    nearbySoon:
+      'Wulkanizacje, stacje paliw i warsztaty w pobliżu pojawią się w następnej aktualizacji.',
+    addVehicle: 'Dodaj swoje auto, aby kolejne porady do niego pasowały.',
+    addVehicleLink: 'Dodaj pojazd',
+    callInsurer: 'Zadzwoń: {{insurer}}',
+    callAssistance: 'Zadzwoń do assistance',
+    policy: 'Polisa {{number}}',
+  },
+  checklist: {
+    firstLabel: 'Zrób to najpierw',
+    checklistTitle: 'Potem',
+    checklistBadge: 'Podstawy bezpieczeństwa · nie AI',
+    checklistSummary_one: 'Jeszcze {{count}} krok bezpieczeństwa',
+    checklistSummary_few: 'Jeszcze {{count}} kroki bezpieczeństwa',
+    checklistSummary_many: 'Jeszcze {{count}} kroków bezpieczeństwa',
+    checklistSummary_other: 'Jeszcze {{count}} kroku bezpieczeństwa',
+    resolvedSummary: 'Kroki bezpieczeństwa',
+    lists: {
+      tyre: {
+        first: 'Włącz światła awaryjne. Zatrzymaj się jak najdalej od ruchu, na ile to bezpieczne.',
+        items: [
+          getOut,
+          triangle,
+          'Nie zmieniaj koła przy jadących autach ani na pasie awaryjnym.',
+          call112,
+        ],
+      },
+      battery: {
+        first: 'Włącz światła awaryjne. Wyłącz radio, klimatyzację i wszystko, co pobiera prąd.',
+        items: [
+          getOut,
+          triangle,
+          'Nie odpalaj „na kable” przy jadących autach ani na pasie awaryjnym.',
+          call112,
+        ],
+      },
+      fuel: {
+        first:
+          'Włącz światła awaryjne. Jeśli auto jeszcze się toczy, zjedź w najbezpieczniejsze miejsce poza jezdnią.',
+        items: [
+          getOut,
+          triangle,
+          'Na autostradzie lub drodze ekspresowej nie idź po paliwo wzdłuż jezdni. Zaczekaj za barierą i wezwij pomoc.',
+          call112,
+        ],
+      },
+      charge: {
+        first:
+          'Włącz światła awaryjne. Póki auto jeszcze jedzie, zjedź w najbezpieczniejsze miejsce poza jezdnią.',
+        items: [
+          getOut,
+          triangle,
+          'Poproś o lawetę. Wiele aut elektrycznych nie może być holowanych na kołach.',
+          call112,
+        ],
+      },
+      pothole: {
+        first: 'Zwolnij i zatrzymaj się tylko w bezpiecznym miejscu. Włącz światła awaryjne.',
+        items: [
+          getOut,
+          'Nie jedź dalej, jeśli opona, koło lub kierownica zachowują się dziwnie.',
+          'Zrób zdjęcia dziury i uszkodzeń i zapisz dokładne miejsce. Przydadzą się przy zgłoszeniu szkody.',
+          call112,
+        ],
+      },
+      other: {
+        first: 'Włącz światła awaryjne. Odsuń się od ruchu, jeśli to bezpieczne.',
+        items: [getOut, triangle, call112],
+      },
+    },
   },
   vehicles: {
     heading: 'Pojazdy',

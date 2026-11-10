@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateVehicleData, CreateVehicleErrors, CreateVehicleResponses, DeleteVehicleData, DeleteVehicleErrors, DeleteVehicleResponses, GetVehicleData, GetVehicleErrors, GetVehicleResponses, HealthData, HealthResponses, ListVehiclesData, ListVehiclesResponses, ReadConfigData, ReadConfigResponses, ReplaceVehicleData, ReplaceVehicleErrors, ReplaceVehicleResponses } from './types.gen';
+import type { CreateIncidentData, CreateIncidentErrors, CreateIncidentResponses, CreateVehicleData, CreateVehicleErrors, CreateVehicleResponses, DeleteVehicleData, DeleteVehicleErrors, DeleteVehicleResponses, GetIncidentData, GetIncidentErrors, GetIncidentResponses, GetVehicleData, GetVehicleErrors, GetVehicleResponses, HealthData, HealthResponses, ListVehiclesData, ListVehiclesResponses, ReadConfigData, ReadConfigResponses, ReplaceVehicleData, ReplaceVehicleErrors, ReplaceVehicleResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -22,6 +22,23 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
  * Read Config
  */
 export const readConfig = <ThrowOnError extends boolean = false>(options?: Options<ReadConfigData, ThrowOnError>): RequestResult<ReadConfigResponses, unknown, ThrowOnError> => (options?.client ?? client).get<ReadConfigResponses, unknown, ThrowOnError>({ url: '/api/v1/config', ...options });
+
+/**
+ * Create Incident
+ */
+export const createIncident = <ThrowOnError extends boolean = false>(options: Options<CreateIncidentData, ThrowOnError>): RequestResult<CreateIncidentResponses, CreateIncidentErrors, ThrowOnError> => (options.client ?? client).post<CreateIncidentResponses, CreateIncidentErrors, ThrowOnError>({
+    url: '/api/v1/incidents',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Get Incident
+ */
+export const getIncident = <ThrowOnError extends boolean = false>(options: Options<GetIncidentData, ThrowOnError>): RequestResult<GetIncidentResponses, GetIncidentErrors, ThrowOnError> => (options.client ?? client).get<GetIncidentResponses, GetIncidentErrors, ThrowOnError>({ url: '/api/v1/incidents/{incident_id}', ...options });
 
 /**
  * List Vehicles

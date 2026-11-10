@@ -1,5 +1,3 @@
-from datetime import UTC, datetime
-
 import aiosqlite
 
 from app.db.connection import transaction
@@ -7,10 +5,7 @@ from app.domain.vehicle import Vehicle
 from app.errors import NotFoundError
 from app.repositories.vehicles import VehicleRepository
 from app.schemas.vehicle import VehicleCreate, VehicleUpdate
-
-
-def utc_now() -> str:
-    return datetime.now(UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+from app.services.clock import utc_now
 
 
 class VehicleService:

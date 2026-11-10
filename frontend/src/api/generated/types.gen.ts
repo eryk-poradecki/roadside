@@ -56,6 +56,105 @@ export type HealthRead = {
 };
 
 /**
+ * IncidentCreate
+ *
+ * Only `problem_type` is required. The server sets the status (`open`) and `created_at`.
+ */
+export type IncidentCreate = {
+    location?: LocationIn | null;
+    /**
+     * Note
+     */
+    note?: string | null;
+    problem_type: ProblemType;
+    /**
+     * Vehicle Id
+     */
+    vehicle_id?: number | null;
+};
+
+/**
+ * IncidentRead
+ */
+export type IncidentRead = {
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Id
+     */
+    id: number;
+    location: LocationRead | null;
+    /**
+     * Location Label
+     */
+    location_label: string | null;
+    /**
+     * Note
+     */
+    note: string | null;
+    problem_type: ProblemType;
+    status: IncidentStatus;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+    /**
+     * Vehicle Id
+     */
+    vehicle_id: number | null;
+};
+
+/**
+ * IncidentStatus
+ */
+export type IncidentStatus = 'open' | 'resolved';
+
+/**
+ * LocationIn
+ *
+ * A GPS fix from the browser. `accuracy_m` is the reported radius in metres.
+ */
+export type LocationIn = {
+    /**
+     * Accuracy M
+     */
+    accuracy_m?: number | null;
+    /**
+     * Lat
+     */
+    lat: number;
+    /**
+     * Lon
+     */
+    lon: number;
+};
+
+/**
+ * LocationRead
+ */
+export type LocationRead = {
+    /**
+     * Accuracy M
+     */
+    accuracy_m: number | null;
+    /**
+     * Lat
+     */
+    lat: number;
+    /**
+     * Lon
+     */
+    lon: number;
+};
+
+/**
+ * ProblemType
+ */
+export type ProblemType = 'flat_tyre' | 'flat_battery' | 'out_of_fuel' | 'pothole_damage' | 'other';
+
+/**
  * SamplePhoto
  */
 export type SamplePhoto = {
@@ -305,6 +404,73 @@ export type ReadConfigResponses = {
 };
 
 export type ReadConfigResponse = ReadConfigResponses[keyof ReadConfigResponses];
+
+export type CreateIncidentData = {
+    body: IncidentCreate;
+    headers?: {
+        /**
+         * Idempotency-Key
+         *
+         * A fresh value (e.g. a UUID) per help request. A repeat returns 200 with the incident the key first created.
+         */
+        'Idempotency-Key'?: string | null;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/v1/incidents';
+};
+
+export type CreateIncidentErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateIncidentError = CreateIncidentErrors[keyof CreateIncidentErrors];
+
+export type CreateIncidentResponses = {
+    /**
+     * Repeated Idempotency-Key
+     */
+    200: IncidentRead;
+    /**
+     * Successful Response
+     */
+    201: IncidentRead;
+};
+
+export type CreateIncidentResponse = CreateIncidentResponses[keyof CreateIncidentResponses];
+
+export type GetIncidentData = {
+    body?: never;
+    path: {
+        /**
+         * Incident Id
+         */
+        incident_id: number;
+    };
+    query?: never;
+    url: '/api/v1/incidents/{incident_id}';
+};
+
+export type GetIncidentErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetIncidentError = GetIncidentErrors[keyof GetIncidentErrors];
+
+export type GetIncidentResponses = {
+    /**
+     * Successful Response
+     */
+    200: IncidentRead;
+};
+
+export type GetIncidentResponse = GetIncidentResponses[keyof GetIncidentResponses];
 
 export type ListVehiclesData = {
     body?: never;

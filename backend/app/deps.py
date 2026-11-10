@@ -5,7 +5,9 @@ import aiosqlite
 from fastapi import Depends, Request
 
 from app.db.connection import connect
+from app.repositories.incidents import SqliteIncidentRepository
 from app.repositories.vehicles import SqliteVehicleRepository
+from app.services.incidents import IncidentService
 from app.services.vehicles import VehicleService
 from app.settings import Settings
 
@@ -31,3 +33,7 @@ Connection = Annotated[aiosqlite.Connection, Depends(get_connection)]
 
 def get_vehicle_service(conn: Connection) -> VehicleService:
     return VehicleService(conn, SqliteVehicleRepository(conn))
+
+
+def get_incident_service(conn: Connection) -> IncidentService:
+    return IncidentService(conn, SqliteIncidentRepository(conn), SqliteVehicleRepository(conn))
