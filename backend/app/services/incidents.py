@@ -2,11 +2,12 @@ import sqlite3
 
 import aiosqlite
 
-from app.db.connection import transaction
-from app.domain.incident import Incident, NewIncident
+from app.db.connection import read_snapshot, transaction
+from app.domain.incident import Incident, IncidentStatus, NewIncident
 from app.errors import FieldValidationError, NotFoundError
 from app.repositories.incidents import IncidentRepository
 from app.repositories.vehicles import VehicleRepository
+from app.schemas.incident import IncidentPatch
 from app.services.clock import utc_now
 
 
@@ -57,3 +58,30 @@ class IncidentService:
                 raise
             return existing, False
         return await self.get(new_id), True
+
+    async def list(
+        self, status: IncidentStatus | None, vehicle_id: int | None, limit: int, offset: int
+    ) -> tuple[list[Incident], int]:
+        async with read_snapshot(self._conn):
+            return await self._incidents.list_page(status, vehicle_id, limit, offset)
+
+    async def update(self, incident_id: int, patch: IncidentPatch) -> Incident:
+        """Apply a partial update. A patch that changes nothing writes nothing."""
+        async with transaction(self._conn):
+            current = await self.get(incident_id)
+            new = patch.apply(current)
+            if new == current:
+                return current
+            if (
+                new.vehicle_id is not None
+                and new.vehicle_id != current.vehicle_id
+                and await self._vehicles.get(new.vehicle_id) is None
+            ):
+                raise FieldValidationError("vehicle_id", "Unknown vehicle")
+            await self._incidents.update(new, utc_now())
+        return await self.get(incident_id)
+
+    async def delete(self, incident_id: int) -> None:
+        async with transaction(self._conn):
+            if not await self._incidents.delete(incident_id):
+                raise NotFoundError("Incident")

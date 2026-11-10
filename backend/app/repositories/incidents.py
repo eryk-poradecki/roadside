@@ -15,6 +15,11 @@ class IncidentRepository(Protocol):
     async def get(self, incident_id: int) -> Incident | None: ...
     async def get_by_idempotency_key(self, key: str) -> Incident | None: ...
     async def insert(self, data: NewIncident, idempotency_key: str | None, now: str) -> int: ...
+    async def list_page(
+        self, status: IncidentStatus | None, vehicle_id: int | None, limit: int, offset: int
+    ) -> tuple[list[Incident], int]: ...
+    async def update(self, incident: Incident, now: str) -> None: ...
+    async def delete(self, incident_id: int) -> bool: ...
 
 
 def _to_domain(r: sqlite3.Row) -> Incident:
@@ -74,3 +79,50 @@ class SqliteIncidentRepository:
         if cur.lastrowid is None:
             raise RuntimeError("INSERT returned no row id")
         return cur.lastrowid
+
+    async def list_page(
+        self, status: IncidentStatus | None, vehicle_id: int | None, limit: int, offset: int
+    ) -> tuple[list[Incident], int]:
+        """One page newest first (id breaks ties within a millisecond) and the filtered total."""
+        clauses: list[str] = []
+        params: list[object] = []
+        if status is not None:
+            clauses.append("status = ?")
+            params.append(status.value)
+        if vehicle_id is not None:
+            clauses.append("vehicle_id = ?")
+            params.append(vehicle_id)
+        where = f" WHERE {' AND '.join(clauses)}" if clauses else ""
+        cur = await self._conn.execute(f"SELECT count(*) FROM incidents{where}", params)  # noqa: S608
+        row = await cur.fetchone()
+        total = int(row[0]) if row else 0
+        cur = await self._conn.execute(
+            f"{_SELECT}{where} ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?",
+            (*params, limit, offset),
+        )
+        return [_to_domain(r) for r in await cur.fetchall()], total
+
+    async def update(self, incident: Incident, now: str) -> None:
+        """Write every driver-editable field of `incident`. The status is one of them."""
+        loc = incident.location
+        await self._conn.execute(
+            "UPDATE incidents SET problem_type = ?, status = ?, vehicle_id = ?, note = ?, "
+            "lat = ?, lon = ?, accuracy_m = ?, location_label = ?, updated_at = ? WHERE id = ?",
+            (
+                incident.problem_type.value,
+                incident.status.value,
+                incident.vehicle_id,
+                incident.note,
+                loc.lat if loc else None,
+                loc.lon if loc else None,
+                loc.accuracy_m if loc else None,
+                incident.location_label,
+                now,
+                incident.id,
+            ),
+        )
+
+    async def delete(self, incident_id: int) -> bool:
+        """Hard delete. Owned rows go with it through ON DELETE CASCADE (ADR 0001, 0006)."""
+        cur = await self._conn.execute("DELETE FROM incidents WHERE id = ?", (incident_id,))
+        return cur.rowcount > 0

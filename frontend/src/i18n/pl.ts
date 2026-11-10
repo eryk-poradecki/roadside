@@ -16,6 +16,7 @@ const call112 =
 export const pl: Localised<Translation> & {
   vehicles: PluralExtras
   checklist: PluralExtras
+  history: PluralExtras
 } = {
   appName: 'Roadside',
   callEmergency: 'Zagrożenie? Dzwoń 112',
@@ -68,7 +69,18 @@ export const pl: Localised<Translation> & {
   },
   history: {
     heading: 'Historia',
-    soon: 'Tutaj pojawią się Twoje dawne zdarzenia.',
+    count_one: '{{count}} zdarzenie',
+    count_few: '{{count}} zdarzenia',
+    count_many: '{{count}} zdarzeń',
+    count_other: '{{count}} zdarzenia',
+    filterLabel: 'Pokaż zdarzenia',
+    filters: { all: 'Wszystkie', open: 'Otwarte', resolved: 'Rozwiązane' },
+    listLabel: 'Twoje zdarzenia',
+    empty: 'Nie masz jeszcze zdarzeń. Każde wezwanie pomocy zapisze się tutaj.',
+    emptyOpen: 'Brak otwartych zdarzeń.',
+    emptyResolved: 'Nie masz jeszcze rozwiązanych zdarzeń.',
+    loadFailed: 'Nie udało się wczytać Twoich zdarzeń.',
+    more: 'Pokaż więcej',
   },
   incident: {
     saved: 'Zapisane w Twoich zdarzeniach',
@@ -87,6 +99,27 @@ export const pl: Localised<Translation> & {
     callInsurer: 'Zadzwoń: {{insurer}}',
     callAssistance: 'Zadzwoń do assistance',
     policy: 'Polisa {{number}}',
+    open: 'Otwarte',
+    markResolved: 'Oznacz jako rozwiązane',
+    reopen: 'Otwórz ponownie',
+    edit: 'Edytuj szczegóły',
+    manageLabel: 'Zarządzaj zdarzeniem',
+    delete: 'Usuń zdarzenie',
+    confirmDelete: 'Usunąć to zdarzenie? Tego nie da się cofnąć.',
+    confirmDeleteYes: 'Tak, usuń',
+  },
+  incidentForm: {
+    heading: 'Edytuj zdarzenie',
+    problemType: 'Co się stało',
+    note: 'Notatka',
+    vehicle: 'Pojazd',
+    noVehicle: 'Bez pojazdu',
+    location: 'Lokalizacja',
+    useCurrent: 'Użyj obecnej lokalizacji',
+    detecting: 'Szukamy Twojej lokalizacji…',
+    removeLocation: 'Usuń lokalizację',
+    save: 'Zapisz zmiany',
+    saving: 'Zapisywanie…',
   },
   checklist: {
     firstLabel: 'Zrób to najpierw',

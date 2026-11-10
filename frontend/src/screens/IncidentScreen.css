@@ -159,3 +159,82 @@
   opacity: 0.8;
   overflow-wrap: anywhere;
 }
+
+/* Resolved: the whole checklist folds into one "Safety steps" disclosure (ADR 0010). */
+.fold {
+  display: block;
+}
+.fold summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  margin: -12px 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  list-style: none;
+  cursor: pointer;
+}
+.fold summary::-webkit-details-marker {
+  display: none;
+}
+.fold-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 26px;
+}
+.fold-icon {
+  flex: none;
+  color: var(--muted);
+  transition: transform 160ms ease-out;
+}
+.fold[open] .fold-icon {
+  transform: rotate(180deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .fold-icon {
+    transition: none;
+  }
+}
+
+/* Upkeep: status first, then the quieter edit and delete. */
+.upkeep {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 4px;
+}
+.upkeep-status {
+  width: 100%;
+  min-height: 56px;
+  font-size: 1.0625rem;
+}
+.upkeep-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.upkeep-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--sos-line);
+  border-radius: var(--r);
+}
+
+/* Edit form: the location readout above its two actions. */
+.edit-place {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.edit-place svg {
+  flex: none;
+  color: var(--muted);
+}

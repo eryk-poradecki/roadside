@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router'
 import { AppShell } from './components/AppShell'
 import { TabBar } from './components/TabBar'
 import { History } from './screens/History'
+import { IncidentEdit } from './screens/IncidentEdit'
 import { IncidentScreen } from './screens/IncidentScreen'
 import { Start } from './screens/Start'
 import { VehicleForm } from './screens/VehicleForm'
@@ -18,6 +19,7 @@ export function AppRoutes() {
       </Route>
       <Route element={<AppShell />}>
         <Route path="incidents/:id" element={<IncidentScreen />} />
+        <Route path="incidents/:id/edit" element={<IncidentEdit />} />
         <Route path="vehicles/new" element={<VehicleForm />} />
         <Route path="vehicles/:id" element={<VehicleForm />} />
       </Route>
