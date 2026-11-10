@@ -87,6 +87,10 @@ Tools come back where the model makes a real choice: the damage report (if it be
 - **`CLIProvider`** (Claude Code `claude -p`) is the provider that records the demo replays and the demo video, for the best model quality available.
   - It is dev-only: allowed only with `LLM_RECORD=true`, refused in demo mode, never deployed.
   - It runs as a bare model: all tools disabled, an empty temporary working directory, no repo access.
+    - Verified flags ([research #31](https://github.com/eryk-poradecki/roadside/issues/31)): `--tools "" --disallowedTools "mcp__*" --strict-mcp-config --setting-sources "" --disable-slash-commands --no-session-persistence --system-prompt <file contents>`. `--bare` is not used, because it needs an API key instead of the subscription login.
+    - Images go in as base64 `image` blocks in one `stream-json` stdin message, so vision needs no tool.
+    - **`--json-schema` is not used.** It enforces the schema by injecting a synthetic `StructuredOutput` tool, which would break the no-tools rule. The schema is put in the prompt instead, and the output goes through the same Pydantic validation and repair call as every other provider.
+    - The model id is read from the `modelUsage` key. Failure is detected from `is_error` in the result JSON, not only from the exit code.
   - Its output goes through the same validation and repair as every other provider.
   - Image input has to be verified before anything relies on it.
   - The README and AI_USAGE name the CLI and model that recorded the demo.
