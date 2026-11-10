@@ -29,12 +29,28 @@ The two statuses of an incident. Every incident starts open; only the driver cha
 _Avoid_: closed, done, archived
 
 **AI answer**:
-Everything the assistant returned for one incident's help request. It is a record of what the assistant said and never changes once stored; it may be missing if the assistant failed or timed out, until a retry succeeds. It keeps the inputs it was answered for (problem type, note, vehicle), so a later edit to the incident cannot make it look wrong.
-_Avoid_: AI response, response, result
+Everything the assistant returned for one incident's help request: zero to two clarifying questions, each followed by the driver's reply, then the advice. It only grows; no part of it is ever rewritten, and the advice closes it. It may be missing or stop before the advice if the assistant failed or timed out, until a retry succeeds. Each part the assistant produced keeps the inputs it was produced from (problem type, note, vehicle facts, location context, local time), so a later edit to the incident cannot make it look wrong.
+_Avoid_: AI response, response, result, conversation
+
+**Clarifying question**:
+A turn in which the assistant asks instead of advising: first one immediate "right now" safety step, then one question with two to four options. It is asked only when the answer would change the first steps, and at most twice per incident.
+_Avoid_: follow-up, prompt
+
+**Reply**:
+The driver's response to a clarifying question: one of the options, a short free text, or "Just give me the steps", which skips further questions and asks for advice at once.
+_Avoid_: answer (that word belongs to the AI answer)
+
+**Advice**:
+The final part of an AI answer: the diagnosis, the numbered steps, the "stop and call for help if" conditions and what the assistant saw in the photos. Nothing follows it.
+_Avoid_: final answer, response, solution
 
 **Diagnosis**:
-The part of an AI answer that says what is probably wrong, next to the steps and the stated uncertainty.
-_Avoid_: using it for the whole AI answer
+The part of the advice that says what is probably wrong: the likely cause, how confident the assistant is (likely, possible, unsure) and up to two other possible causes.
+_Avoid_: using it for the whole AI answer or the whole advice
+
+**Location context**:
+A coarse description of where the driver is, derived from the location: the kind of road (motorway or expressway, main road, local street) and the kind of place (city, town, village, countryside), each possibly unknown. It is what the assistant learns about the location; the assistant never sees the location itself.
+_Avoid_: location, address, geocode
 
 **Vehicle**:
 One of the driver's cars, with the details the assistant relies on: name, model, year, fuel type, transmission, tyre size, spare wheel, wheel locks and where their key is, registration, assistance insurance. Only the name is required; any detail left empty is unknown, which is not the same as "none" (an unknown spare wheel is not "no spare wheel"). A driver may keep several (e.g. the family's cars).
@@ -53,7 +69,7 @@ Static, non-AI first steps shown immediately for a problem type, before and alon
 _Avoid_: instructions, tips, AI steps
 
 **Nearby place**:
-A real place from OpenStreetMap near the driver (tyre shop, fuel station, car repair, towing), always labelled as map data, never produced by the model.
+A real place from OpenStreetMap near the driver (tyre shop, fuel station, charging station, car repair), always labelled as map data, never produced by the model.
 _Avoid_: suggestion, recommendation
 
 **Damage report**:
