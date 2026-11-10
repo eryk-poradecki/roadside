@@ -64,6 +64,10 @@ export function useTakeAiTurn(incidentId: number) {
           ? { ...incident, ai_turns: [...incident.ai_turns, turn] }
           : incident,
       )
+      // The first turn also stores the location label (ADR 0004): refetch it for the
+      // incident and History.
+      void queryClient.invalidateQueries({ queryKey: incidentKey })
+      void queryClient.invalidateQueries({ queryKey: [{ _id: 'listIncidents' }] })
     },
     onError: (error) => {
       if (!isApiError(error)) return
