@@ -13,12 +13,28 @@ What happened, as one of the quick picks: flat tyre, flat battery, out of fuel, 
 _Avoid_: tile (that is the UI control that picks it), category, incident type
 
 **Incident**:
-One roadside event the driver chose to keep: problem type, location, optional photo and note, and what the assistant said.
-_Avoid_: case, event, ticket, report
+One roadside event, starting the moment the driver asks for help ("Get help now"): problem type, optionally a vehicle, location, note, photos, the nearby places shown, and the AI answer once it arrives. The incident outlives a deleted vehicle; its photos and damage report do not outlive the incident. Every help request is an incident; there is no separate "save" step, and unwanted ones are deleted.
+_Avoid_: case, event, ticket, report, draft
 
-**Vehicle profile**:
-The driver's car details the assistant relies on: model, tyre size, spare wheel, wheel lock key, assistance insurance.
-_Avoid_: car, vehicle settings
+**Open** / **Resolved**:
+The two statuses of an incident. Every incident starts open; only the driver changes it, marking it resolved when the situation is sorted or reopening it.
+_Avoid_: closed, done, archived
+
+**AI answer**:
+Everything the assistant returned for one incident's help request. It is a record of what the assistant said and never changes once stored; it may be missing if the assistant failed or timed out, until a retry succeeds. It keeps the inputs it was answered for (problem type, note, vehicle), so a later edit to the incident cannot make it look wrong.
+_Avoid_: AI response, response, result
+
+**Diagnosis**:
+The part of an AI answer that says what is probably wrong, next to the steps and the stated uncertainty.
+_Avoid_: using it for the whole AI answer
+
+**Vehicle**:
+One of the driver's cars, with the details the assistant relies on: model, tyre size, spare wheel, wheel lock key, assistance insurance. A driver may keep several (e.g. the family's cars).
+_Avoid_: car, vehicle profile
+
+**Default vehicle**:
+The driver's daily driver: the vehicle a new help request uses unless the driver picks another. At most one vehicle is the default; there may be none.
+_Avoid_: favorite, primary, last used vehicle
 
 **Safety checklist**:
 Static, non-AI first steps shown immediately for a problem type, before and alongside any AI answer.
@@ -42,5 +58,9 @@ _Avoid_: replay mode, mock mode, offline mode
 The mobile first screen: problem-type quick picks, optional photo and note, detected location.
 
 **Result screen**:
-The mobile screen after "Get help now": safety checklist first, then the AI answer, nearby places and "save as incident".
+The mobile screen after "Get help now": safety checklist first, then the AI answer, nearby places and "Mark resolved".
 _Avoid_: handoff (the prototype's working name for it)
+
+**Vehicles screen**:
+Where the driver adds, edits and removes vehicles and picks the default vehicle.
+_Avoid_: vehicle profile screen
