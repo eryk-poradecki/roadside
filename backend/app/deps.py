@@ -6,11 +6,13 @@ from fastapi import Depends, Request
 
 from app.db.connection import connect
 from app.integrations.llm.base import LLMProvider
+from app.integrations.nominatim import ReverseGeocoder
 from app.repositories.ai_turns import SqliteAiTurnRepository
 from app.repositories.incidents import SqliteIncidentRepository
 from app.repositories.vehicles import SqliteVehicleRepository
 from app.services.assistant import AssistantService, TurnLocks
 from app.services.incidents import IncidentService
+from app.services.location import LocationResolver
 from app.services.vehicles import VehicleService
 from app.settings import Settings
 
@@ -58,11 +60,29 @@ def get_turn_locks(request: Request) -> TurnLocks:
     return locks
 
 
+def get_geocoder(request: Request) -> ReverseGeocoder | None:
+    """None in demo mode; tests override it with a fake."""
+    geocoder: ReverseGeocoder | None = request.app.state.geocoder
+    return geocoder
+
+
+def get_location_resolver(
+    settings: Annotated[Settings, Depends(get_settings)],
+    geocoder: Annotated[ReverseGeocoder | None, Depends(get_geocoder)],
+) -> LocationResolver:
+    return LocationResolver(
+        geocoder,
+        max_gps_accuracy_m=settings.location_max_gps_accuracy_m,
+        max_road_distance_m=settings.location_max_road_distance_m,
+    )
+
+
 def get_assistant_service(
     conn: Connection,
     settings: Annotated[Settings, Depends(get_settings)],
     provider: Annotated[LLMProvider, Depends(get_llm_provider)],
     locks: Annotated[TurnLocks, Depends(get_turn_locks)],
+    location: Annotated[LocationResolver, Depends(get_location_resolver)],
 ) -> AssistantService:
     return AssistantService(
         conn,
@@ -72,4 +92,5 @@ def get_assistant_service(
         provider,
         locks,
         settings.llm_turn_budget_s,
+        location,
     )

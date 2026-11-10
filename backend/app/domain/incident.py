@@ -1,7 +1,11 @@
 from dataclasses import dataclass
 from enum import StrEnum
+from typing import TYPE_CHECKING
 
 from app.domain.ai_turn import AiTurn
+
+if TYPE_CHECKING:
+    from app.domain.location_context import LocationContext
 
 
 class ProblemType(StrEnum):
@@ -45,6 +49,8 @@ class Incident:
     location_label: str | None
     created_at: str
     updated_at: str
+    # Cached at the first AI turn; None until looked up, and cleared with a new location.
+    location_context: "LocationContext | None" = None
 
 
 @dataclass(frozen=True, slots=True)

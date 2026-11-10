@@ -4,10 +4,11 @@ from typing import Protocol
 import aiosqlite
 
 from app.domain.incident import Incident, IncidentStatus, Location, NewIncident, ProblemType
+from app.domain.location_context import LocationContext, RoadClass, Settlement
 
 _SELECT = (
     "SELECT id, problem_type, status, vehicle_id, note, lat, lon, accuracy_m, location_label, "
-    "created_at, updated_at FROM incidents"
+    "road_class, settlement, created_at, updated_at FROM incidents"
 )
 
 
@@ -28,6 +29,11 @@ def _to_domain(r: sqlite3.Row) -> Incident:
         if r["lat"] is not None
         else None
     )
+    context = (
+        LocationContext(RoadClass(r["road_class"]), Settlement(r["settlement"]))
+        if r["road_class"] is not None
+        else None
+    )
     return Incident(
         id=r["id"],
         problem_type=ProblemType(r["problem_type"]),
@@ -38,6 +44,7 @@ def _to_domain(r: sqlite3.Row) -> Incident:
         location_label=r["location_label"],
         created_at=r["created_at"],
         updated_at=r["updated_at"],
+        location_context=context,
     )
 
 
@@ -104,10 +111,11 @@ class SqliteIncidentRepository:
 
     async def update(self, incident: Incident, now: str) -> None:
         """Write every driver-editable field of `incident`. The status is one of them."""
-        loc = incident.location
+        loc, ctx = incident.location, incident.location_context
         await self._conn.execute(
             "UPDATE incidents SET problem_type = ?, status = ?, vehicle_id = ?, note = ?, "
-            "lat = ?, lon = ?, accuracy_m = ?, location_label = ?, updated_at = ? WHERE id = ?",
+            "lat = ?, lon = ?, accuracy_m = ?, location_label = ?, road_class = ?, settlement = ?, "
+            "updated_at = ? WHERE id = ?",
             (
                 incident.problem_type.value,
                 incident.status.value,
@@ -117,6 +125,8 @@ class SqliteIncidentRepository:
                 loc.lon if loc else None,
                 loc.accuracy_m if loc else None,
                 incident.location_label,
+                ctx.road_class.value if ctx else None,
+                ctx.settlement.value if ctx else None,
                 now,
                 incident.id,
             ),

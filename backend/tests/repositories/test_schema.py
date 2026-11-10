@@ -66,13 +66,14 @@ def test_incident_enum_lists_match_pydantic_enums(tmp_path: Path) -> None:
     import re
 
     from app.domain.incident import IncidentStatus, ProblemType
+    from app.domain.location_context import RoadClass, Settlement
 
     db = tmp_path / "i.db"
     migrate(db)
     with closing(sqlite3.connect(db)) as c:
         sql = str(c.execute("SELECT sql FROM sqlite_master WHERE name='incidents'").fetchone()[0])
     assert "STRICT" in sql
-    known = {m.value for e in (ProblemType, IncidentStatus) for m in e}
+    known = {m.value for e in (ProblemType, IncidentStatus, RoadClass, Settlement) for m in e}
     assert set(re.findall(r"'([a-z_]+)'", sql)) == known
 
 
