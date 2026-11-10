@@ -6,7 +6,7 @@ import { useCreateIncident } from '../api/incidents'
 import type { VehicleRead } from '../api/vehicles'
 import type { GeoState } from '../lib/geolocation'
 import { problemKey, type ProblemType } from '../lib/problemType'
-import { uuid } from '../lib/uuid'
+import { EmergencyLink } from './AppShell'
 import { ErrorNotice } from './ErrorNotice'
 import { TILE_ICONS } from './tiles'
 import './HelpSheet.css'
@@ -18,21 +18,28 @@ type Props = {
   problemType: ProblemType
   vehicles: VehicleRead[]
   geo: GeoState
+  /** One per help request, owned by Start so it survives closing and reopening the sheet. */
+  idempotencyKey: string
+  onCreated: () => void
   onClose: () => void
 }
 
-/**
- * The help sheet: optional note, the vehicle for this request, and "Get help now".
- * Mounted fresh for every tile tap, so each help request gets its own idempotency key.
- */
-export function HelpSheet({ problemType, vehicles, geo, onClose }: Props) {
+/** The help sheet: optional note, the vehicle for this request, and "Get help now". */
+export function HelpSheet({
+  problemType,
+  vehicles,
+  geo,
+  idempotencyKey,
+  onCreated,
+  onClose,
+}: Props) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const create = useCreateIncident()
   const ref = useRef<HTMLDialogElement>(null)
   const titleRef = useRef<HTMLHeadingElement>(null)
-  // One key per help request: a double tap or a re-tap after a failure reuses it.
-  const key = useRef<string | null>(null)
+  // A request that finishes after the driver closed the sheet must not navigate them away.
+  const mounted = useRef(true)
   const [note, setNote] = useState('')
   // `undefined` until the driver picks: follow the default vehicle, even if it loads late.
   const [picked, setPicked] = useState<number | null | undefined>(undefined)
@@ -46,23 +53,28 @@ export function HelpSheet({ problemType, vehicles, geo, onClose }: Props) {
   const Icon = TILE_ICONS[label]
 
   useEffect(() => {
+    mounted.current = true
     const dialog = ref.current
     if (dialog && !dialog.open) dialog.showModal()
     titleRef.current?.focus()
+    return () => {
+      mounted.current = false
+    }
   }, [])
 
   const submit = async () => {
-    key.current ??= uuid()
     const location =
       geo.status === 'found' ? { lat: geo.lat, lon: geo.lon, accuracy_m: geo.accuracy } : null
     try {
       const incident = await create.create(
         { problem_type: problemType, vehicle_id: vehicleId, note: note.trim() || null, location },
-        key.current,
+        idempotencyKey,
       )
-      void navigate(`/incidents/${String(incident.id)}`, { state: { fromHelp: true } })
+      onCreated()
+      if (mounted.current)
+        void navigate(`/incidents/${String(incident.id)}`, { state: { fromHelp: true } })
     } catch {
-      // Shown below from `create.error`; the driver can tap again with the same key.
+      // Shown below from `create.error`. A re-tap reuses the key, so it can't duplicate.
     }
   }
 
@@ -84,9 +96,7 @@ export function HelpSheet({ problemType, vehicles, geo, onClose }: Props) {
           <h2 id={titleId} ref={titleRef} tabIndex={-1}>
             {t(`start.tiles.${label}`)}
           </h2>
-          <a className="sos-chip" href="tel:112" aria-label={t('call112Label')}>
-            112
-          </a>
+          <EmergencyLink className="sos-chip">112</EmergencyLink>
           <button
             type="button"
             className="icon-btn"

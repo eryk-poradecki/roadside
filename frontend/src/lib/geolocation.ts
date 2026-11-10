@@ -48,5 +48,5 @@ export function useGeolocation() {
     setAttempt((n) => n + 1)
   }, [])
 
-  return { state, retry }
+  return { state, retry, supported: supported() }
 }

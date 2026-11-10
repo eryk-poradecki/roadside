@@ -65,7 +65,6 @@ export const en = {
     saved: 'Saved to your incidents',
     resolved: 'Resolved',
     noLocation: 'No location',
-    loadFailed: "We couldn't load this incident.",
     aiTitle: 'Personalised steps',
     aiBadge: 'AI',
     aiSoon:

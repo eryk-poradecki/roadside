@@ -74,7 +74,6 @@ export const pl: Localised<Translation> & {
     saved: 'Zapisane w Twoich zdarzeniach',
     resolved: 'Rozwiązane',
     noLocation: 'Brak lokalizacji',
-    loadFailed: 'Nie udało się wczytać tego zdarzenia.',
     aiTitle: 'Kroki dopasowane do Ciebie',
     aiBadge: 'AI',
     aiSoon:

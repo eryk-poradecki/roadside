@@ -33,7 +33,11 @@ export function IncidentScreen() {
     return (
       <>
         {back}
-        {incident.isError || !incident.isEnabled ? (
+        {!incident.isEnabled ? (
+          <p className="notice notice-error" role="alert">
+            {t('errors.not_found')}
+          </p>
+        ) : incident.isError ? (
           <ErrorNotice error={incident.error} />
         ) : (
           <p className="muted">{t('common.loading')}</p>
@@ -55,7 +59,14 @@ export function IncidentScreen() {
   const vehicle = vehicles.data?.find((v) => v.id === vehicleId) ?? null
   const noVehicles = vehicles.data?.length === 0
 
-  return <Result incident={incident.data} vehicle={vehicle} noVehicles={noVehicles} back={back} />
+  return (
+    <>
+      <Result incident={incident.data} vehicle={vehicle} noVehicles={noVehicles} back={back} />
+      {/* Without the vehicle the checklist falls back to the fuel list and the insurer
+          button is missing, so say so instead of failing silently. */}
+      {vehicleId !== null && vehicles.isError && <ErrorNotice error={vehicles.error} />}
+    </>
+  )
 }
 
 function Result({
@@ -151,6 +162,7 @@ function Result({
 function CallAssistance({ vehicle }: { vehicle: VehicleRead }) {
   const { t } = useTranslation()
   const phone = (vehicle.assistance_phone ?? '').replace(/[^\d+]/g, '')
+  if (!/\d/.test(phone)) return null
   return (
     <DockAction>
       <a className="btn btn-primary btn-call" href={`tel:${phone}`}>

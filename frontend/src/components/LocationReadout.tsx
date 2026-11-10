@@ -5,8 +5,11 @@ import './LocationReadout.css'
 
 const EMPTY = '––.–––––'
 
-/** Dashboard-style readout of the detected location: the numbers are the instrument. */
-export function LocationReadout({ geo, onRetry }: { geo: GeoState; onRetry: () => void }) {
+/**
+ * Dashboard-style readout of the detected location: the numbers are the instrument.
+ * `onRetry` is left out where the browser has no geolocation, so no button does nothing.
+ */
+export function LocationReadout({ geo, onRetry }: { geo: GeoState; onRetry?: () => void }) {
   const { t } = useTranslation()
   const found = geo.status === 'found' ? geo : null
   const label = {
@@ -28,7 +31,7 @@ export function LocationReadout({ geo, onRetry }: { geo: GeoState; onRetry: () =
           />
           <span>{label}</span>
         </p>
-        {(geo.status === 'denied' || geo.status === 'unavailable') && (
+        {onRetry && (geo.status === 'denied' || geo.status === 'unavailable') && (
           <button type="button" className="link-btn readout-action" onClick={onRetry}>
             {t('location.retry')}
           </button>

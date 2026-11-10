@@ -15,14 +15,24 @@ import { LanguageSwitch } from './LanguageSwitch'
 import { RoadMark } from './icons'
 import './AppShell.css'
 
+/** The one way to render a 112 link, so the number and its label can't drift apart. */
+export function EmergencyLink({ className, children }: { className: string; children: ReactNode }) {
+  const { t } = useTranslation()
+  return (
+    <a className={className} href="tel:112" aria-label={t('call112Label')}>
+      {children}
+    </a>
+  )
+}
+
 /** The 112 control. It renders on every screen, inside the shell, so no route can omit it. */
 export function EmergencyBar() {
   const { t } = useTranslation()
   return (
-    <a className="sos" href="tel:112" aria-label={t('call112Label')}>
+    <EmergencyLink className="sos">
       <Phone size={22} strokeWidth={2.25} aria-hidden="true" />
       <span>{t('callEmergency')}</span>
-    </a>
+    </EmergencyLink>
   )
 }
 
@@ -70,10 +80,10 @@ export function AppShell({ dock }: { dock?: ReactNode }) {
           {claims > 0 ? (
             <div className="dock">
               <div className="dock-main" ref={setNode} />
-              <a className="sos-compact" href="tel:112" aria-label={t('call112Label')}>
+              <EmergencyLink className="sos-compact">
                 <Phone size={20} strokeWidth={2.25} aria-hidden="true" />
                 112
-              </a>
+              </EmergencyLink>
             </div>
           ) : (
             <EmergencyBar />

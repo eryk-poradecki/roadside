@@ -1,5 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react'
-import { http } from 'msw'
+import { onlineManager } from '@tanstack/react-query'
+import { delay, http, HttpResponse } from 'msw'
 import { en } from '../src/i18n/en'
 import { API, fakeApi, problem } from './fakeApi'
 import { renderApp } from './render'
@@ -189,6 +190,67 @@ describe('help request: Start → Get help now → Result', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Flat tyre' })).toBeInTheDocument()
     expect(fakeApi.incidentRequests).toHaveLength(1)
     expect(fakeApi.incidentRequests[0]?.key).toBe(failedKey)
+  })
+
+  it('keeps the key when the driver closes and reopens the same tile after a lost response', async () => {
+    let lostKey: string | null = null
+    server.use(
+      http.post(
+        `${API}/api/v1/incidents`,
+        ({ request }) => {
+          lostKey = request.headers.get('Idempotency-Key')
+          return problem(422, 'validation_error', 'x')
+        },
+        { once: true },
+      ),
+    )
+    const { user } = renderApp('/')
+    await user.click(await screen.findByRole('button', { name: 'Flat tyre' }))
+    await user.click(await screen.findByRole('button', { name: 'Get help now' }))
+    await screen.findByRole('alert')
+    await user.click(screen.getByRole('button', { name: 'Close' }))
+
+    await user.click(screen.getByRole('button', { name: 'Flat tyre' }))
+    await user.click(await screen.findByRole('button', { name: 'Get help now' }))
+    expect(await screen.findByRole('heading', { level: 1, name: 'Flat tyre' })).toBeInTheDocument()
+    expect(fakeApi.incidentRequests[0]?.key).toBe(lostKey)
+  })
+
+  it('fails with the offline message instead of waiting when the browser is offline', async () => {
+    onlineManager.setOnline(false)
+    server.use(http.post(`${API}/api/v1/incidents`, () => HttpResponse.error()))
+    try {
+      const { user } = renderApp('/')
+      await user.click(await screen.findByRole('button', { name: 'Flat tyre' }))
+      await user.click(await screen.findByRole('button', { name: 'Get help now' }))
+      expect(await screen.findByRole('alert', {}, { timeout: 5000 })).toHaveTextContent(
+        /You're offline/,
+      )
+      expect(screen.getByRole('button', { name: 'Get help now' })).toBeEnabled()
+    } finally {
+      onlineManager.setOnline(true)
+    }
+  })
+
+  it('stays on Start when the driver closes the sheet before the request finishes', async () => {
+    server.use(
+      http.post(`${API}/api/v1/incidents`, async () => {
+        await delay(150)
+        return HttpResponse.json(fakeApi.seedIncident({ problem_type: 'flat_tyre' }), {
+          status: 201,
+        })
+      }),
+    )
+    const { user } = renderApp('/')
+    await user.click(await screen.findByRole('button', { name: 'Flat tyre' }))
+    await user.click(await screen.findByRole('button', { name: 'Get help now' }))
+    await user.click(screen.getByRole('button', { name: 'Close' }))
+
+    await waitFor(() => {
+      expect(fakeApi.incidents).toHaveLength(1)
+    })
+    await new Promise((r) => setTimeout(r, 50))
+    expect(screen.getByRole('heading', { level: 1, name: 'What happened?' })).toBeInTheDocument()
   })
 
   it('uses a fresh key for the next help request', async () => {
