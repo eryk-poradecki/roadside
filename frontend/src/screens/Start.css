@@ -1,0 +1,69 @@
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 8px;
+}
+.lede {
+  color: var(--muted);
+  font-size: 1.125rem;
+  max-width: 30ch;
+  text-wrap: pretty;
+}
+
+.tiles {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.tile-wide {
+  grid-column: 1 / -1;
+}
+.tile {
+  width: 100%;
+  min-height: 92px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  color: var(--text);
+  font: inherit;
+  font-size: 1.125rem;
+  font-weight: 700;
+  text-align: left;
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    background 160ms var(--ease),
+    transform 160ms var(--ease);
+}
+.tile svg {
+  color: var(--text);
+  width: 40px;
+  height: 40px;
+  flex: none;
+}
+.tile:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.tile:not(:disabled):active {
+  background: var(--surface-2);
+  border-color: var(--amber);
+  transform: scale(0.98);
+}
+.tile-wide .tile {
+  min-height: 64px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+}
