@@ -1,0 +1,78 @@
+# Runs on every commit (ADR 0007). mypy, tsc and the tests are too slow per commit:
+# they run in CI and `make check`. Install with `make install` (or `uvx pre-commit install`).
+# The frontend hooks use frontend/node_modules, so run `npm ci` in frontend/ first.
+
+# Kept byte-for-byte: vendored third-party skills as upstream ships them, and the
+# generated OpenAPI document and client, which `make openapi-drift` compares raw.
+exclude: ^\.(agents|claude)/skills/|^frontend/openapi\.json$|^frontend/src/api/generated/
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+        exclude: ^frontend/tsconfig\.json$ # JSONC (comments)
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: check-added-large-files
+        args: [--maxkb=51200] # 50 MB: room for the demo video
+
+  # Same version as backend/uv.lock, so the hook and `uv run ruff` agree.
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.4
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+
+  # Keeps the pip path (backend/requirements*.txt) in step with uv.lock.
+  # `make check-requirements` runs the same commands in CI.
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.13.7
+    hooks:
+      - id: uv-export
+        name: uv-export (requirements.txt)
+        files: ^backend/(uv\.lock|pyproject\.toml)$
+        args:
+          - --project=backend
+          - --locked
+          - --no-dev
+          - --no-emit-project
+          - --no-hashes
+          - --no-header
+          - --quiet
+          - --output-file=backend/requirements.txt
+      - id: uv-export
+        name: uv-export (requirements-dev.txt)
+        files: ^backend/(uv\.lock|pyproject\.toml)$
+        args:
+          - --project=backend
+          - --locked
+          - --no-emit-project
+          - --no-hashes
+          - --no-header
+          - --quiet
+          - --output-file=backend/requirements-dev.txt
+
+  # Frontend linters (ADR 0008), from frontend/node_modules so versions match package-lock.json.
+  # Paths arrive repo-relative; strip "frontend/" and run inside frontend/ so each tool
+  # finds its config and frontend/.prettierignore.
+  - repo: local
+    hooks:
+      - id: prettier
+        name: prettier (frontend)
+        language: system
+        entry: bash -c 'cd frontend && exec node_modules/.bin/prettier --write --ignore-unknown "${@#frontend/}"' --
+        files: ^frontend/
+        exclude: ^frontend/(dist|src/api/generated)/|^frontend/(openapi\.json|package-lock\.json)$
+        types: [text]
+      - id: eslint
+        name: eslint (frontend)
+        language: system
+        entry: bash -c 'cd frontend && exec node_modules/.bin/eslint --fix --max-warnings=0 "${@#frontend/}"' --
+        files: ^frontend/.*\.(ts|tsx|js|mjs)$
+        exclude: ^frontend/(dist|src/api/generated)/

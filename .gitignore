@@ -15,4 +15,6 @@ dist/
 .ruff_cache/
 .pytest_cache/
 .coverage
+# scratch dirs of backend/tests/tooling
+.hook-test-*/
 data/

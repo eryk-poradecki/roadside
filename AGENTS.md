@@ -25,4 +25,8 @@ Triage label vocabulary: [docs/agents/triage-labels.md](docs/agents/triage-label
 
 ## Commands
 
-`make check` runs everything CI runs for the backend (ruff lint and format check, mypy strict, pytest, requirements drift check). It is the gate before opening a PR. Run `make help` for the rest (`install`, `dev-api`, `migrate`, `format`, `requirements`).
+- **`make check` is the gate before opening a PR.** CI (`.github/workflows/ci.yml`) runs the same targets (`check-backend`, `check-frontend`, `openapi-drift`): backend ruff, mypy strict, pytest, requirements drift; frontend eslint, prettier, tsc, vitest, build; and the OpenAPI drift check (`make openapi-drift`, which regenerates `frontend/openapi.json` and `frontend/src/api/generated/` and fails on a diff, so commit what it writes).
+- `make install` installs both apps' dependencies and the git `pre-commit` hook. `make pre-commit` runs every hook on all files.
+- `pre-commit` runs on each commit: ruff, file hygiene, private-key detection, a large-file guard, `uv export` to `backend/requirements*.txt`, prettier and eslint on frontend files. mypy, tsc and tests are left to `make check` and CI. Never skip hooks with `--no-verify`.
+- Agent hook: after every Edit/Write/apply_patch, `.claude/hooks/format.py` formats the edited file (ruff for `backend/`, prettier for `frontend/`) for Claude Code and Codex. It never fails, so it doesn't report lint or type errors: run `make check` for those.
+- `make help` lists the rest (`dev-api`, `dev-web`, `migrate`, `format`, `openapi`, `requirements`).
