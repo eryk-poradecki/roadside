@@ -1,0 +1,2 @@
+# Lint the agent hooks with the backend rules (ADR 0007).
+extend = "../../backend/pyproject.toml"
