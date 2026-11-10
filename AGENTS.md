@@ -15,3 +15,8 @@ Issues live in GitHub Issues for `eryk-poradecki/roadside`, driven via the `gh` 
 Single-context: one `CONTEXT.md` plus `docs/adr/` at the repo root. See `docs/agents/domain.md`.
 
 Triage label vocabulary: [docs/agents/triage-labels.md](docs/agents/triage-labels.md)
+
+## External requests
+
+- When an agent makes HTTP requests to third-party services itself (research, API checks, curl), it uses a **generic User-Agent** (e.g. `research-agent/1.0`). Never include personal data, emails, usernames, repo names or other identifiers in request headers, URLs or payloads.
+- The **application's** own User-Agent for OSM services (Overpass, Nominatim) is a product decision, recorded in an ADR. Use the value from the ADR. Don't invent one.
