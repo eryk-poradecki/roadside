@@ -26,17 +26,22 @@ export function EmergencyLink({ className, children }: { className: string; chil
 }
 
 /** The 112 control. It renders on every screen, inside the shell, so no route can omit it. */
-export function EmergencyBar() {
+export function EmergencyBar({ urgent = false }: { urgent?: boolean }) {
   const { t } = useTranslation()
   return (
-    <EmergencyLink className="sos">
+    <EmergencyLink className={urgent ? 'sos sos-urgent' : 'sos'}>
       <Phone size={22} strokeWidth={2.25} aria-hidden="true" />
       <span>{t('callEmergency')}</span>
     </EmergencyLink>
   )
 }
 
-type DockSlot = { node: HTMLElement | null; claim: () => () => void }
+type DockSlot = {
+  node: HTMLElement | null
+  urgent: boolean
+  claim: () => () => void
+  claimUrgent: () => () => void
+}
 const DockSlotContext = createContext<DockSlot | null>(null)
 
 /**
@@ -50,18 +55,40 @@ export function DockAction({ children }: { children: ReactNode }) {
   return slot?.node ? createPortal(children, slot.node) : null
 }
 
+/**
+ * While mounted, 112 takes the dock's primary slot with its full label and the screen's
+ * own action moves beside it (an `urgent` AI answer, ADR 0004).
+ */
+export function EmergencyFirst() {
+  const claimUrgent = useContext(DockSlotContext)?.claimUrgent
+  useEffect(() => claimUrgent?.(), [claimUrgent])
+  return null
+}
+
+function useCounter() {
+  const [count, setCount] = useState(0)
+  const claim = useCallback(() => {
+    setCount((n) => n + 1)
+    return () => {
+      setCount((n) => n - 1)
+    }
+  }, [])
+  return [count > 0, claim] as const
+}
+
+/** True while 112 leads the dock, so a `DockAction` can render as the secondary action. */
+export const useDockUrgent = () => useContext(DockSlotContext)?.urgent ?? false
+
 /** Layout route: masthead, the screen, and the dock (112 plus, on top-level screens, the tabs). */
 export function AppShell({ dock }: { dock?: ReactNode }) {
   const { t } = useTranslation()
-  const [claims, setClaims] = useState(0)
+  const [claimed, claim] = useCounter()
+  const [urgent, claimUrgent] = useCounter()
   const [node, setNode] = useState<HTMLElement | null>(null)
-  const claim = useCallback(() => {
-    setClaims((n) => n + 1)
-    return () => {
-      setClaims((n) => n - 1)
-    }
-  }, [])
-  const slot = useMemo(() => ({ node, claim }), [node, claim])
+  const slot = useMemo(
+    () => ({ node, urgent, claim, claimUrgent }),
+    [node, urgent, claim, claimUrgent],
+  )
 
   return (
     <DockSlotContext.Provider value={slot}>
@@ -77,16 +104,20 @@ export function AppShell({ dock }: { dock?: ReactNode }) {
           <Outlet />
         </main>
         <div className="shell-dock">
-          {claims > 0 ? (
-            <div className="dock">
+          {claimed ? (
+            // Fixed child positions keep the slot node mounted when `urgent` flips.
+            <div className={urgent ? 'dock dock-urgent' : 'dock'}>
+              {urgent && <EmergencyBar urgent />}
               <div className="dock-main" ref={setNode} />
-              <EmergencyLink className="sos-compact">
-                <Phone size={20} strokeWidth={2.25} aria-hidden="true" />
-                112
-              </EmergencyLink>
+              {!urgent && (
+                <EmergencyLink className="sos-compact">
+                  <Phone size={20} strokeWidth={2.25} aria-hidden="true" />
+                  112
+                </EmergencyLink>
+              )}
             </div>
           ) : (
-            <EmergencyBar />
+            <EmergencyBar urgent={urgent} />
           )}
           {dock}
         </div>

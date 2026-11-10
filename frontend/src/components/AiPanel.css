@@ -192,6 +192,9 @@
 }
 
 .answer-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   font-size: 0.875rem;
   color: var(--muted);
   padding-top: 12px;
@@ -219,4 +222,10 @@
   .skeleton i {
     animation: none;
   }
+}
+
+.ai-idle {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }

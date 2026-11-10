@@ -164,3 +164,22 @@
     max-width: 960px;
   }
 }
+
+/* Urgent AI answer: 112 leads the dock with its full label, the screen's action beside it. */
+.sos-urgent {
+  min-height: 56px;
+  background: var(--sos-line);
+  border-color: var(--sos-text);
+  font-size: 1.0625rem;
+}
+.sos-urgent:active {
+  background: var(--sos-bg);
+}
+.dock-urgent > .sos-urgent {
+  flex: 3 1 0;
+  min-width: 0;
+  width: auto;
+}
+.dock-urgent > .dock-main {
+  flex: 2 1 0;
+}

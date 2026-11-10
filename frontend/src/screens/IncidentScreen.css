@@ -238,3 +238,66 @@
   flex: none;
   color: var(--muted);
 }
+
+/* Once the AI answers, the items after the first step fold under this toggle (ADR 0010). */
+.disclosure {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  margin: -4px 0 -6px;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--line);
+  color: var(--text);
+  font: inherit;
+  font-size: 1rem;
+  text-align: left;
+  cursor: pointer;
+}
+.disclosure-act {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 0.9375rem;
+}
+.disclosure svg {
+  transition: transform 160ms ease-out;
+}
+.disclosure svg.flip {
+  transform: rotate(180deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .disclosure svg {
+    transition: none;
+  }
+}
+
+/* Urgent AI answer (ADR 0004): above the checklist, while 112 leads the dock. */
+.urgent-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.urgent-banner svg {
+  flex: none;
+  margin-top: 1px;
+}
+.urgent-banner p {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.urgent-banner strong {
+  font-size: 1.0625rem;
+}
+/* `display: flex` above would otherwise override the folded list's `hidden`. */
+.checklist[hidden] {
+  display: none;
+}

@@ -2,6 +2,7 @@ import { Camera, Loader, RotateCw, Sparkles, WifiOff } from 'lucide-react'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
+  autoStartClaimed,
   claimAutoStart,
   findAdvice,
   useTakeAiTurn,
@@ -9,8 +10,11 @@ import {
   type AdviceRead,
   type Confidence,
   type Locale,
+  type TurnInputsRead,
 } from '../api/aiTurns'
+import type { FuelType } from '../api/generated/types.gen'
 import type { IncidentRead } from '../api/incidents'
+import { isProblemType, problemKey } from '../lib/problemType'
 import { useErrorMessage } from './ErrorNotice'
 import './AiPanel.css'
 
@@ -24,7 +28,9 @@ export function AiPanel({ incident, autoStart }: { incident: IncidentRead; autoS
   const turn = useTakeAiTurn(incident.id)
   const inFlight = useTurnInFlight(incident.id)
   const message = useErrorMessage()
-  const advice = findAdvice(incident)?.advice ?? null
+  const adviceTurn = findAdvice(incident)
+  // About to ask on its own: show the waiting state from the first paint, not "not answered".
+  const starting = autoStart && !adviceTurn && turn.isIdle && !autoStartClaimed(incident.id)
   // The answer is in the UI language only, never the note's (ADR 0004).
   const locale: Locale = i18n.resolvedLanguage === 'pl' ? 'pl' : 'en'
 
@@ -37,7 +43,7 @@ export function AiPanel({ incident, autoStart }: { incident: IncidentRead; autoS
   // At most once per incident and session: not again after a remount, a reload or
   // StrictMode's second effect run, and never while a turn is in flight or answered.
   useEffect(() => {
-    if (!autoStart || advice || inFlight || !claimAutoStart(incident.id)) return
+    if (!autoStart || adviceTurn || inFlight || !claimAutoStart(incident.id)) return
     ask()
   })
 
@@ -52,9 +58,9 @@ export function AiPanel({ incident, autoStart }: { incident: IncidentRead; autoS
       </div>
 
       <div className="ai-body" aria-live="polite">
-        {advice ? (
-          <Advice advice={advice} />
-        ) : inFlight ? (
+        {adviceTurn?.advice ? (
+          <Advice advice={adviceTurn.advice} inputs={adviceTurn.inputs} />
+        ) : inFlight || starting ? (
           <div className="ai-loading">
             <p className="ai-line">
               <Loader size={20} className="spin" aria-hidden="true" />
@@ -82,10 +88,14 @@ export function AiPanel({ incident, autoStart }: { incident: IncidentRead; autoS
             </button>
           </div>
         ) : (
-          <button type="button" className="btn btn-quiet" onClick={ask}>
-            <Sparkles size={20} aria-hidden="true" />
-            {t('ai.ask')}
-          </button>
+          // Opened later with no advice (it failed, or the driver left mid-turn): finish it.
+          <div className="ai-idle">
+            <p className="muted">{t('ai.notAnswered')}</p>
+            <button type="button" className="btn btn-quiet" onClick={ask}>
+              <Sparkles size={20} aria-hidden="true" />
+              {t('ai.ask')}
+            </button>
+          </div>
         )}
       </div>
     </section>
@@ -108,7 +118,26 @@ function ConfidenceMark({ confidence }: { confidence: Confidence }) {
   )
 }
 
-function Advice({ advice }: { advice: AdviceRead }) {
+/**
+ * What the advice was based on, read from the inputs snapshot stored with it, so it stays
+ * true after the incident or the vehicle is edited (ADR 0004).
+ */
+function AnsweredFor({ inputs }: { inputs: TurnInputsRead }) {
+  const { t } = useTranslation()
+  // A value this client doesn't know yet is left out rather than shown as a raw key.
+  if (!isProblemType(inputs.problem_type)) return null
+  const key = problemKey(inputs.problem_type, inputs.vehicle?.fuel_type as FuelType | null)
+  const problem = t(`start.tiles.${key}`)
+  return (
+    <p>
+      {inputs.vehicle
+        ? t('ai.answeredFor', { vehicle: inputs.vehicle.name, problem })
+        : t('ai.answeredForNoVehicle', { problem })}
+    </p>
+  )
+}
+
+function Advice({ advice, inputs }: { advice: AdviceRead; inputs: TurnInputsRead | null }) {
   const { t } = useTranslation()
   return (
     <div className="answer">
@@ -162,7 +191,10 @@ function Advice({ advice }: { advice: AdviceRead }) {
         </ul>
       </div>
 
-      <p className="answer-foot">{t('ai.disclaimer')}</p>
+      <div className="answer-foot">
+        {inputs && <AnsweredFor inputs={inputs} />}
+        <p>{t('ai.disclaimer')}</p>
+      </div>
     </div>
   )
 }

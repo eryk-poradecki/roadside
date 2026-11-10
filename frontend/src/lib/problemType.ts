@@ -11,6 +11,9 @@ export const PROBLEM_TYPES: ProblemType[] = [
   'other',
 ]
 
+/** A wire value this client knows, e.g. from a stored inputs snapshot (typed as a string). */
+export const isProblemType = (value: string): value is ProblemType => value in KEYS
+
 /** The copy key for a problem type: its label and its safety checklist (ADR 0010). */
 export type ProblemKey = 'tyre' | 'battery' | 'fuel' | 'charge' | 'pothole' | 'other'
 

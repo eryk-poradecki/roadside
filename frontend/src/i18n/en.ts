@@ -97,6 +97,7 @@ export const en = {
     loading: 'Working out the next steps for you…',
     loadingSub: 'The safety steps above work while you wait.',
     ask: 'Get steps from the assistant',
+    notAnswered: 'The assistant has not answered for this incident yet.',
     errorTitle: "The assistant couldn't answer",
     errorBody: 'The safety steps above and 112 still work.',
     retry: 'Try again',
@@ -108,6 +109,10 @@ export const en = {
     stepsTitle: 'What to do',
     escalateTitle: 'Stop and call for help if',
     disclaimer: 'AI can be wrong. It is not an emergency service.',
+    answeredFor: 'Answered for {{vehicle}} · {{problem}}',
+    answeredForNoVehicle: 'Answered for {{problem}} with no vehicle, so the steps are general.',
+    urgentTitle: 'This could be an emergency',
+    urgentBody: 'Call 112 first, then follow the steps below.',
   },
   incidentForm: {
     heading: 'Edit incident',
@@ -129,6 +134,8 @@ export const en = {
     checklistSummary_one: '{{count}} more safety step',
     checklistSummary_other: '{{count}} more safety steps',
     resolvedSummary: 'Safety steps',
+    show: 'Show',
+    hide: 'Hide',
     lists: {
       tyre: {
         first: 'Hazard lights on. Then stop as far from traffic as you safely can.',

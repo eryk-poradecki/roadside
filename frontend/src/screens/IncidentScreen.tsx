@@ -1,5 +1,6 @@
 import {
   ArrowLeft,
+  TriangleAlert,
   Car,
   Check,
   CircleCheck,
@@ -20,8 +21,9 @@ import {
   type IncidentRead,
 } from '../api/incidents'
 import { useVehicles, type VehicleRead } from '../api/vehicles'
+import { findAdvice } from '../api/aiTurns'
 import { AiPanel } from '../components/AiPanel'
-import { DockAction } from '../components/AppShell'
+import { DockAction, EmergencyFirst, useDockUrgent } from '../components/AppShell'
 import { ErrorNotice } from '../components/ErrorNotice'
 import { SafetyChecklist } from '../components/SafetyChecklist'
 import { TILE_ICONS } from '../components/tiles'
@@ -113,6 +115,9 @@ function Result({
   const Icon = TILE_ICONS[key]
   const resolved = incident.status === 'resolved'
   const loc = incident.location
+  const adviceTurn = findAdvice(incident)
+  // A resolved record keeps its answer but no longer calls for 112 first.
+  const urgent = adviceTurn?.urgent === true && !resolved
 
   return (
     <div className="result">
@@ -147,7 +152,18 @@ function Result({
         </p>
       </header>
 
-      <SafetyChecklist problem={key} resolved={resolved} />
+      {urgent && (
+        <div className="notice notice-error urgent-banner" role="alert">
+          <TriangleAlert size={22} aria-hidden="true" />
+          <p>
+            <strong>{t('ai.urgentTitle')}</strong>
+            <span>{t('ai.urgentBody')}</span>
+          </p>
+          <EmergencyFirst />
+        </div>
+      )}
+
+      <SafetyChecklist problem={key} resolved={resolved} answered={adviceTurn !== undefined} />
 
       {noVehicles && (
         <p className="notice invite">
@@ -270,11 +286,16 @@ function Upkeep({ incident }: { incident: IncidentRead }) {
 /** Rendered only from what the driver entered, so the number can never be invented. */
 function CallAssistance({ vehicle }: { vehicle: VehicleRead }) {
   const { t } = useTranslation()
+  // Beside an urgent 112 it steps down so the two never compete.
+  const urgent = useDockUrgent()
   const phone = (vehicle.assistance_phone ?? '').replace(/[^\d+]/g, '')
   if (!/\d/.test(phone)) return null
   return (
     <DockAction>
-      <a className="btn btn-primary btn-call" href={`tel:${phone}`}>
+      <a
+        className={urgent ? 'btn btn-quiet btn-call' : 'btn btn-primary btn-call'}
+        href={`tel:${phone}`}
+      >
         <Phone size={20} aria-hidden="true" />
         <span className="btn-call-text">
           <span>
