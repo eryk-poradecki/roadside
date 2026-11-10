@@ -85,3 +85,47 @@ async def test_no_location_makes_no_lookup(
 async def test_demo_mode_makes_no_lookup(app: FastAPI) -> None:
     # The conftest settings keep the default DEMO_MODE=true.
     assert app.state.geocoder is None
+
+
+@pytest.mark.parametrize(
+    ("highway", "mentions_road_help"),
+    [("motorway", True), ("trunk", True), ("primary", False), ("residential", False)],
+)
+async def test_road_help_is_mentioned_only_on_a_motorway_or_expressway(
+    app: FastAPI,
+    client: httpx.AsyncClient,
+    provider: ScriptedProvider,
+    highway: str,
+    mentions_road_help: bool,
+) -> None:
+    use_geocoder(app, FakeGeocoder(nominatim_result(highway)))
+    incident_id = await make_incident(client, location=LOCATION)
+
+    assert (await turn(client, incident_id)).status_code == 201
+
+    assert ("19 111" in provider.prompt_text()) is mentions_road_help
+
+
+async def test_no_location_never_mentions_road_help(
+    client: httpx.AsyncClient, provider: ScriptedProvider
+) -> None:
+    incident_id = await make_incident(client)
+    assert (await turn(client, incident_id)).status_code == 201
+    assert "19 111" not in provider.prompt_text()
+
+
+async def test_coordinates_and_label_never_reach_the_model(
+    app: FastAPI, client: httpx.AsyncClient, provider: ScriptedProvider
+) -> None:
+    use_geocoder(
+        app, FakeGeocoder(nominatim_result(road="Puławska", locality=("city", "Piaseczno")))
+    )
+    incident_id = await make_incident(client, location=LOCATION)
+
+    r = await turn(client, incident_id)
+
+    assert r.status_code == 201
+    prompt = provider.prompt_text()
+    for secret in ("52.23", "21.01", "Puławska", "Piaseczno"):
+        assert secret not in prompt
+    assert "settlement city" in prompt
