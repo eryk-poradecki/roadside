@@ -41,11 +41,11 @@ Confirmed:
 
 Out of scope for MVP (roadmap): auth / multi-user, public transport suggestions, taxi / fuel delivery integrations, community pothole map as a separate feature.
 
-Undecided: working product name (TBD); specific LLM provider/model; hosting/deploy target; how photos are stored.
+Undecided: specific LLM provider/model; hosting/deploy target; how photos are stored.
 
 ## Brand Commitments
 
-Working name TBD. Voice: short sentences, second person, reassuring ("Let's sort this out step by step.").
+Name: Roadside. Voice: short sentences, second person, reassuring ("Let's sort this out step by step.").
 
 ## Evidence on Hand
 

@@ -1,6 +1,6 @@
 # Design Brief
 
-> Working name: TBD. Roadside assistant for drivers: describe what happened, get calm step-by-step help and what's nearby; document incidents (e.g. pothole damage) for later.
+> Name: Roadside. A roadside assistant for drivers: describe what happened, get calm step-by-step help and what's nearby; document incidents (e.g. pothole damage) for later.
 
 ## Users & context of use
 
