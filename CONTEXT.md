@@ -80,6 +80,10 @@ _Avoid_: claim, complaint
 The app running on pre-recorded real AI answers, so it always works without a model or key; the public deploy runs only in this mode.
 _Avoid_: replay mode, mock mode, offline mode
 
+**Public demo**:
+The one public instance reviewers can try, always in demo mode; anything entered there is temporary and wiped nightly.
+_Avoid_: production, live version, staging
+
 ### Screens
 
 **Start screen**:
