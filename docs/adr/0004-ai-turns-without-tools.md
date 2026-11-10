@@ -1,5 +1,7 @@
 # AI where it adds value: one schema-constrained turn, no tools in the help request
 
+> **Amended by the spec #43:** a replay key miss gives a labelled fallback, never a silent nearest match; the recorded nearby results, location context and damage report drafts are stored with the AI recordings; the nearby cap is 20 (ADR 0005).
+
 > **Amended by [ADR 0005](0005-rest-conventions-and-endpoints.md):**
 > - All paths live under `/api/v1`.
 > - The ai-turns body is `{locale, reply?}`, so "Try again" posts `{locale}`.
@@ -90,6 +92,9 @@ Tools come back where the model makes a real choice, in the MCP server. The dama
   - `road_class` and `dark`.
 
   Settlement is left out of the key, because it rarely changes the first steps and including it multiplies the recordings needed. Demo mode makes no Nominatim or Overpass calls: its location context and nearby results come with the scenario.
+  - **Stored together:** the recorded nearby results, the location context and (for pothole scenarios) the damage report draft (ADR 0009) sit alongside the AI recordings, under the same semantic key.
+  - **A key miss is never a nearest match.** The replay provider returns a labelled fallback, "No recorded answer for this case — demo mode", so a demo visitor can't mistake another scenario's advice for their own.
+  - **Nearby is capped at 20 places**, matching ADR 0005.
 - **`RecordingProvider`** is a decorator around a real provider. When `LLM_RECORD=true` it writes `{key, request, raw_output, provider, model, prompt_version, recorded_at}` to `backend/recordings/`. It is refused when `DEMO_MODE=true`.
 - **`CLIProvider`** (Claude Code `claude -p`) is the provider that records the demo replays and the demo video, for the best model quality available.
   - It is dev-only: allowed only with `LLM_RECORD=true`, refused in demo mode, never deployed.

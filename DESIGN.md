@@ -32,7 +32,7 @@ Both are **the same app**: same visual language, same components. Desktop change
 **Mobile**
 
 1. Start — "What happened?" quick-pick tiles + photo + optional text; location detected.
-2. Result — AI diagnosis, numbered steps, safety notes, "nearby" (map + list: tyre shop, fuel, etc.), save as incident.
+2. Result — AI diagnosis, numbered steps, safety notes, "nearby" (map + list: tyre shop, fuel, etc.), ending with "Mark resolved" (every help request is already an incident, ADR 0001).
 3. Vehicle profile — model, tyre size, spare wheel / wheel lock key, assistance insurance.
 4. Incident history — list with status.
 
