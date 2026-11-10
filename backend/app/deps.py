@@ -40,15 +40,6 @@ def get_vehicle_service(conn: Connection) -> VehicleService:
     return VehicleService(conn, SqliteVehicleRepository(conn))
 
 
-def get_incident_service(conn: Connection) -> IncidentService:
-    return IncidentService(
-        conn,
-        SqliteIncidentRepository(conn),
-        SqliteVehicleRepository(conn),
-        SqliteAiTurnRepository(conn),
-    )
-
-
 def get_llm_provider(request: Request) -> LLMProvider:
     """Built once in the app factory from settings; tests override it with a fake."""
     provider: LLMProvider = request.app.state.llm_provider
@@ -74,6 +65,19 @@ def get_location_resolver(
         geocoder,
         max_gps_accuracy_m=settings.location_max_gps_accuracy_m,
         max_road_distance_m=settings.location_max_road_distance_m,
+    )
+
+
+def get_incident_service(
+    conn: Connection,
+    location: Annotated[LocationResolver, Depends(get_location_resolver)],
+) -> IncidentService:
+    return IncidentService(
+        conn,
+        SqliteIncidentRepository(conn),
+        SqliteVehicleRepository(conn),
+        SqliteAiTurnRepository(conn),
+        location,
     )
 
 

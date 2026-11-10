@@ -129,3 +129,62 @@ async def test_coordinates_and_label_never_reach_the_model(
     for secret in ("52.23", "21.01", "Puławska", "Piaseczno"):
         assert secret not in prompt
     assert "settlement city" in prompt
+
+
+async def test_a_location_patch_recomputes_the_context_and_label(
+    app: FastAPI, client: httpx.AsyncClient, provider: ScriptedProvider
+) -> None:
+    geocoder = use_geocoder(app, FakeGeocoder(nominatim_result()))
+    incident_id = await make_incident(client, location=LOCATION)
+    assert (await turn(client, incident_id, "pl")).status_code == 201
+
+    geocoder.result = nominatim_result("residential", road="Polna", locality=("town", "Grójec"))
+    moved = {"lat": 51.86, "lon": 20.86, "accuracy_m": 8}
+    r = await client.patch(f"{INC}/{incident_id}", json={"location": moved})
+
+    assert r.status_code == 200, r.text
+    assert r.json()["location_label"] == "Polna, Grójec"
+    # In the locale of the latest turn.
+    assert geocoder.calls[-1] == (51.86, 20.86, "pl")
+
+
+async def test_a_failed_recompute_clears_the_old_label(
+    app: FastAPI, client: httpx.AsyncClient, provider: ScriptedProvider
+) -> None:
+    geocoder = use_geocoder(app, FakeGeocoder(nominatim_result()))
+    incident_id = await make_incident(client, location=LOCATION)
+    assert (await turn(client, incident_id)).status_code == 201
+
+    geocoder.result = None
+    r = await client.patch(f"{INC}/{incident_id}", json={"location": {"lat": 50.0, "lon": 20.0}})
+
+    assert r.status_code == 200
+    assert r.json()["location_label"] is None
+
+
+async def test_a_patch_that_keeps_the_location_makes_no_lookup(
+    app: FastAPI, client: httpx.AsyncClient, provider: ScriptedProvider
+) -> None:
+    geocoder = use_geocoder(app, FakeGeocoder(nominatim_result()))
+    incident_id = await make_incident(client, location=LOCATION)
+    assert (await turn(client, incident_id)).status_code == 201
+
+    r = await client.patch(f"{INC}/{incident_id}", json={"location": LOCATION, "note": "x"})
+
+    assert r.status_code == 200
+    assert r.json()["location_label"] == "A2, Wola"
+    assert len(geocoder.calls) == 1
+
+
+async def test_clearing_the_location_clears_the_label(
+    app: FastAPI, client: httpx.AsyncClient, provider: ScriptedProvider
+) -> None:
+    geocoder = use_geocoder(app, FakeGeocoder(nominatim_result()))
+    incident_id = await make_incident(client, location=LOCATION)
+    assert (await turn(client, incident_id)).status_code == 201
+
+    r = await client.patch(f"{INC}/{incident_id}", json={"location": None})
+
+    assert r.status_code == 200
+    assert r.json()["location_label"] is None
+    assert len(geocoder.calls) == 1

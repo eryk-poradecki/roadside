@@ -42,7 +42,7 @@ from app.repositories.ai_turns import AiTurnRepository
 from app.repositories.incidents import IncidentRepository
 from app.repositories.vehicles import VehicleRepository
 from app.services.clock import utc_now
-from app.services.location import LocationResolver
+from app.services.location import LocationResolver, refresh_location_context
 
 logger = logging.getLogger(__name__)
 
@@ -164,21 +164,11 @@ class AssistantService:
 
         A failed lookup gives unknown for this turn and caches nothing, so a later turn tries again.
         """
-        if incident.location is None or incident.location_context is not None:
+        if incident.location_context is not None:
             return incident
-        resolved = await self._location.resolve(incident.location, locale)
-        if resolved is None:
-            return incident
-        async with transaction(self._conn):
-            current = await self._incidents.get(incident.id)
-            # A PATCH may have moved or deleted the incident during the lookup.
-            if current is None or current.location != incident.location:
-                return incident
-            updated = replace(
-                current, location_context=resolved.context, location_label=resolved.label
-            )
-            await self._incidents.update(updated, utc_now())
-        return updated
+        return await refresh_location_context(
+            self._conn, self._incidents, self._location, incident, locale
+        )
 
     async def _generate(self, inputs: TurnInputs, locale: Locale) -> tuple[TurnOutput, LLMResult]:
         # Clarifying questions arrive with their own ticket; until then every turn answers.
