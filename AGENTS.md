@@ -2,6 +2,8 @@
 
 Shared instructions for coding agents (Claude Code, Codex, others) working in this repo.
 
+**Task requirements:** [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md). Every "Required" item must be met; check plans and PRs against it.
+
 ## Agent skills
 
 ### Issue tracker
