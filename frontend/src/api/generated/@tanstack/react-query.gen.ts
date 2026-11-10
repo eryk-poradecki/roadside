@@ -3,8 +3,8 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { createVehicle, deleteVehicle, getVehicle, health, listVehicles, type Options, readConfig, replaceVehicle } from '../sdk.gen';
-import type { CreateVehicleData, CreateVehicleError, CreateVehicleResponse, DeleteVehicleData, DeleteVehicleError, DeleteVehicleResponse, GetVehicleData, GetVehicleError, GetVehicleResponse, HealthData, HealthResponse, ListVehiclesData, ListVehiclesResponse, ReadConfigData, ReadConfigResponse, ReplaceVehicleData, ReplaceVehicleError, ReplaceVehicleResponse } from '../types.gen';
+import { createIncident, createVehicle, deleteVehicle, getIncident, getVehicle, health, listVehicles, type Options, readConfig, replaceVehicle } from '../sdk.gen';
+import type { CreateIncidentData, CreateIncidentError, CreateIncidentResponse, CreateVehicleData, CreateVehicleError, CreateVehicleResponse, DeleteVehicleData, DeleteVehicleError, DeleteVehicleResponse, GetIncidentData, GetIncidentError, GetIncidentResponse, GetVehicleData, GetVehicleError, GetVehicleResponse, HealthData, HealthResponse, ListVehiclesData, ListVehiclesResponse, ReadConfigData, ReadConfigResponse, ReplaceVehicleData, ReplaceVehicleError, ReplaceVehicleResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -55,6 +55,41 @@ export const readConfigOptions = (options?: Options<ReadConfigData>) => queryOpt
         return data;
     },
     queryKey: readConfigQueryKey(options)
+});
+
+/**
+ * Create Incident
+ */
+export const createIncidentMutation = (options?: Partial<Options<CreateIncidentData>>): UseMutationOptions<CreateIncidentResponse, CreateIncidentError, Options<CreateIncidentData>> => {
+    const mutationOptions: UseMutationOptions<CreateIncidentResponse, CreateIncidentError, Options<CreateIncidentData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await createIncident({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const getIncidentQueryKey = (options: Options<GetIncidentData>) => createQueryKey('getIncident', options);
+
+/**
+ * Get Incident
+ */
+export const getIncidentOptions = (options: Options<GetIncidentData>) => queryOptions<GetIncidentResponse, GetIncidentError, GetIncidentResponse, ReturnType<typeof getIncidentQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getIncident({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getIncidentQueryKey(options)
 });
 
 export const listVehiclesQueryKey = (options?: Options<ListVehiclesData>) => createQueryKey('listVehicles', options);

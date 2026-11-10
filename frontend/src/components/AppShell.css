@@ -93,6 +93,43 @@
   background: oklch(0.3 0.08 25);
 }
 
+/* One-row dock: wide primary action plus a compact 112. */
+.dock {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+.dock-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+}
+.dock-main > .btn {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+}
+.sos-compact {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 96px;
+  min-height: 56px;
+  padding: 0 16px;
+  border-radius: var(--r);
+  background: var(--sos-bg);
+  border: 1px solid var(--sos-line);
+  color: var(--sos-text);
+  font-weight: 800;
+  font-size: 1.125rem;
+  text-decoration: none;
+}
+.sos-compact:active {
+  background: oklch(0.3 0.08 25);
+}
+
 .tabbar {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

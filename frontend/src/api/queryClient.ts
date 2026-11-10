@@ -3,7 +3,10 @@ import { isApiError } from './client'
 
 const MAX_RETRIES = 2
 
-/** Queries retry only on network errors and 5xx, up to twice. Mutations never retry. */
+/**
+ * Retry only on network errors and 5xx, up to twice. Queries use it by default; mutations
+ * don't retry, except an idempotent one that opts in (`POST /incidents`, ADR 0008).
+ */
 export function shouldRetry(failureCount: number, error: unknown): boolean {
   if (failureCount >= MAX_RETRIES) return false
   if (!isApiError(error)) return false
