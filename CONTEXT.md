@@ -61,7 +61,7 @@ What the assistant is told about the vehicle chosen for a help request: everythi
 _Avoid_: vehicle context, profile
 
 **Default vehicle**:
-The driver's daily driver: the vehicle a new help request uses unless the driver picks another. At most one vehicle is the default; there may be none.
+The driver's daily driver: the vehicle a new help request uses unless the driver picks another. At most one vehicle is the default; there may be none. A vehicle added while there is no default becomes the default. Deleting the default leaves none until the driver picks one.
 _Avoid_: favorite, primary, last used vehicle
 
 **Safety checklist**:

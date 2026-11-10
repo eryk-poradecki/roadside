@@ -1,5 +1,7 @@
 # Photos live on disk, are served by an endpoint, and are shown to the model when it can see
 
+> **Amended by [ADR 0005](0005-rest-conventions-and-endpoints.md):** all paths live under `/api/v1` (e.g. `GET /api/v1/photos/{id}`). The sixth photo is refused with 409 `photo_limit`, not 422.
+
 An incident has up to five photos, each added or removed on its own. The bytes are files on disk in `UPLOAD_DIR` (a named docker volume) under server-generated UUID names, and each one has a row in `incident_photos` (`incident_id` FK with `ON DELETE CASCADE`, `stored_name`, `content_type`, `size_bytes`, `width`, `height`, `created_at`). Photos are served only through `GET /api/photos/{id}`, never a static mount, so the database stays the source of truth: a deleted row's file is unreachable at once, a missing photo is a clean 404, and there is one place to add cache headers or auth later. When the provider supports images, the model sees the photos, because a picture of a pothole or a shredded tyre tells it more than a problem type and a note.
 
 ## Considered Options
