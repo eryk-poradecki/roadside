@@ -2,6 +2,7 @@
   .claude/settings.local.json
   .claude/skills/impeccable/scripts/bin/
   .agents/skills/impeccable/scripts/bin/
+  .claude/worktrees/
   # python
   __pycache__/
   .venv/
