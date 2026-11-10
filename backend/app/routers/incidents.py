@@ -58,17 +58,17 @@ async def create_incident(
     response: Response,
     idempotency_key: IdempotencyKey = None,
 ) -> IncidentRead:
-    incident, created = await service.create(body.to_domain(), idempotency_key)
+    detail, created = await service.create(body.to_domain(), idempotency_key)
     if created:
-        response.headers["Location"] = f"/api/v1/incidents/{incident.id}"
+        response.headers["Location"] = f"/api/v1/incidents/{detail.incident.id}"
     else:
         response.status_code = 200
-    return IncidentRead.from_domain(incident)
+    return IncidentRead.from_domain(detail)
 
 
 @router.get("/{incident_id}", response_model=IncidentRead)
 async def get_incident(incident_id: IncidentId, service: Service) -> IncidentRead:
-    return IncidentRead.from_domain(await service.get(incident_id))
+    return IncidentRead.from_domain(await service.detail(incident_id))
 
 
 @router.patch("/{incident_id}", response_model=IncidentRead)

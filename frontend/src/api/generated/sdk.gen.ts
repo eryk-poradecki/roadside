@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateIncidentData, CreateIncidentErrors, CreateIncidentResponses, CreateVehicleData, CreateVehicleErrors, CreateVehicleResponses, DeleteIncidentData, DeleteIncidentErrors, DeleteIncidentResponses, DeleteVehicleData, DeleteVehicleErrors, DeleteVehicleResponses, GetIncidentData, GetIncidentErrors, GetIncidentResponses, GetVehicleData, GetVehicleErrors, GetVehicleResponses, HealthData, HealthResponses, ListIncidentsData, ListIncidentsErrors, ListIncidentsResponses, ListVehiclesData, ListVehiclesResponses, ReadConfigData, ReadConfigResponses, ReplaceVehicleData, ReplaceVehicleErrors, ReplaceVehicleResponses, UpdateIncidentData, UpdateIncidentErrors, UpdateIncidentResponses } from './types.gen';
+import type { CreateIncidentData, CreateIncidentErrors, CreateIncidentResponses, CreateVehicleData, CreateVehicleErrors, CreateVehicleResponses, DeleteIncidentData, DeleteIncidentErrors, DeleteIncidentResponses, DeleteVehicleData, DeleteVehicleErrors, DeleteVehicleResponses, GetIncidentData, GetIncidentErrors, GetIncidentResponses, GetVehicleData, GetVehicleErrors, GetVehicleResponses, HealthData, HealthResponses, ListIncidentsData, ListIncidentsErrors, ListIncidentsResponses, ListVehiclesData, ListVehiclesResponses, ReadConfigData, ReadConfigResponses, ReplaceVehicleData, ReplaceVehicleErrors, ReplaceVehicleResponses, TakeAiTurnData, TakeAiTurnErrors, TakeAiTurnResponses, UpdateIncidentData, UpdateIncidentErrors, UpdateIncidentResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -57,6 +57,25 @@ export const getIncident = <ThrowOnError extends boolean = false>(options: Optio
  */
 export const updateIncident = <ThrowOnError extends boolean = false>(options: Options<UpdateIncidentData, ThrowOnError>): RequestResult<UpdateIncidentResponses, UpdateIncidentErrors, ThrowOnError> => (options.client ?? client).patch<UpdateIncidentResponses, UpdateIncidentErrors, ThrowOnError>({
     url: '/api/v1/incidents/{incident_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Take Ai Turn
+ *
+ * Ask the assistant for the next turn of the AI answer and wait for it.
+ *
+ * Synchronous: the request holds until the turn is validated and stored, or has failed
+ * (nothing is stored then). One turn at a time per incident (409 `turn_in_progress`); the
+ * advice closes the AI answer (409 `advice_exists`). Failures: 502 `provider_error` or
+ * `invalid_output`, 504 `timeout`. "Try again" repeats the same request.
+ */
+export const takeAiTurn = <ThrowOnError extends boolean = false>(options: Options<TakeAiTurnData, ThrowOnError>): RequestResult<TakeAiTurnResponses, TakeAiTurnErrors, ThrowOnError> => (options.client ?? client).post<TakeAiTurnResponses, TakeAiTurnErrors, ThrowOnError>({
+    url: '/api/v1/incidents/{incident_id}/ai-turns',
     ...options,
     headers: {
         'Content-Type': 'application/json',

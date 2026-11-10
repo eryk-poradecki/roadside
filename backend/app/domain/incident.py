@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from enum import StrEnum
 
+from app.domain.ai_turn import AiTurn
+
 
 class ProblemType(StrEnum):
     FLAT_TYRE = "flat_tyre"
@@ -43,3 +45,11 @@ class Incident:
     location_label: str | None
     created_at: str
     updated_at: str
+
+
+@dataclass(frozen=True, slots=True)
+class IncidentDetail:
+    """An incident with the parts it owns, as one consistent read."""
+
+    incident: Incident
+    ai_turns: tuple[AiTurn, ...]

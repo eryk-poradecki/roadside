@@ -5,6 +5,102 @@ export type ClientOptions = {
 };
 
 /**
+ * AdviceRead
+ *
+ * The advice: the diagnosis, numbered steps, and when to stop and call for help.
+ */
+export type AdviceRead = {
+    /**
+     * Alternatives
+     */
+    alternatives: Array<string>;
+    /**
+     * Cause
+     */
+    cause: string;
+    confidence: Confidence;
+    /**
+     * Escalate If
+     */
+    escalate_if: Array<string>;
+    /**
+     * Extra Categories
+     */
+    extra_categories: Array<NearbyCategory>;
+    /**
+     * Photo Observation
+     */
+    photo_observation: string | null;
+    /**
+     * Steps
+     */
+    steps: Array<string>;
+};
+
+/**
+ * AiTurnCreate
+ *
+ * Ask for the next turn. `locale` is the UI language, the only language of the answer.
+ */
+export type AiTurnCreate = {
+    /**
+     * Locale
+     */
+    locale: 'pl' | 'en';
+};
+
+/**
+ * AiTurnKind
+ */
+export type AiTurnKind = 'question' | 'reply' | 'advice';
+
+/**
+ * AiTurnRead
+ */
+export type AiTurnRead = {
+    advice: AdviceRead | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Id
+     */
+    id: number;
+    inputs: TurnInputsRead | null;
+    kind: AiTurnKind;
+    /**
+     * Locale
+     */
+    locale: 'pl' | 'en' | null;
+    /**
+     * Model
+     */
+    model: string | null;
+    /**
+     * Prompt Version
+     */
+    prompt_version: string | null;
+    /**
+     * Provider
+     */
+    provider: string | null;
+    /**
+     * Seq
+     */
+    seq: number;
+    /**
+     * Urgent
+     */
+    urgent: boolean | null;
+};
+
+/**
+ * Confidence
+ */
+export type Confidence = 'likely' | 'possible' | 'unsure';
+
+/**
  * ConfigRead
  */
 export type ConfigRead = {
@@ -120,6 +216,10 @@ export type IncidentPatch = {
  */
 export type IncidentRead = {
     /**
+     * Ai Turns
+     */
+    ai_turns: Array<AiTurnRead>;
+    /**
      * Created At
      */
     created_at: string;
@@ -233,6 +333,11 @@ export type LocationRead = {
 };
 
 /**
+ * NearbyCategory
+ */
+export type NearbyCategory = 'tyres' | 'fuel' | 'charging' | 'repair';
+
+/**
  * ProblemType
  */
 export type ProblemType = 'flat_tyre' | 'flat_battery' | 'out_of_fuel' | 'pothole_damage' | 'other';
@@ -268,6 +373,47 @@ export type SpareWheel = 'full_size' | 'space_saver' | 'repair_kit' | 'none';
  * Transmission
  */
 export type Transmission = 'manual' | 'automatic';
+
+/**
+ * TurnInputsRead
+ *
+ * What a model turn was produced from ("Answered for …"), frozen when it was stored.
+ */
+export type TurnInputsRead = {
+    /**
+     * Dark
+     */
+    dark: boolean;
+    /**
+     * Local Time
+     */
+    local_time: string;
+    /**
+     * Note
+     */
+    note: string | null;
+    /**
+     * Photo Ids Seen
+     */
+    photo_ids_seen: Array<number>;
+    /**
+     * Photos Not Sent
+     */
+    photos_not_sent: number;
+    /**
+     * Problem Type
+     */
+    problem_type: string;
+    /**
+     * Road Class
+     */
+    road_class: string;
+    /**
+     * Settlement
+     */
+    settlement: string;
+    vehicle: VehicleFactsRead | null;
+};
 
 /**
  * ValidationError
@@ -350,6 +496,58 @@ export type VehicleCreate = {
      * Year
      */
     year?: number | null;
+};
+
+/**
+ * VehicleFactsRead
+ *
+ * The vehicle fact block the model was given. Null means unknown.
+ */
+export type VehicleFactsRead = {
+    /**
+     * Assistance Insurer
+     */
+    assistance_insurer: string | null;
+    /**
+     * Fuel Type
+     */
+    fuel_type: string | null;
+    /**
+     * Has Assistance
+     */
+    has_assistance: boolean;
+    /**
+     * Lock Key Location
+     */
+    lock_key_location: string | null;
+    /**
+     * Make Model
+     */
+    make_model: string | null;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Spare Wheel
+     */
+    spare_wheel: string | null;
+    /**
+     * Transmission
+     */
+    transmission: string | null;
+    /**
+     * Tyre Size
+     */
+    tyre_size: string | null;
+    /**
+     * Wheel Locks
+     */
+    wheel_locks: boolean | null;
+    /**
+     * Year
+     */
+    year: number | null;
 };
 
 /**
@@ -656,6 +854,36 @@ export type UpdateIncidentResponses = {
 };
 
 export type UpdateIncidentResponse = UpdateIncidentResponses[keyof UpdateIncidentResponses];
+
+export type TakeAiTurnData = {
+    body: AiTurnCreate;
+    path: {
+        /**
+         * Incident Id
+         */
+        incident_id: number;
+    };
+    query?: never;
+    url: '/api/v1/incidents/{incident_id}/ai-turns';
+};
+
+export type TakeAiTurnErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type TakeAiTurnError = TakeAiTurnErrors[keyof TakeAiTurnErrors];
+
+export type TakeAiTurnResponses = {
+    /**
+     * Successful Response
+     */
+    201: AiTurnRead;
+};
+
+export type TakeAiTurnResponse = TakeAiTurnResponses[keyof TakeAiTurnResponses];
 
 export type ListVehiclesData = {
     body?: never;

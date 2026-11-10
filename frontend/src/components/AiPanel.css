@@ -1,0 +1,222 @@
+/* The AI panel on the Result screen, as in the #8 prototype. */
+.ai-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.ai-body > * {
+  animation: rise 420ms var(--ease);
+}
+.ai-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ai-line svg {
+  flex: none;
+  color: var(--muted);
+}
+.ai-loading,
+.ai-error {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ai-error .btn {
+  align-self: flex-start;
+}
+
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 6px;
+}
+.skeleton i {
+  height: 12px;
+  border-radius: 6px;
+  background: var(--surface-2);
+  animation: pulse 1.8s ease-in-out infinite;
+}
+.skeleton i:nth-child(1) {
+  width: 92%;
+}
+.skeleton i:nth-child(2) {
+  width: 78%;
+  animation-delay: 150ms;
+}
+.skeleton i:nth-child(3) {
+  width: 54%;
+  animation-delay: 300ms;
+}
+
+.answer {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.dx {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dx-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.dx-label {
+  font-size: 0.875rem;
+  color: var(--muted);
+  font-weight: 700;
+}
+.dx-cause {
+  font-size: 1.375rem;
+  line-height: 1.28;
+  font-weight: 700;
+  text-wrap: pretty;
+}
+.dx-alt {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+.dx-alt ul {
+  margin: 0;
+  padding-left: 1.1em;
+  color: var(--text);
+}
+.dx-alt li::marker {
+  color: var(--muted);
+}
+
+.conf {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+.conf-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 14px;
+}
+.conf-bars i {
+  width: 4px;
+  border-radius: 1px;
+  background: var(--line);
+}
+.conf-bars i:nth-child(1) {
+  height: 6px;
+}
+.conf-bars i:nth-child(2) {
+  height: 10px;
+}
+.conf-bars i:nth-child(3) {
+  height: 14px;
+}
+.conf-bars i.on {
+  background: var(--text);
+}
+.conf-unsure .conf-bars i.on {
+  background: var(--muted);
+}
+
+.photo-line {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 0.9375rem;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: var(--surface);
+}
+.photo-line svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--muted);
+}
+
+.steps-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.steps li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-size: 1.0625rem;
+}
+.step-n {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--bg);
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.escalate {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--sos-line);
+}
+.escalate h3 {
+  color: var(--danger);
+}
+.escalate ul {
+  margin: 0;
+  padding-left: 1.1em;
+}
+
+.answer-foot {
+  font-size: 0.875rem;
+  color: var(--muted);
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-body > *,
+  .skeleton i {
+    animation: none;
+  }
+}

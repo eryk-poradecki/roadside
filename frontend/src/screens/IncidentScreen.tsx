@@ -7,7 +7,6 @@ import {
   Pencil,
   Phone,
   RotateCcw,
-  Sparkles,
   Store,
   Trash2,
 } from 'lucide-react'
@@ -21,6 +20,7 @@ import {
   type IncidentRead,
 } from '../api/incidents'
 import { useVehicles, type VehicleRead } from '../api/vehicles'
+import { AiPanel } from '../components/AiPanel'
 import { DockAction } from '../components/AppShell'
 import { ErrorNotice } from '../components/ErrorNotice'
 import { SafetyChecklist } from '../components/SafetyChecklist'
@@ -80,7 +80,13 @@ export function IncidentScreen() {
 
   return (
     <>
-      <Result incident={incident.data} vehicle={vehicle} noVehicles={noVehicles} back={back} />
+      <Result
+        incident={incident.data}
+        vehicle={vehicle}
+        noVehicles={noVehicles}
+        fromHelp={fromHelp}
+        back={back}
+      />
       {/* Without the vehicle the checklist falls back to the fuel list and the insurer
           button is missing, so say so instead of failing silently. */}
       {vehicleId !== null && vehicles.isError && <ErrorNotice error={vehicles.error} />}
@@ -92,11 +98,14 @@ function Result({
   incident,
   vehicle,
   noVehicles,
+  fromHelp,
   back,
 }: {
   incident: IncidentRead
   vehicle: VehicleRead | null
   noVehicles: boolean
+  /** Arrived straight from "Get help now": ask the assistant at once. */
+  fromHelp: boolean
   back: React.ReactNode
 }) {
   const { t } = useTranslation()
@@ -149,16 +158,7 @@ function Result({
         </p>
       )}
 
-      <section className="panel panel-ai" aria-labelledby="ai-title">
-        <div className="panel-head">
-          <h2 id="ai-title">{t('incident.aiTitle')}</h2>
-          <span className="badge badge-ai">
-            <Sparkles size={14} aria-hidden="true" />
-            {t('incident.aiBadge')}
-          </span>
-        </div>
-        <p className="muted">{t('incident.aiSoon')}</p>
-      </section>
+      <AiPanel incident={incident} autoStart={fromHelp} />
 
       <section className="panel" aria-labelledby="nearby-title">
         <div className="panel-head">

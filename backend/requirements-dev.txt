@@ -38,7 +38,9 @@ h11==0.16.0
 httpcore==1.0.9
     # via httpx
 httpx==0.28.1
-    # via respx
+    # via
+    #   respx
+    #   roadside-backend
 identify==2.6.20
     # via pre-commit
 idna==3.20
@@ -108,6 +110,8 @@ typing-inspection==0.4.5
     #   fastapi
     #   pydantic
     #   pydantic-settings
+tzdata==2026.6
+    # via roadside-backend
 uvicorn==0.54.0
     # via roadside-backend
 virtualenv==21.15.6

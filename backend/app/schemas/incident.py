@@ -4,7 +4,15 @@ from typing import Annotated, Any
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
-from app.domain.incident import Incident, IncidentStatus, Location, NewIncident, ProblemType
+from app.domain.incident import (
+    Incident,
+    IncidentDetail,
+    IncidentStatus,
+    Location,
+    NewIncident,
+    ProblemType,
+)
+from app.schemas.ai_turn import AiTurnRead
 
 NOTE_MAX_LENGTH = 280
 Note = Annotated[str, StringConstraints(strip_whitespace=True, max_length=NOTE_MAX_LENGTH)]
@@ -125,9 +133,12 @@ class IncidentRead(BaseModel):
     location_label: str | None
     created_at: str
     updated_at: str
+    # The AI answer in sequence order: append-only, the advice last (ADR 0004).
+    ai_turns: list[AiTurnRead]
 
     @classmethod
-    def from_domain(cls, i: Incident) -> "IncidentRead":
+    def from_domain(cls, detail: IncidentDetail) -> "IncidentRead":
+        i = detail.incident
         loc = i.location
         return cls(
             id=i.id,
@@ -141,6 +152,7 @@ class IncidentRead(BaseModel):
             location_label=i.location_label,
             created_at=i.created_at,
             updated_at=i.updated_at,
+            ai_turns=[AiTurnRead.from_domain(t) for t in detail.ai_turns],
         )
 
 
