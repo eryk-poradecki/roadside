@@ -1,0 +1,33 @@
+# The safety checklist is static frontend copy, and the AI leads with safety without assuming it was read
+
+Every problem type has a **safety checklist**: one "Do this first" step and a few more items, shown the moment the driver taps "Get help now", before and next to the AI answer. It ships in the frontend bundle, inside the i18n resources (`i18n/en.ts`, `i18n/pl.ts`, keyed by problem type). The service worker precaches the app shell (ADR 0008), so the checklist and 112 still work with no signal, which is exactly when the AI fails. The backend never holds the copy. The checklist and the prompt both follow one list of **safety invariants** written in this ADR. The prompt never assumes the driver has read the checklist: a fast answer can arrive before they look at it. The final strings, in EN and PL with a source for each fact, live in [`docs/copy/safety-checklist.md`](../copy/safety-checklist.md). The build ticket copies them into the i18n files.
+
+## Considered Options
+
+- **Backend-served with the incident type.** Rejected: it would fail together with the AI, and nothing on the backend needs it. The help request has no tools (ADR 0004), and the MCP server is the first item cut. If that stretch goal ever needs the checklist, its own ticket decides how.
+- **One shared JSON that both the frontend and the backend read.** Rejected: it adds a build seam to serve a consumer that doesn't exist.
+- **Exact checklist text pasted into the prompt.** Rejected: it needs a backend copy of frontend strings in two languages, which can drift. The prompt gets the invariants instead.
+- **Trust the model, no rule.** Rejected: an AI step like "change the tyre now" right under "Do not change the tyre next to moving traffic" is the one contradiction that can hurt someone.
+- **Road-type variants** (motorway / outside built-up area / built-up area). Rejected: the location context only arrives with the first AI turn and isn't there offline. One short line covers the distances instead.
+- **A `safety_lead` schema field** checked by the eval. Rejected: it changes the ADR 0004 schema and mostly duplicates step 1.
+
+## Safety invariants
+
+Both the checklist copy and the prompt rule follow these. The exact legal details (triangle distances, when a reflective vest is required) are in the copy doc, each with an official source or marked *to verify*.
+
+1. Hazard lights on as soon as the car stops.
+2. A reflective vest on, if the driver has one (it is advised, not required, in Poland). Get out on the side away from traffic.
+3. Everyone gets out and stands behind the barrier, or well away from the road where there is none. Nobody stands between the car and traffic.
+4. The warning triangle goes behind the car, at the distance the road requires.
+5. Never change a tyre, jump-start, repair or push the car next to moving traffic or on the hard shoulder, and never walk along a motorway or expressway. An electric car is never towed on its wheels.
+6. Injury, smoke, fire, a fuel leak or a car standing in a live lane: call 112.
+
+## Consequences
+
+- **Shape.** Per problem type: one first step and at most 4 more items. The last item is always the same 112 line (invariant 6), so the window before the AI answers is covered. The checklist is the same for every road type and every vehicle, with one exception: the fuel list has a `charge` variant for electric vehicles. It is picked by the same rule as the tile label (the default vehicle, ADR 0003).
+- **Prompt rule** (amends ADR 0004): "A static safety checklist is shown to the driver (invariants: …). Never contradict it and don't repeat it as a list. But always lead with the single most important safety action for this specific situation, briefly and in context (e.g. on a motorway at night: 'First, make sure everyone is behind the barrier'), before anything else." The "right now" step of a clarifying question already works this way and follows the same rule. When `urgent` is set, step 1 stays "Call 112" (ADR 0004) and the in-context safety action is step 2. One more hint applies only when the location context is `motorway_expressway`: road help on national roads can also be called on GDDKiA's 19 111, which is not an emergency number. The checklist itself names only 112.
+- **The first step never hides** (amends the Result screen prototype, where the whole checklist folds once the AI answers). While the incident is open, "Do this first" stays visible at all times, including after the AI answer arrives. Only the other items fold, under a header that stays clearly visible ("N more safety steps"). When the incident is resolved, the whole checklist, first step included, folds into one "Safety steps" disclosure. Reopening the incident restores the open layout.
+- **Labels.** "Do this first" / "Then", the badge "Safety basics · not AI" / "Podstawy bezpieczeństwa · nie AI". The prototype's placeholder note goes.
+- **Tests.** A backend test renders the prompt and checks that the invariants and the lead-with-safety rule are in it. `scripts/eval_assist.py` adds a rule check in code: when the location context is `motorway_expressway`, or the scenario's note or photos suggest smoke, fire or a fuel leak, `steps[0]` (or `steps[1]` when `urgent`) must be a safety action, judged by a keyword list per locale (barrier/bariera, hazard lights/światła awaryjne, away from traffic/od ruchu, vest/kamizelka, triangle/trójkąt, 112, …). When `urgent` is set, 112 must be in the first two steps. Failing runs are printed for a person to read. Out of fuel on its own doesn't trigger the check.
+- **Facts need official sources.** Every legal or safety claim in the copy (triangle distances, vest rules, who manages which road for the damage report line, ADR 0009) links to a legal act or a government site, or stays marked *to verify*. The one exception is EV towing, sourced from manufacturer documents because Polish law is silent on it. Research notes are not a source on their own. The project owner checks the key facts before the copy is approved.
+- **The damage report's addressee help line** (amends ADR 0009) adds what the first version missed: toll motorway sections are run by their concessionaire, and in a city with county rights the city manages every road except motorways and expressways. The driver tells national from voivodeship roads by the red or yellow number sign. The text is in the copy doc. Who handles damage claims on concession sections is unconfirmed, so that line tells the driver to ask the operator or GDDKiA and makes no claim.
