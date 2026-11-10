@@ -1,5 +1,10 @@
 # AI where it adds value: one schema-constrained turn, no tools in the help request
 
+> **Amended by [ADR 0005](0005-rest-conventions-and-endpoints.md):**
+> - All paths live under `/api/v1`.
+> - The ai-turns body is `{locale, reply?}`, so "Try again" posts `{locale}`.
+> - The Nominatim call is not made at incident create. The first AI turn makes it, the result is cached on the incident, and a PATCH that changes the location recomputes it.
+
 The help request runs **no tool loop**. Each AI turn is one schema-constrained model call. The backend does the nearby lookup itself, deterministically and in parallel with the model, and the model never sees or names a place. The kickoff plan was "one agent with 2–3 tools" (`get_vehicle_profile`, `find_nearby`, optionally `draft_damage_report`). ADR 0003 already dropped the first. `find_nearby` is dropped here because AI should be used where it adds value, not where it only adds latency and failure points. Public Overpass answered in 13–47 s per query and failed about half the time ([research #5](https://github.com/eryk-poradecki/roadside/issues/5)), and live Overpass was unavailable in all 5 attempts while the Result screen was prototyped ([#8](https://github.com/eryk-poradecki/roadside/issues/8)). As a tool, that latency and those failures would sit in series with the model, and they would cost at least one extra model call. Research rules out `tools` and `response_format` in one request ([#6](https://github.com/eryk-poradecki/roadside/issues/6), [#7](https://github.com/eryk-poradecki/roadside/issues/7)), and that extra call is slow on an 8 GB GPU. Choosing the category is not a real decision either: the problem type and fuel type already settle it.
 
 The agentic parts that remain are the ones where the model's judgment matters:
