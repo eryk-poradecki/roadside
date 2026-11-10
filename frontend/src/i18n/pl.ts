@@ -115,7 +115,7 @@ export const pl: Localised<Translation> & {
     vehicle: 'Pojazd',
     noVehicle: 'Bez pojazdu',
     location: 'Lokalizacja',
-    useCurrent: 'Użyj mojej obecnej lokalizacji',
+    useCurrent: 'Użyj obecnej lokalizacji',
     detecting: 'Szukamy Twojej lokalizacji…',
     removeLocation: 'Usuń lokalizację',
     save: 'Zapisz zmiany',
