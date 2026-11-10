@@ -1,5 +1,12 @@
 # REST conventions and the MVP endpoint list
 
+> **Amended by ADR 0008 and the spec #43:**
+> - Types and the client are generated with `@hey-api/openapi-ts` (ADR 0008), not `openapi-typescript`.
+> - Problem type wire values are `flat_tyre`, `flat_battery`, `out_of_fuel`, `pothole_damage`, `other`.
+> - `AiTurnCreate` carries a reply as `{option?, text?, skip?}`.
+> - `NearbyRead` has a fixed place shape, capped at 20.
+> - The desktop History map needs no extra query parameters.
+
 The API is plain resource-oriented REST under `/api/v1`, with one error format (RFC 9457 problem details carrying a machine-readable `reason`) and Pydantic DTOs kept separate from database rows. The reviewers grade API design directly, so the conventions follow the standards a reviewer expects instead of FastAPI's defaults. The few places that are not plain CRUD (AI turns, the nearby lookup) are modelled as sub-resources, not RPC verbs. The endpoint table below is the spec input for the build.
 
 ## Considered Options
@@ -9,7 +16,7 @@ The API is plain resource-oriented REST under `/api/v1`, with one error format (
 - **RPC-style `/assist` or `/diagnosis`** for the AI. Rejected: `POST /incidents/{id}/ai-turns` appends to an append-only collection that matches the glossary (ADR 0004).
 - **Cursor pagination**, or none. Rejected: limit/offset with a `total` is enough for one driver's history in SQLite and still shows the practice.
 - **Full incidents in the list.** Rejected: the History list and the desktop map need a summary only, and loading every incident's turns and places would be N+1 work for nothing.
-- **camelCase JSON with Pydantic aliases and hand-written TS types.** Rejected: snake_case end to end, with frontend types generated from the OpenAPI document (`openapi-typescript`), so the contract can't drift.
+- **camelCase JSON with Pydantic aliases and hand-written TS types.** Rejected: snake_case end to end, with frontend types generated from the OpenAPI document (`@hey-api/openapi-ts`, ADR 0008), so the contract can't drift.
 - **Demo mode as a Vite build-time variable.** Rejected: `GET /api/v1/config` is the runtime source of truth. The server enforces it anyway, and the same frontend build runs in both modes.
 - **Promote another vehicle when the default is deleted.** Rejected: the usual reason to delete the daily driver is a new car the driver is about to add, and promoting e.g. a spouse's car would only add a correction step. The incidents keep their history (`vehicle_id` → null, ADR 0001), and no default exists until the driver picks one or adds a vehicle.
 - **No server guard against duplicate creates** (client button disable only). Rejected: a weak signal is the app's core constraint, so "response lost after the server committed" is the typical failure, not a rare one. A duplicate would split photos and AI turns across two incidents.
@@ -51,13 +58,20 @@ All paths are under `/api/v1` except `/health`. Every error is a problem respons
 | `POST /incidents/{id}/photos` | multipart `file`, or JSON `{sample_id}` | 201 `PhotoRead` `{id, url, content_type, width, height, created_at}` | 404, 409 `photo_limit`, 413 `photo_too_large`, 415 `unsupported_media_type`, 403 `demo_uploads_disabled`, 422 `unknown_sample` |
 | `GET /photos/{id}` | – | 200 file | 404 |
 | `DELETE /photos/{id}` | – | 204 | 404 |
-| `POST /incidents/{id}/ai-turns` | `AiTurnCreate`: `{locale: "pl"\|"en", reply?}` | 201 `AiTurnRead` (a `question` or the `advice`), no `Location` | 404, 409 `advice_exists` / `no_open_question` / `reply_required` / `turn_in_progress`, 502 `provider_error` / `invalid_output`, 504 `timeout` |
-| `POST /incidents/{id}/nearby` | `NearbyRequest`: `{radius_km}` (1–25) | 200 `NearbyRead` `{status: "found"\|"none", places[], radius_km, fetched_at}` | 404, 409 `no_location`, 503 `nearby_unavailable`, 422 |
+| `POST /incidents/{id}/ai-turns` | `AiTurnCreate`: `{locale: "pl"\|"en", reply?: {option?, text?, skip?}}` | 201 `AiTurnRead` (a `question` or the `advice`), no `Location` | 404, 409 `advice_exists` / `no_open_question` / `reply_required` / `turn_in_progress`, 502 `provider_error` / `invalid_output`, 504 `timeout` |
+| `POST /incidents/{id}/nearby` | `NearbyRequest`: `{radius_km}` (1–25) | 200 `NearbyRead` `{status: "found"\|"none", places[], radius_km, fetched_at}` (`places` shape below) | 404, 409 `no_location`, 503 `nearby_unavailable`, 422 |
 
 The damage report's endpoints are in ADR 0009, which also adds `damage_report_status` to `IncidentSummary`.
 
 - **`IncidentSummary`:** `id`, `problem_type`, `status`, `created_at`, `location {lat, lon}`, `location_label`, `vehicle_id`, `photo_count`, `has_advice`.
 - **`IncidentRead`:** the incident fields plus `photos[]`, `ai_turns[]` (in `seq` order), `nearby` (null until the first successful lookup) and `location_label` (null until the location context is computed).
+
+## Wire shapes settled in spec #43
+
+- **Problem type wire values:** `flat_tyre`, `flat_battery`, `out_of_fuel`, `pothole_damage`, `other`.
+- **Reply body in `AiTurnCreate`:** `reply` is `{option?: string, text?: string, skip?: bool}` with exactly one field set, otherwise 422. `text` has the same maximum length as `note`.
+- **Nearby place in `NearbyRead.places[]`:** `{osm_type, osm_id, category, name|null, lat, lon, distance_m, phone|null, opening_hours|null}`. At most 20 places, sorted by distance. `opening_hours` is passed on only in the simple forms of the prototype rule: `24/7`, or the same hours every day (`Mo-Su HH:MM-HH:MM`). Anything else is `null`.
+- **Desktop History map:** it needs no geo-bounds filter and no larger page size. It shows the pins of the loaded page of `GET /incidents`.
 
 ## Core flow (Start → Result)
 

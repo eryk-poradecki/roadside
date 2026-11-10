@@ -16,7 +16,7 @@ Drivers. Primary moment: stranded on the roadside, often at night, cold and stre
 
 ## Product Purpose
 
-Roadside assistant: the driver says what happened (breakdown, flat tyre, battery, out of fuel, pothole damage, other), gets calm step-by-step AI help and what is nearby, and can document the incident (e.g. pothole damage, with a draft report to the road authority) for later. Success: the driver knows the one next step, and incidents are saved in usable form.
+Roadside assistant: the driver says what happened (breakdown, flat tyre, battery, out of fuel, pothole damage, other), gets calm step-by-step AI help and what is nearby, and can document the incident (e.g. pothole damage, with a draft report to the road authority) for later. Success: the driver knows the one next step, and every incident is kept in usable form.
 
 ## Positioning
 
@@ -32,7 +32,7 @@ Combines an AI-guided diagnosis, real nearby places, and incident documentation 
 ## Capabilities and Constraints
 
 Confirmed:
-- Mobile screens: Start (quick-pick tiles, photo, optional text, detected location), Result (AI diagnosis, numbered steps, safety notes, nearby map + list, save as incident), Vehicle profile (model, tyre size, spare wheel / wheel lock key, assistance insurance), Incident history (list with status).
+- Mobile screens: Start (quick-pick tiles, photo, optional text, detected location), Result (AI diagnosis, numbered steps, safety notes, nearby map + list, ending with "Mark resolved"; every help request is already an incident, ADR 0001), Vehicle profile (model, tyre size, spare wheel / wheel lock key, assistance insurance), Incident history (list with status).
 - Desktop screens: History + map (list beside map, potholes as pins), Incident detail (photos, location, AI notes, draft damage report).
 - AI diagnosis is an LLM call, provider-agnostic via an OpenAI-compatible interface (local Ollama or a free-tier API). AI output must be labelled as AI, show uncertainty, and never pose as emergency services.
 - Demo mode replays pre-recorded real AI responses; used on the public deploy.
@@ -41,7 +41,7 @@ Confirmed:
 
 Out of scope for MVP (roadmap): auth / multi-user, public transport suggestions, taxi / fuel delivery integrations, community pothole map as a separate feature.
 
-Undecided: specific LLM provider/model; hosting/deploy target; how photos are stored.
+Decided elsewhere: LLM providers (ADR 0004), public deploy (ADR 0011), photo storage (ADR 0002).
 
 ## Brand Commitments
 
