@@ -55,9 +55,16 @@ Tools come back where the model makes a real choice: the damage report (if it be
 
 ### What the model is told
 
-- **Location context, not coordinates.** After the incident is created, the backend makes one Nominatim reverse call (`zoom=17`, `addressdetails=1`, 3 s timeout, cached by rounded coordinates, 1 request/s policy). The result is mapped to `road_class ∈ {motorway_expressway, main_road, local_street, unknown}` and `settlement ∈ {city, town, village, countryside, unknown}`. Any failure gives `unknown`.
-  - **When the GPS accuracy is worse than ~150 m, `road_class` is forced to `unknown`.** A point near a motorway could snap to a parallel side road, and "local street, handle it yourself" is the dangerous mistake.
-  - The same call gives the **location label** shown on the Result screen. The label is stored on the incident and never sent to the model.
+- **Location context, not coordinates.** After the incident is created, the backend makes one Nominatim reverse call: `format=jsonv2`, `zoom=17` (roads, not buildings), `addressdetails=1`, `extratags=1`, `accept-language=<UI locale>`. It has a 3 s timeout, is cached by rounded coordinates, and follows the 1 request/s policy ([research #32](https://github.com/eryk-poradecki/roadside/issues/32)). Any failure gives `unknown`.
+  - **`road_class`:**
+    - `motorway`, `trunk` (+ `_link`) → `motorway_expressway`. Polish S roads are mostly tagged `motorway`. `trunk` also covers some non-expressway national roads, but keeping it here errs on the safe side.
+    - `primary`, `secondary`, `tertiary` (+ `_link`) → `main_road`.
+    - `residential`, `unclassified`, `living_street`, `service` → `local_street`.
+    - Anything else, including a result that isn't a highway, and tracks and paths → `unknown`.
+  - **`settlement`:** `address.city` → city, `town` → town, `village` → village. With only `hamlet` or `isolated_dwelling` → countryside, and `village` wins when both are present. With no locality key → countryside if a road matched, else unknown. `municipality` (the gmina) is never used. The value is the nearest named locality, not a built-up area, so it is weak evidence next to `road_class`.
+  - **`road_class` is forced to `unknown`** when the browser reports GPS accuracy worse than ~150 m, **or when the matched road is more than ~50 m from the location** (computed by the backend; Nominatim has no distance limit and snapped a rural point to a street 370 m away). A point near a motorway could snap to a side road, and "local street, handle it yourself" is the dangerous mistake. Both thresholds are config values, to be tuned.
+  - The same call gives the **location label** shown on the Result screen (`"{road name}, {city|town|village|hamlet}"`, never `display_name`). The label is stored on the incident and never sent to the model.
+  - **Privacy:** the coordinates go to the OSMF Nominatim server (whose policy says not to submit personal data), not to the model provider. The README's privacy note says so. Demo mode makes no call, and the server URL is configurable (`NOMINATIM_URL`), so a self-hosted or commercial instance can replace the public one.
   - The first turn waits for the context (≤3 s), in parallel with photo uploads.
   - When the context is `unknown` and it would change the first steps, the model may ask a clarifying question about it.
 - **Fixed in the prompt:** the region ("Poland/EU, emergency number 112, warning triangle and high-vis vest required").
