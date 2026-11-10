@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import pytest
 from pydantic import ValidationError
 
@@ -14,14 +12,6 @@ LIVE = {
     "llm_api_key": "ollama",
     "llm_model": "qwen3:8b",
 }
-
-
-@pytest.fixture(autouse=True)
-def _no_env(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    """Keep a developer's .env and LLM_* variables out of these tests."""
-    monkeypatch.chdir(tmp_path)
-    for name in ("DEMO_MODE", "LLM_BASE_URL", "LLM_API_KEY", "LLM_MODEL", "LLM_TURN_BUDGET_S"):
-        monkeypatch.delenv(name, raising=False)
 
 
 @pytest.mark.parametrize("budget", [100, 100.5, 250])

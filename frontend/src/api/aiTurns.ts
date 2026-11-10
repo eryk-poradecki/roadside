@@ -3,7 +3,7 @@ import { isApiError } from './client'
 import { getIncidentQueryKey, takeAiTurnMutation } from './generated/@tanstack/react-query.gen'
 import type { AiTurnRead, IncidentRead } from './generated/types.gen'
 
-export type { AdviceRead, AiTurnRead, Confidence } from './generated/types.gen'
+export type { AdviceRead, AiTurnRead, Confidence, TurnInputsRead } from './generated/types.gen'
 
 export type Locale = 'pl' | 'en'
 
@@ -15,6 +15,15 @@ const OTHER_TURN_POLL_MS = 5_000
 
 /** Fallback when session storage is blocked: covers remounts, not reloads. */
 const autoStarted = new Set<number>()
+
+/** Whether `claimAutoStart` was already used for this incident, without claiming it. */
+export function autoStartClaimed(incidentId: number): boolean {
+  try {
+    return sessionStorage.getItem(`ai-autostart-${String(incidentId)}`) !== null
+  } catch {
+    return autoStarted.has(incidentId)
+  }
+}
 
 /**
  * True the first time it is called for an incident in this browser session, also across

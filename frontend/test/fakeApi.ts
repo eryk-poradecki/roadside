@@ -1,5 +1,5 @@
 import { http, HttpResponse, type HttpHandler } from 'msw'
-import type { AdviceRead, AiTurnRead } from '../src/api/aiTurns'
+import type { AdviceRead, AiTurnRead, TurnInputsRead } from '../src/api/aiTurns'
 import type {
   IncidentCreate,
   IncidentPatch,
@@ -22,7 +22,8 @@ export const ADVICE: AdviceRead = {
 }
 
 /** One scripted `POST /ai-turns` outcome: an advice, or a problem response. */
-export type TurnScript = { advice: AdviceRead } | { status: number; reason: string }
+export type TurnScript =
+  { advice: AdviceRead; urgent?: boolean } | { status: number; reason: string }
 
 const NULLABLE_FIELDS = [
   'make_model',
@@ -105,7 +106,11 @@ export class FakeApi {
   }
 
   /** A stored advice turn, for seeding an incident that was already answered. */
-  adviceTurn(advice: AdviceRead = ADVICE, locale: 'pl' | 'en' = 'en'): AiTurnRead {
+  adviceTurn(
+    advice: AdviceRead = ADVICE,
+    locale: 'pl' | 'en' = 'en',
+    extra: Partial<AiTurnRead> = {},
+  ): AiTurnRead {
     return {
       id: this.nextTurnId++,
       seq: 1,
@@ -118,6 +123,37 @@ export class FakeApi {
       prompt_version: 'v1',
       provider: 'fake',
       model: 'fake-model',
+      ...extra,
+    }
+  }
+
+  /** What the server freezes next to a model turn ("Answered for …"), from the incident now. */
+  inputsFor(incident: IncidentRead): TurnInputsRead {
+    const v = this.vehicles.find((x) => x.id === incident.vehicle_id)
+    return {
+      vehicle: v
+        ? {
+            name: v.name,
+            make_model: v.make_model,
+            year: v.year,
+            fuel_type: v.fuel_type,
+            transmission: v.transmission,
+            tyre_size: v.tyre_size,
+            spare_wheel: v.spare_wheel,
+            wheel_locks: v.wheel_locks,
+            lock_key_location: v.lock_key_location,
+            has_assistance: v.assistance_phone !== null,
+            assistance_insurer: v.assistance_phone !== null ? v.assistance_insurer : null,
+          }
+        : null,
+      problem_type: incident.problem_type,
+      note: incident.note,
+      local_time: '2026-11-10 11:00',
+      dark: false,
+      road_class: 'unknown',
+      settlement: 'unknown',
+      photo_ids_seen: [],
+      photos_not_sent: 0,
     }
   }
 
@@ -275,10 +311,11 @@ export class FakeApi {
           return problem(409, 'advice_exists', 'The AI answer is complete')
         const next = this.turnScript.shift() ?? { advice: ADVICE }
         if ('reason' in next) return problem(next.status, next.reason, 'internal detail')
-        const turn = {
-          ...this.adviceTurn(next.advice, body.locale),
+        const turn = this.adviceTurn(next.advice, body.locale, {
           seq: incident.ai_turns.length + 1,
-        }
+          urgent: next.urgent ?? false,
+          inputs: this.inputsFor(incident),
+        })
         const updated = { ...incident, ai_turns: [...incident.ai_turns, turn] }
         this.incidents = this.incidents.map((i) => (i.id === incidentId ? updated : i))
         return HttpResponse.json(turn, { status: 201 })

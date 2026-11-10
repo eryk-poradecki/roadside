@@ -12,6 +12,14 @@ from app.settings import Settings
 ORIGIN = "http://localhost:5173"
 
 
+@pytest.fixture(autouse=True)
+def _no_developer_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep a developer's backend/.env and exported settings out of every test."""
+    monkeypatch.setitem(Settings.model_config, "env_file", None)
+    for name in Settings.model_fields:
+        monkeypatch.delenv(name.upper(), raising=False)
+
+
 @pytest.fixture
 def settings(tmp_path: Path) -> Settings:
     return Settings(

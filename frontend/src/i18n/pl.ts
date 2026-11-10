@@ -110,6 +110,7 @@ export const pl: Localised<Translation> & {
     loading: 'Ustalamy dla Ciebie kolejne kroki…',
     loadingSub: 'Kroki bezpieczeństwa powyżej działają, gdy czekasz.',
     ask: 'Poproś asystenta o kroki',
+    notAnswered: 'Asystent jeszcze nie odpowiedział w tym zdarzeniu.',
     errorTitle: 'Asystent nie odpowiedział',
     errorBody: 'Kroki bezpieczeństwa powyżej i numer 112 nadal działają.',
     retry: 'Spróbuj ponownie',
@@ -121,6 +122,10 @@ export const pl: Localised<Translation> & {
     stepsTitle: 'Co zrobić',
     escalateTitle: 'Przerwij i wezwij pomoc, jeśli',
     disclaimer: 'AI może się mylić. To nie są służby ratunkowe.',
+    answeredFor: 'Odpowiedź dla: {{vehicle}} · {{problem}}',
+    answeredForNoVehicle: 'Odpowiedź dla: {{problem}}, bez pojazdu, więc kroki są ogólne.',
+    urgentTitle: 'To może być nagły wypadek',
+    urgentBody: 'Najpierw zadzwoń pod 112, potem wykonaj kroki poniżej.',
   },
   incidentForm: {
     heading: 'Edytuj zdarzenie',
@@ -144,6 +149,8 @@ export const pl: Localised<Translation> & {
     checklistSummary_many: 'Jeszcze {{count}} kroków bezpieczeństwa',
     checklistSummary_other: 'Jeszcze {{count}} kroku bezpieczeństwa',
     resolvedSummary: 'Kroki bezpieczeństwa',
+    show: 'Pokaż',
+    hide: 'Ukryj',
     lists: {
       tyre: {
         first: 'Włącz światła awaryjne. Zatrzymaj się jak najdalej od ruchu, na ile to bezpieczne.',
