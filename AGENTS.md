@@ -4,6 +4,8 @@ Shared instructions for coding agents (Claude Code, Codex, others) working in th
 
 **Task requirements:** [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md). Every "Required" item must be met; check plans and PRs against it.
 
+Prototype branches (`prototype/*`) are reference-only: they get a **draft** PR marked "do not merge", linked to their wayfinder ticket, and are closed (not merged, not deleted) once the build ticket that replaces them is merged.
+
 ## Agent skills
 
 ### Issue tracker
