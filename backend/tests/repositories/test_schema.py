@@ -1,0 +1,61 @@
+import sqlite3
+from pathlib import Path
+
+import pytest
+
+from app.db.migrate import MIN_SQLITE, migrate, read_user_version
+from app.domain.vehicle import FuelType, SpareWheel, Transmission
+
+
+def test_migrate_is_idempotent_and_sets_user_version(tmp_path: Path) -> None:
+    db = tmp_path / "m.db"
+    migrate(db)
+    v = read_user_version(db)
+    assert v >= 1
+    migrate(db)
+    assert read_user_version(db) == v
+
+
+def test_migrate_fails_fast_on_old_sqlite(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(sqlite3, "sqlite_version_info", (3, 36, 0))
+    monkeypatch.setattr(sqlite3, "sqlite_version", "3.36.0")
+    with pytest.raises(RuntimeError, match=r"3\.36\.0.*3\.37"):
+        migrate(tmp_path / "x.db")
+    assert MIN_SQLITE == (3, 37, 0)
+
+
+def _check_sql(db: Path) -> str:
+    with sqlite3.connect(db) as c:
+        row = c.execute("SELECT sql FROM sqlite_master WHERE name='vehicles'").fetchone()
+    return str(row[0])
+
+
+def test_sql_enum_lists_match_pydantic_enums(tmp_path: Path) -> None:
+    db = tmp_path / "e.db"
+    migrate(db)
+    sql = _check_sql(db)
+    assert "STRICT" in sql
+    for enum in (FuelType, Transmission, SpareWheel):
+        for member in enum:
+            assert f"'{member.value}'" in sql
+    # and no extra values: every quoted token in the CHECKs is a known enum value
+    import re
+
+    known = {m.value for e in (FuelType, Transmission, SpareWheel) for m in e}
+    quoted = set(re.findall(r"'([a-z_]+)'", sql))
+    assert quoted <= known
+
+
+def test_partial_unique_index_allows_one_default(tmp_path: Path) -> None:
+    db = tmp_path / "d.db"
+    migrate(db)
+    with sqlite3.connect(db) as c:
+        ins = (
+            "INSERT INTO vehicles(name,is_default,created_at,updated_at) "
+            "VALUES(?,?,'2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z')"
+        )
+        c.execute(ins, ("a", 1))
+        c.execute(ins, ("b", 0))
+        c.execute(ins, ("c", 0))
+        with pytest.raises(sqlite3.IntegrityError):
+            c.execute(ins, ("d", 1))

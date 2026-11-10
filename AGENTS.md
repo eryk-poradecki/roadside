@@ -22,3 +22,7 @@ Triage label vocabulary: [docs/agents/triage-labels.md](docs/agents/triage-label
 
 - When an agent makes HTTP requests to third-party services itself (research, API checks, curl), it uses a **generic User-Agent** (e.g. `research-agent/1.0`). Never include personal data, emails, usernames, repo names or other identifiers in request headers, URLs or payloads.
 - The **application's** own User-Agent for OSM services (Overpass, Nominatim) is a product decision, recorded in an ADR. Use the value from the ADR. Don't invent one.
+
+## Commands
+
+`make check` runs everything CI runs for the backend (ruff lint and format check, mypy strict, pytest, requirements drift check). It is the gate before opening a PR. Run `make help` for the rest (`install`, `dev-api`, `migrate`, `format`, `requirements`).
