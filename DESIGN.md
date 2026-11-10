@@ -41,6 +41,16 @@ Both are **the same app**: same visual language, same components. Desktop change
 1. History + map — incidents list next to a map (potholes visible as pins).
 2. Incident detail — photos, location, AI notes, draft damage report to road authority.
 
+## Navigation
+
+- **One app shell, bottom tab bar with three tabs:** Help (Start), History, Vehicles. Not a hamburger menu: hidden navigation costs an extra tap and hurts discoverability.
+- **The tab bar shows only on top-level screens** (Start, History, Vehicles). Flow screens (the help sheet, Result, Incident detail, the vehicle form) hide it and use Back plus their own bottom dock. **The 112 control stays on every screen.**
+- **On Start, 112 must not become a second full-height bottom row.** Put it either in a compact bar directly above the tab bar or in the content above the tiles. Pick one, and show both in the prototype only if it's unclear.
+- **Desktop:** same routes. The tabs become a sidebar or top navigation, with the same components in a different layout (one app, two moments).
+- **Result and Incident detail are the same route** (`/incidents/:id`): Result is the incident viewed right after creation, and History links to the same place.
+- **Routes:** `/` (Start), `/incidents` (History), `/incidents/:id` (Result / detail), `/vehicles`, `/vehicles/new`, `/vehicles/:id`. See ADR 0008.
+- **Map attribution** ("© OpenStreetMap contributors", linked) stays fully visible on the inline and the full-screen map, never under the sheet or the dock.
+
 ## Content & tone
 
 - Short sentences, second person, reassuring: "Let's sort this out step by step."
