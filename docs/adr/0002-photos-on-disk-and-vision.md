@@ -6,7 +6,7 @@ An incident has up to five photos, each added or removed on its own. The bytes a
 
 ## Considered Options
 
-- **BLOB column in SQLite**: one-file backup and atomic deletes. Rejected: bloats the database, pushes image bytes through the ORM, and is an unusual choice for a few hundred KB per file.
+- **BLOB column in SQLite**: one-file backup and atomic deletes. Rejected: bloats the database, pushes image bytes through every query and backup, and is an unusual choice for a few hundred KB per file.
 - **`StaticFiles` mount on the upload folder**: less code. Rejected: it serves whatever is in the folder regardless of the database, so it is the less secure design.
 - **One multipart create carrying the incident and its files**, or **upload first, attach by id**: rejected. The first makes the create endpoint non-JSON. The second leaves orphan files when the create never happens. Instead the incident is created with JSON (ADR 0001) and photos go to `POST /api/incidents/{id}/photos`, one file per request. The same endpoint adds photos later from incident detail. `DELETE /api/photos/{id}` removes one.
 - **Store only (no vision)** or **always vision**: rejected. Vision is behind a provider capability flag (`LLM_VISION`), so text-only models keep working.
