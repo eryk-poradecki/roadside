@@ -4,7 +4,6 @@ import {
   deleteVehicleMutation,
   getVehicleOptions,
   listVehiclesOptions,
-  listVehiclesQueryKey,
   replaceVehicleMutation,
 } from './generated/@tanstack/react-query.gen'
 import type { VehicleCreate, VehicleRead } from './generated/types.gen'
@@ -24,22 +23,31 @@ export const useVehicle = (id: number) => useQuery(getVehicleOptions({ path: { v
 /** Every vehicle write changes the list, and the default flag can move between vehicles. */
 function useInvalidateVehicles() {
   const queryClient = useQueryClient()
-  return () => queryClient.invalidateQueries({ queryKey: listVehiclesQueryKey() })
+  // The list and every single-vehicle entry: the default flag can move between vehicles.
+  return () =>
+    queryClient.invalidateQueries({
+      predicate: ({ queryKey }) => {
+        const first: unknown = queryKey[0]
+        const id =
+          typeof first === 'object' && first !== null ? (first as { _id?: unknown })._id : null
+        return id === 'listVehicles' || id === 'getVehicle'
+      },
+    })
 }
 
 export function useCreateVehicle() {
   const invalidate = useInvalidateVehicles()
-  return useMutation({ ...createVehicleMutation(), onSuccess: invalidate })
+  return useMutation({ ...createVehicleMutation(), onSettled: invalidate })
 }
 
 export function useReplaceVehicle() {
   const invalidate = useInvalidateVehicles()
-  return useMutation({ ...replaceVehicleMutation(), onSuccess: invalidate })
+  return useMutation({ ...replaceVehicleMutation(), onSettled: invalidate })
 }
 
 export function useDeleteVehicle() {
   const invalidate = useInvalidateVehicles()
-  return useMutation({ ...deleteVehicleMutation(), onSuccess: invalidate })
+  return useMutation({ ...deleteVehicleMutation(), onSettled: invalidate })
 }
 
 /** The writable part of a vehicle, for a full PUT. */

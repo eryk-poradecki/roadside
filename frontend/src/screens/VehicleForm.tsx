@@ -1,6 +1,6 @@
 import { ArrowLeft } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, Navigate, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { ErrorNotice } from '../components/ErrorNotice'
 import {
@@ -297,25 +297,27 @@ function Frame({ heading, children }: { heading: string; children: ReactNode }) 
 
 function NewVehicle() {
   const { t } = useTranslation()
-  const { data: vehicles, isPending, isError, error } = useVehicles()
+  const { data: vehicles, isPending, isFetchedAfterMount, isError, error } = useVehicles()
   return (
     <Frame heading={t('vehicleForm.newHeading')}>
       {isPending && <p className="muted">{t('common.loading')}</p>}
       {isError && <ErrorNotice error={error} />}
       {/* The first vehicle becomes the default (ADR 0005), so the box starts ticked. */}
-      {vehicles && <VehicleEditor initial={emptyDraft(!vehicles.some((v) => v.is_default))} />}
+      {vehicles && isFetchedAfterMount && (
+        <VehicleEditor initial={emptyDraft(!vehicles.some((v) => v.is_default))} />
+      )}
     </Frame>
   )
 }
 
 function EditVehicle({ id }: { id: number }) {
   const { t } = useTranslation()
-  const { data: vehicle, isPending, isError, error } = useVehicle(id)
+  const { data: vehicle, isPending, isFetchedAfterMount, isError, error } = useVehicle(id)
   return (
     <Frame heading={t('vehicleForm.editHeading')}>
       {isPending && <p className="muted">{t('common.loading')}</p>}
       {isError && <ErrorNotice error={error} />}
-      {vehicle && (
+      {vehicle && isFetchedAfterMount && (
         <VehicleEditor key={vehicle.id} vehicle={vehicle} initial={draftFromVehicle(vehicle)} />
       )}
     </Frame>
@@ -324,5 +326,8 @@ function EditVehicle({ id }: { id: number }) {
 
 export function VehicleForm() {
   const { id } = useParams()
-  return id === undefined ? <NewVehicle /> : <EditVehicle id={Number(id)} />
+  if (id === undefined) return <NewVehicle />
+  const numeric = Number(id)
+  if (!Number.isInteger(numeric) || numeric < 1) return <Navigate to="/vehicles" replace />
+  return <EditVehicle id={numeric} />
 }
