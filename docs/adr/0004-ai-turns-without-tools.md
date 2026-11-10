@@ -14,7 +14,7 @@ The agentic parts that remain are the ones where the model's judgment matters:
 - the model choosing `extra_categories`;
 - the `urgent` flag that changes the UI.
 
-Tools come back where the model makes a real choice: the damage report (if it becomes a tool) and the MCP server.
+Tools come back where the model makes a real choice, in the MCP server. The damage report is not a tool in the app: it is one schema-constrained call (ADR 0009).
 
 ## Considered Options
 
@@ -123,7 +123,7 @@ Tools come back where the model makes a real choice: the damage report (if it be
 ### MCP server (stretch, first to cut)
 
 - A separate entry point (`python -m app.mcp`) that calls the services directly, not over HTTP.
-- Tools: `list_incidents(status?)`, `get_incident(id)`, `find_nearby(lat, lon, category)`, and `draft_damage_report(incident_id)` if the damage report ticket makes it a tool.
+- Tools: `list_incidents(status?)`, `get_incident(id)`, `find_nearby(lat, lon, category)`, and `draft_damage_report(incident_id)`, a thin wrapper over the damage report service (ADR 0009).
 - Read-only except the damage report draft. Never delete.
 
 ### Tests and evals
