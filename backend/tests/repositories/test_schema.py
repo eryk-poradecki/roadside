@@ -1,4 +1,5 @@
 import sqlite3
+from contextlib import closing
 from pathlib import Path
 
 import pytest
@@ -25,7 +26,7 @@ def test_migrate_fails_fast_on_old_sqlite(tmp_path: Path, monkeypatch: pytest.Mo
 
 
 def _check_sql(db: Path) -> str:
-    with sqlite3.connect(db) as c:
+    with closing(sqlite3.connect(db)) as c:
         row = c.execute("SELECT sql FROM sqlite_master WHERE name='vehicles'").fetchone()
     return str(row[0])
 
@@ -49,7 +50,7 @@ def test_sql_enum_lists_match_pydantic_enums(tmp_path: Path) -> None:
 def test_partial_unique_index_allows_one_default(tmp_path: Path) -> None:
     db = tmp_path / "d.db"
     migrate(db)
-    with sqlite3.connect(db) as c:
+    with closing(sqlite3.connect(db)) as c:
         ins = (
             "INSERT INTO vehicles(name,is_default,created_at,updated_at) "
             "VALUES(?,?,'2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z')"
@@ -68,7 +69,7 @@ def test_incident_enum_lists_match_pydantic_enums(tmp_path: Path) -> None:
 
     db = tmp_path / "i.db"
     migrate(db)
-    with sqlite3.connect(db) as c:
+    with closing(sqlite3.connect(db)) as c:
         sql = str(c.execute("SELECT sql FROM sqlite_master WHERE name='incidents'").fetchone()[0])
     assert "STRICT" in sql
     known = {m.value for e in (ProblemType, IncidentStatus) for m in e}
@@ -82,7 +83,7 @@ def test_incident_location_needs_both_coordinates(tmp_path: Path) -> None:
         "INSERT INTO incidents(problem_type,status,lat,lon,accuracy_m,created_at,updated_at) "
         "VALUES('other','open',?,?,?,'2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z')"
     )
-    with sqlite3.connect(db) as c:
+    with closing(sqlite3.connect(db)) as c:
         c.execute(ins, (52.0, 21.0, None))
         c.execute(ins, (None, None, None))
         for bad in ((52.0, None, None), (None, None, 5.0)):

@@ -3,8 +3,8 @@
 import { type DefaultError, type InfiniteData, infiniteQueryOptions, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { createIncident, createVehicle, deleteIncident, deleteVehicle, getIncident, getVehicle, health, listIncidents, listVehicles, type Options, readConfig, replaceVehicle, updateIncident } from '../sdk.gen';
-import type { CreateIncidentData, CreateIncidentError, CreateIncidentResponse, CreateVehicleData, CreateVehicleError, CreateVehicleResponse, DeleteIncidentData, DeleteIncidentError, DeleteIncidentResponse, DeleteVehicleData, DeleteVehicleError, DeleteVehicleResponse, GetIncidentData, GetIncidentError, GetIncidentResponse, GetVehicleData, GetVehicleError, GetVehicleResponse, HealthData, HealthResponse, ListIncidentsData, ListIncidentsError, ListIncidentsResponse, ListVehiclesData, ListVehiclesResponse, ReadConfigData, ReadConfigResponse, ReplaceVehicleData, ReplaceVehicleError, ReplaceVehicleResponse, UpdateIncidentData, UpdateIncidentError, UpdateIncidentResponse } from '../types.gen';
+import { createIncident, createVehicle, deleteIncident, deleteVehicle, getIncident, getVehicle, health, listIncidents, listVehicles, type Options, readConfig, replaceVehicle, takeAiTurn, updateIncident } from '../sdk.gen';
+import type { CreateIncidentData, CreateIncidentError, CreateIncidentResponse, CreateVehicleData, CreateVehicleError, CreateVehicleResponse, DeleteIncidentData, DeleteIncidentError, DeleteIncidentResponse, DeleteVehicleData, DeleteVehicleError, DeleteVehicleResponse, GetIncidentData, GetIncidentError, GetIncidentResponse, GetVehicleData, GetVehicleError, GetVehicleResponse, HealthData, HealthResponse, ListIncidentsData, ListIncidentsError, ListIncidentsResponse, ListVehiclesData, ListVehiclesResponse, ReadConfigData, ReadConfigResponse, ReplaceVehicleData, ReplaceVehicleError, ReplaceVehicleResponse, TakeAiTurnData, TakeAiTurnError, TakeAiTurnResponse, UpdateIncidentData, UpdateIncidentError, UpdateIncidentResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -197,6 +197,30 @@ export const updateIncidentMutation = (options?: Partial<Options<UpdateIncidentD
     const mutationOptions: UseMutationOptions<UpdateIncidentResponse, UpdateIncidentError, Options<UpdateIncidentData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await updateIncident({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Take Ai Turn
+ *
+ * Ask the assistant for the next turn of the AI answer and wait for it.
+ *
+ * Synchronous: the request holds until the turn is validated and stored, or has failed
+ * (nothing is stored then). One turn at a time per incident (409 `turn_in_progress`); the
+ * advice closes the AI answer (409 `advice_exists`). Failures: 502 `provider_error` or
+ * `invalid_output`, 504 `timeout`. "Try again" repeats the same request.
+ */
+export const takeAiTurnMutation = (options?: Partial<Options<TakeAiTurnData>>): UseMutationOptions<TakeAiTurnResponse, TakeAiTurnError, Options<TakeAiTurnData>> => {
+    const mutationOptions: UseMutationOptions<TakeAiTurnResponse, TakeAiTurnError, Options<TakeAiTurnData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await takeAiTurn({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

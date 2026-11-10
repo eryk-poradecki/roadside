@@ -2,8 +2,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from app.deps import Connection, get_settings
+from app.deps import Connection, get_llm_provider, get_settings
 from app.errors import AppError
+from app.integrations.llm.base import LLMProvider
 from app.schemas.meta import ConfigRead, HealthRead
 from app.settings import Settings
 
@@ -21,10 +22,14 @@ async def health(conn: Connection) -> HealthRead:
 
 
 @config_router.get("/config", response_model=ConfigRead)
-async def read_config(settings: Annotated[Settings, Depends(get_settings)]) -> ConfigRead:
+async def read_config(
+    settings: Annotated[Settings, Depends(get_settings)],
+    provider: Annotated[LLMProvider, Depends(get_llm_provider)],
+) -> ConfigRead:
     return ConfigRead(
         demo_mode=settings.demo_mode,
-        vision_enabled=settings.llm_vision,
+        # What the provider in use can do, not what was asked for (demo mode has no vision).
+        vision_enabled=provider.vision and provider.max_images > 0,
         max_photos=settings.max_photos,
         max_photo_bytes=settings.max_photo_bytes,
         sample_photos=[],

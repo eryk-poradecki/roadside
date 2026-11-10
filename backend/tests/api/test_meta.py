@@ -1,7 +1,11 @@
+from pathlib import Path
+
 import httpx
 import pytest
 from pydantic import ValidationError
 
+from app.db.migrate import migrate
+from app.main import create_app
 from app.settings import Settings
 
 
@@ -75,3 +79,13 @@ async def test_413_response_carries_cors_headers(client: httpx.AsyncClient) -> N
     )
     assert r.status_code == 413
     assert r.headers["access-control-allow-origin"] == "http://localhost:5173"
+
+
+async def test_vision_follows_the_provider_in_use(tmp_path: Path) -> None:
+    # Demo mode has no model that sees photos, whatever LLM_VISION says.
+    settings = Settings(database_path=tmp_path / "v.db", upload_dir=tmp_path / "u", llm_vision=True)
+    migrate(settings.database_path)
+    transport = httpx.ASGITransport(app=create_app(settings))
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        body = (await client.get("/api/v1/config")).json()
+    assert body["vision_enabled"] is False

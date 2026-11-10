@@ -8,8 +8,10 @@ from fastapi.routing import APIRoute
 
 from app.db.migrate import migrate
 from app.errors import install_error_handlers
+from app.integrations.llm.factory import build_provider
 from app.middleware import BodyLimitMiddleware
-from app.routers import incidents, meta, vehicles
+from app.routers import ai_turns, incidents, meta, vehicles
+from app.services.assistant import TurnLocks
 from app.settings import Settings
 
 logger = logging.getLogger("roadside")
@@ -26,14 +28,22 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         level=settings.log_level.upper(), format="%(asctime)s %(levelname)s %(name)s %(message)s"
     )
 
+    provider = build_provider(settings)
+
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         version = migrate(settings.database_path)
         settings.upload_dir.mkdir(parents=True, exist_ok=True)
         logger.info(
-            "database ready at schema version %d (demo_mode=%s)", version, settings.demo_mode
+            "database ready at schema version %d (demo_mode=%s, llm_provider=%s)",
+            version,
+            settings.demo_mode,
+            provider.name,
         )
-        yield
+        try:
+            yield
+        finally:
+            await provider.aclose()
 
     app = FastAPI(
         title="Roadside API",
@@ -42,11 +52,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         generate_unique_id_function=_operation_id,
     )
     app.state.settings = settings
+    app.state.llm_provider = provider
+    app.state.turn_locks = TurnLocks()
 
     api = APIRouter(prefix="/api/v1")
     api.include_router(meta.config_router)
     api.include_router(vehicles.router)
     api.include_router(incidents.router)
+    api.include_router(ai_turns.router)
     app.include_router(api)
     app.include_router(meta.health_router)
 

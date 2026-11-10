@@ -1,6 +1,218 @@
 {
   "components": {
     "schemas": {
+      "AdviceRead": {
+        "description": "The advice: the diagnosis, numbered steps, and when to stop and call for help.",
+        "properties": {
+          "alternatives": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Alternatives",
+            "type": "array"
+          },
+          "cause": {
+            "title": "Cause",
+            "type": "string"
+          },
+          "confidence": {
+            "$ref": "#/components/schemas/Confidence"
+          },
+          "escalate_if": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Escalate If",
+            "type": "array"
+          },
+          "extra_categories": {
+            "items": {
+              "$ref": "#/components/schemas/NearbyCategory"
+            },
+            "title": "Extra Categories",
+            "type": "array"
+          },
+          "photo_observation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo Observation"
+          },
+          "steps": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Steps",
+            "type": "array"
+          }
+        },
+        "required": [
+          "cause",
+          "confidence",
+          "alternatives",
+          "steps",
+          "escalate_if",
+          "photo_observation",
+          "extra_categories"
+        ],
+        "title": "AdviceRead",
+        "type": "object"
+      },
+      "AiTurnCreate": {
+        "additionalProperties": false,
+        "description": "Ask for the next turn. `locale` is the UI language, the only language of the answer.",
+        "properties": {
+          "locale": {
+            "enum": [
+              "pl",
+              "en"
+            ],
+            "title": "Locale",
+            "type": "string"
+          }
+        },
+        "required": [
+          "locale"
+        ],
+        "title": "AiTurnCreate",
+        "type": "object"
+      },
+      "AiTurnKind": {
+        "enum": [
+          "question",
+          "reply",
+          "advice"
+        ],
+        "title": "AiTurnKind",
+        "type": "string"
+      },
+      "AiTurnRead": {
+        "properties": {
+          "advice": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AdviceRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "inputs": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TurnInputsRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "kind": {
+            "$ref": "#/components/schemas/AiTurnKind"
+          },
+          "locale": {
+            "anyOf": [
+              {
+                "enum": [
+                  "pl",
+                  "en"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locale"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "prompt_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt Version"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          },
+          "seq": {
+            "title": "Seq",
+            "type": "integer"
+          },
+          "urgent": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Urgent"
+          }
+        },
+        "required": [
+          "id",
+          "seq",
+          "kind",
+          "created_at",
+          "urgent",
+          "advice",
+          "inputs",
+          "locale",
+          "prompt_version",
+          "provider",
+          "model"
+        ],
+        "title": "AiTurnRead",
+        "type": "object"
+      },
+      "Confidence": {
+        "enum": [
+          "likely",
+          "possible",
+          "unsure"
+        ],
+        "title": "Confidence",
+        "type": "string"
+      },
       "ConfigRead": {
         "properties": {
           "demo_mode": {
@@ -206,6 +418,13 @@
       },
       "IncidentRead": {
         "properties": {
+          "ai_turns": {
+            "items": {
+              "$ref": "#/components/schemas/AiTurnRead"
+            },
+            "title": "Ai Turns",
+            "type": "array"
+          },
           "created_at": {
             "title": "Created At",
             "type": "string"
@@ -277,7 +496,8 @@
           "location",
           "location_label",
           "created_at",
-          "updated_at"
+          "updated_at",
+          "ai_turns"
         ],
         "title": "IncidentRead",
         "type": "object"
@@ -436,6 +656,16 @@
         "title": "LocationRead",
         "type": "object"
       },
+      "NearbyCategory": {
+        "enum": [
+          "tyres",
+          "fuel",
+          "charging",
+          "repair"
+        ],
+        "title": "NearbyCategory",
+        "type": "string"
+      },
       "ProblemType": {
         "enum": [
           "flat_tyre",
@@ -492,6 +722,76 @@
         ],
         "title": "Transmission",
         "type": "string"
+      },
+      "TurnInputsRead": {
+        "description": "What a model turn was produced from (\"Answered for \u2026\"), frozen when it was stored.",
+        "properties": {
+          "dark": {
+            "title": "Dark",
+            "type": "boolean"
+          },
+          "local_time": {
+            "title": "Local Time",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "photo_ids_seen": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Photo Ids Seen",
+            "type": "array"
+          },
+          "photos_not_sent": {
+            "title": "Photos Not Sent",
+            "type": "integer"
+          },
+          "problem_type": {
+            "title": "Problem Type",
+            "type": "string"
+          },
+          "road_class": {
+            "title": "Road Class",
+            "type": "string"
+          },
+          "settlement": {
+            "title": "Settlement",
+            "type": "string"
+          },
+          "vehicle": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VehicleFactsRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "vehicle",
+          "problem_type",
+          "note",
+          "local_time",
+          "dark",
+          "road_class",
+          "settlement",
+          "photo_ids_seen",
+          "photos_not_sent"
+        ],
+        "title": "TurnInputsRead",
+        "type": "object"
       },
       "ValidationError": {
         "properties": {
@@ -697,6 +997,133 @@
           "name"
         ],
         "title": "VehicleCreate",
+        "type": "object"
+      },
+      "VehicleFactsRead": {
+        "description": "The vehicle fact block the model was given. Null means unknown.",
+        "properties": {
+          "assistance_insurer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assistance Insurer"
+          },
+          "fuel_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fuel Type"
+          },
+          "has_assistance": {
+            "title": "Has Assistance",
+            "type": "boolean"
+          },
+          "lock_key_location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lock Key Location"
+          },
+          "make_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Make Model"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "spare_wheel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spare Wheel"
+          },
+          "transmission": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transmission"
+          },
+          "tyre_size": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tyre Size"
+          },
+          "wheel_locks": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wheel Locks"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          }
+        },
+        "required": [
+          "name",
+          "make_model",
+          "year",
+          "fuel_type",
+          "transmission",
+          "tyre_size",
+          "spare_wheel",
+          "wheel_locks",
+          "lock_key_location",
+          "has_assistance",
+          "assistance_insurer"
+        ],
+        "title": "VehicleFactsRead",
         "type": "object"
       },
       "VehicleRead": {
@@ -1359,6 +1786,61 @@
         "summary": "Update Incident",
         "tags": [
           "incidents"
+        ]
+      }
+    },
+    "/api/v1/incidents/{incident_id}/ai-turns": {
+      "post": {
+        "description": "Ask the assistant for the next turn of the AI answer and wait for it.\n\nSynchronous: the request holds until the turn is validated and stored, or has failed\n(nothing is stored then). One turn at a time per incident (409 `turn_in_progress`); the\nadvice closes the AI answer (409 `advice_exists`). Failures: 502 `provider_error` or\n`invalid_output`, 504 `timeout`. \"Try again\" repeats the same request.",
+        "operationId": "take_ai_turn",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "maximum": 9223372036854775807,
+              "minimum": 1,
+              "title": "Incident Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiTurnCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiTurnRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Take Ai Turn",
+        "tags": [
+          "ai"
         ]
       }
     },

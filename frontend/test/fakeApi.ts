@@ -1,4 +1,5 @@
 import { http, HttpResponse, type HttpHandler } from 'msw'
+import type { AdviceRead, AiTurnRead } from '../src/api/aiTurns'
 import type {
   IncidentCreate,
   IncidentPatch,
@@ -8,6 +9,20 @@ import type {
 import type { VehicleCreate, VehicleRead } from '../src/api/vehicles'
 
 export const API = 'http://api.test'
+
+/** The advice the fake assistant gives unless a test scripts something else. */
+export const ADVICE: AdviceRead = {
+  cause: 'A puncture in the rear left tyre',
+  confidence: 'likely',
+  alternatives: ['A damaged valve'],
+  steps: ['Get everyone behind the barrier first', 'Call your assistance for a tyre change'],
+  escalate_if: ['You smell fuel', 'The car starts rolling'],
+  photo_observation: null,
+  extra_categories: ['tyres'],
+}
+
+/** One scripted `POST /ai-turns` outcome: an advice, or a problem response. */
+export type TurnScript = { advice: AdviceRead } | { status: number; reason: string }
 
 const NULLABLE_FIELDS = [
   'make_model',
@@ -34,6 +49,11 @@ export class FakeApi {
   incidentRequests: { key: string | null; body: IncidentCreate }[] = []
   /** When set, the next create commits but its response is lost (a network error). */
   loseNextCreateResponse = false
+  /** Outcomes of the next AI turns, in order; when empty, a turn returns `ADVICE`. */
+  turnScript: TurnScript[] = []
+  /** Every `POST /incidents/:id/ai-turns` with its body. */
+  turnRequests: { incidentId: number; body: unknown }[] = []
+  private nextTurnId = 1
   private nextId = 1
   private nextIncidentId = 1
   private keys = new Map<string, number>()
@@ -44,6 +64,9 @@ export class FakeApi {
     this.requests = []
     this.incidentRequests = []
     this.loseNextCreateResponse = false
+    this.turnScript = []
+    this.turnRequests = []
+    this.nextTurnId = 1
     this.nextId = 1
     this.nextIncidentId = 1
     this.keys.clear()
@@ -75,9 +98,27 @@ export class FakeApi {
       location_label: null,
       created_at: now,
       updated_at: now,
+      ai_turns: [],
     }
     this.incidents.push(incident)
     return incident
+  }
+
+  /** A stored advice turn, for seeding an incident that was already answered. */
+  adviceTurn(advice: AdviceRead = ADVICE, locale: 'pl' | 'en' = 'en'): AiTurnRead {
+    return {
+      id: this.nextTurnId++,
+      seq: 1,
+      kind: 'advice',
+      created_at: '2026-11-10T10:00:30.000Z',
+      urgent: false,
+      advice,
+      inputs: null,
+      locale,
+      prompt_version: 'v1',
+      provider: 'fake',
+      model: 'fake-model',
+    }
   }
 
   seed(body: VehicleCreate): VehicleRead {
@@ -223,6 +264,24 @@ export class FakeApi {
         return this.incidents.length === before
           ? problem(404, 'not_found', 'Incident not found')
           : new HttpResponse(null, { status: 204 })
+      }),
+      http.post(`${API}/api/v1/incidents/:id/ai-turns`, async ({ params, request }) => {
+        const incidentId = Number(params.id)
+        const body = (await request.json()) as { locale: 'pl' | 'en' }
+        this.turnRequests.push({ incidentId, body })
+        const incident = this.incidents.find((i) => i.id === incidentId)
+        if (!incident) return problem(404, 'not_found', 'Incident not found')
+        if (incident.ai_turns.some((t) => t.kind === 'advice'))
+          return problem(409, 'advice_exists', 'The AI answer is complete')
+        const next = this.turnScript.shift() ?? { advice: ADVICE }
+        if ('reason' in next) return problem(next.status, next.reason, 'internal detail')
+        const turn = {
+          ...this.adviceTurn(next.advice, body.locale),
+          seq: incident.ai_turns.length + 1,
+        }
+        const updated = { ...incident, ai_turns: [...incident.ai_turns, turn] }
+        this.incidents = this.incidents.map((i) => (i.id === incidentId ? updated : i))
+        return HttpResponse.json(turn, { status: 201 })
       }),
       http.get(`${API}/api/v1/incidents/:id`, ({ params }) => {
         const found = this.incidents.find((i) => i.id === Number(params.id))
