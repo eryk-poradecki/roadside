@@ -105,4 +105,4 @@ backend/
   - `web`: nginx serving the Vite build and proxying `/api` on the same origin, `depends_on` the backend being healthy.
 - **Local dev:** two processes, `uv run uvicorn … --reload` (or `make dev-api`) and `npm run dev` (or `make dev-web`). The frontend calls `http://localhost:8000` across origins, so the real CORS path is used.
 - **Makefile:** `help` (default), `install` (uv sync + npm ci + pre-commit install), `dev-api`, `dev-web`, `lint`, `format`, `typecheck`, `test`, `e2e`, `openapi`, `migrate`, `up`/`down`, `check`. `make check` runs everything CI runs. `AGENTS.md` names it as the gate before opening a PR, and lists the commands in a "Commands" section.
-- What the Pi + Cloudflare Tunnel deploy adds on top is still open (Deploy specifics on the map).
+- What the Pi + Cloudflare Tunnel deploy adds on top is in ADR 0011: a `compose.pi.yaml` override with the demo-mode guard, an in-memory data dir and the tunnel's Docker network.
