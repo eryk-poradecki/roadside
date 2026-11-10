@@ -86,8 +86,16 @@ _Avoid_: replay mode, mock mode, offline mode
 The mobile first screen: problem-type quick picks, optional photo and note, detected location.
 
 **Result screen**:
-The mobile screen after "Get help now": safety checklist first, then the AI answer, nearby places and "Mark resolved".
+The Incident viewed right after "Get help now": safety checklist first, then the AI answer, nearby places and "Mark resolved". It is the same place as Incident detail, seen at the moment of need.
 _Avoid_: handoff (the prototype's working name for it)
+
+**Incident detail**:
+The same Incident viewed later, from History or on desktop: photos, location, AI notes and the damage report.
+_Avoid_: incident page, result page
+
+**History screen**:
+The driver's list of past Incidents with their status, shown beside a map on desktop.
+_Avoid_: incident list, log
 
 **Vehicles screen**:
 Where the driver adds, edits and removes vehicles and picks the default vehicle.
