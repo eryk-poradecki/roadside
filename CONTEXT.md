@@ -16,6 +16,14 @@ _Avoid_: tile (that is the UI control that picks it), category, incident type
 One roadside event, starting the moment the driver asks for help ("Get help now"): problem type, optionally a vehicle, location, note, photos, the nearby places shown, and the AI answer once it arrives. The incident outlives a deleted vehicle; its photos and damage report do not outlive the incident. Every help request is an incident; there is no separate "save" step, and unwanted ones are deleted.
 _Avoid_: case, event, ticket, report, draft
 
+**Photo**:
+A picture the driver attaches to an incident, up to five, each added or removed on its own and never edited. Photos taken at the help request may be seen by the assistant; photos added later document the incident (e.g. for a damage report) and do not change the AI answer.
+_Avoid_: image, attachment, picture
+
+**Sample photo**:
+A bundled, freely licensed photo the driver can attach in demo mode instead of uploading their own; once attached it is an ordinary photo of that incident.
+_Avoid_: demo image, stock photo
+
 **Open** / **Resolved**:
 The two statuses of an incident. Every incident starts open; only the driver changes it, marking it resolved when the situation is sorted or reopening it.
 _Avoid_: closed, done, archived
