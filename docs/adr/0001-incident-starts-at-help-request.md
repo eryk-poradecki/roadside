@@ -1,5 +1,7 @@
 # An incident starts at the help request
 
+> **Amended by [ADR 0004](0004-ai-turns-without-tools.md):** the AI answer is no longer a single write-once object. It is an append-only sequence of clarifying questions, replies and advice. Each stored part is immutable, and 409 Conflict applies to rewriting a stored part or adding a turn after the advice.
+
 Tapping "Get help now" creates the incident (status `open`) and commits it before the AI runs; the AI answer is then generated and attached to it. There is no "Save as incident" step. Most drivers want the history kept, so a save button is an extra action for the common case. Keeping is the default, and the rare unwanted incident (an accidental tap, a test) is removed with a hard delete. Committing the incident first also means the help request survives a crash, a closed tab or a lost connection.
 
 ## Considered Options
