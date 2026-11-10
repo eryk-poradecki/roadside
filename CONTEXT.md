@@ -65,8 +65,12 @@ The driver's daily driver: the vehicle a new help request uses unless the driver
 _Avoid_: favorite, primary, last used vehicle
 
 **Safety checklist**:
-Static, non-AI first steps shown immediately for a problem type, before and alongside any AI answer.
+Static, non-AI safety steps for a problem type, shown immediately and working without a connection, before and alongside any AI answer: one first step, a few more steps, and always the same "call 112" line last. The same for every road and every vehicle, except that out of charge has its own list. The assistant never contradicts it, but it doesn't assume the driver has read it either.
 _Avoid_: instructions, tips, AI steps
+
+**First step**:
+The one safety step of the safety checklist that is never hidden while the incident is open ("Do this first").
+_Avoid_: now step (that is the immediate step inside a clarifying question)
 
 **Nearby place**:
 A real place from OpenStreetMap near the driver (tyre shop, fuel station, charging station, car repair), always labelled as map data, never produced by the model.
