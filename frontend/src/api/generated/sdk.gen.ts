@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateIncidentData, CreateIncidentErrors, CreateIncidentResponses, CreateVehicleData, CreateVehicleErrors, CreateVehicleResponses, DeleteVehicleData, DeleteVehicleErrors, DeleteVehicleResponses, GetIncidentData, GetIncidentErrors, GetIncidentResponses, GetVehicleData, GetVehicleErrors, GetVehicleResponses, HealthData, HealthResponses, ListVehiclesData, ListVehiclesResponses, ReadConfigData, ReadConfigResponses, ReplaceVehicleData, ReplaceVehicleErrors, ReplaceVehicleResponses } from './types.gen';
+import type { CreateIncidentData, CreateIncidentErrors, CreateIncidentResponses, CreateVehicleData, CreateVehicleErrors, CreateVehicleResponses, DeleteIncidentData, DeleteIncidentErrors, DeleteIncidentResponses, DeleteVehicleData, DeleteVehicleErrors, DeleteVehicleResponses, GetIncidentData, GetIncidentErrors, GetIncidentResponses, GetVehicleData, GetVehicleErrors, GetVehicleResponses, HealthData, HealthResponses, ListIncidentsData, ListIncidentsErrors, ListIncidentsResponses, ListVehiclesData, ListVehiclesResponses, ReadConfigData, ReadConfigResponses, ReplaceVehicleData, ReplaceVehicleErrors, ReplaceVehicleResponses, UpdateIncidentData, UpdateIncidentErrors, UpdateIncidentResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -24,6 +24,13 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 export const readConfig = <ThrowOnError extends boolean = false>(options?: Options<ReadConfigData, ThrowOnError>): RequestResult<ReadConfigResponses, unknown, ThrowOnError> => (options?.client ?? client).get<ReadConfigResponses, unknown, ThrowOnError>({ url: '/api/v1/config', ...options });
 
 /**
+ * List Incidents
+ *
+ * Newest first, filtered by status and/or vehicle.
+ */
+export const listIncidents = <ThrowOnError extends boolean = false>(options?: Options<ListIncidentsData, ThrowOnError>): RequestResult<ListIncidentsResponses, ListIncidentsErrors, ThrowOnError> => (options?.client ?? client).get<ListIncidentsResponses, ListIncidentsErrors, ThrowOnError>({ url: '/api/v1/incidents', ...options });
+
+/**
  * Create Incident
  */
 export const createIncident = <ThrowOnError extends boolean = false>(options: Options<CreateIncidentData, ThrowOnError>): RequestResult<CreateIncidentResponses, CreateIncidentErrors, ThrowOnError> => (options.client ?? client).post<CreateIncidentResponses, CreateIncidentErrors, ThrowOnError>({
@@ -36,9 +43,26 @@ export const createIncident = <ThrowOnError extends boolean = false>(options: Op
 });
 
 /**
+ * Delete Incident
+ */
+export const deleteIncident = <ThrowOnError extends boolean = false>(options: Options<DeleteIncidentData, ThrowOnError>): RequestResult<DeleteIncidentResponses, DeleteIncidentErrors, ThrowOnError> => (options.client ?? client).delete<DeleteIncidentResponses, DeleteIncidentErrors, ThrowOnError>({ url: '/api/v1/incidents/{incident_id}', ...options });
+
+/**
  * Get Incident
  */
 export const getIncident = <ThrowOnError extends boolean = false>(options: Options<GetIncidentData, ThrowOnError>): RequestResult<GetIncidentResponses, GetIncidentErrors, ThrowOnError> => (options.client ?? client).get<GetIncidentResponses, GetIncidentErrors, ThrowOnError>({ url: '/api/v1/incidents/{incident_id}', ...options });
+
+/**
+ * Update Incident
+ */
+export const updateIncident = <ThrowOnError extends boolean = false>(options: Options<UpdateIncidentData, ThrowOnError>): RequestResult<UpdateIncidentResponses, UpdateIncidentErrors, ThrowOnError> => (options.client ?? client).patch<UpdateIncidentResponses, UpdateIncidentErrors, ThrowOnError>({
+    url: '/api/v1/incidents/{incident_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 /**
  * List Vehicles

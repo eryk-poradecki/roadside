@@ -18,6 +18,16 @@ async def connect(path: Path) -> aiosqlite.Connection:
 
 
 @asynccontextmanager
+async def read_snapshot(conn: aiosqlite.Connection) -> AsyncIterator[None]:
+    """Several reads that must agree (e.g. a page and its total): one deferred read txn."""
+    await conn.execute("BEGIN")
+    try:
+        yield
+    finally:
+        await asyncio.shield(conn.execute("COMMIT"))
+
+
+@asynccontextmanager
 async def transaction(conn: aiosqlite.Connection) -> AsyncIterator[None]:
     """Unit of work: BEGIN IMMEDIATE takes the write lock up front. Repositories never commit."""
     await conn.execute("BEGIN IMMEDIATE")

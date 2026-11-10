@@ -1,3 +1,4 @@
+import { ChevronDown } from 'lucide-react'
 import { useId } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ProblemKey } from '../lib/problemType'
@@ -5,14 +6,44 @@ import type { ProblemKey } from '../lib/problemType'
 /**
  * The static, non-AI safety checklist (ADR 0010): "Do this first", then the rest, the
  * shared 112 line last. It is bundled copy, so it shows without waiting for the network.
+ * Once the incident is resolved, the whole list, first step included, folds into one
+ * "Safety steps" disclosure; reopening restores the open layout.
  */
-export function SafetyChecklist({ problem }: { problem: ProblemKey }) {
+export function SafetyChecklist({
+  problem,
+  resolved = false,
+}: {
+  problem: ProblemKey
+  resolved?: boolean
+}) {
   const { t } = useTranslation()
   const titleId = useId()
-  const items = t(`checklist.lists.${problem}.items`, { returnObjects: true })
 
+  if (resolved) {
+    return (
+      <details className="panel fold">
+        <summary>
+          <span>{t('checklist.resolvedSummary')}</span>
+          <ChevronDown className="fold-icon" size={20} aria-hidden="true" />
+        </summary>
+        <div className="fold-body">
+          <Steps problem={problem} titleId={titleId} />
+        </div>
+      </details>
+    )
+  }
   return (
     <section className="panel" aria-labelledby={titleId}>
+      <Steps problem={problem} titleId={titleId} />
+    </section>
+  )
+}
+
+function Steps({ problem, titleId }: { problem: ProblemKey; titleId: string }) {
+  const { t } = useTranslation()
+  const items = t(`checklist.lists.${problem}.items`, { returnObjects: true })
+  return (
+    <>
       <div className="panel-head">
         <h2 id={titleId}>{t('checklist.firstLabel')}</h2>
         <span className="badge">{t('checklist.checklistBadge')}</span>
@@ -34,6 +65,6 @@ export function SafetyChecklist({ problem }: { problem: ProblemKey }) {
           </li>
         ))}
       </ol>
-    </section>
+    </>
   )
 }

@@ -1,9 +1,16 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, Path, Response
+from fastapi import APIRouter, Depends, Header, Path, Query, Response
 
 from app.deps import get_incident_service
-from app.schemas.incident import IncidentCreate, IncidentRead
+from app.domain.incident import IncidentStatus
+from app.schemas.incident import (
+    IncidentCreate,
+    IncidentPage,
+    IncidentPatch,
+    IncidentRead,
+    IncidentSummary,
+)
 from app.services.incidents import IncidentService
 
 router = APIRouter(prefix="/incidents", tags=["incidents"])
@@ -19,6 +26,24 @@ IdempotencyKey = Annotated[
         "the incident the key first created.",
     ),
 ]
+
+
+@router.get("", response_model=IncidentPage)
+async def list_incidents(
+    service: Service,
+    status: Annotated[IncidentStatus | None, Query()] = None,
+    vehicle_id: Annotated[int | None, Query(ge=1, le=2**63 - 1)] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    offset: Annotated[int, Query(ge=0, le=2**63 - 1)] = 0,
+) -> IncidentPage:
+    """Newest first, filtered by status and/or vehicle."""
+    items, total = await service.list(status, vehicle_id, limit, offset)
+    return IncidentPage(
+        items=[IncidentSummary.from_domain(i) for i in items],
+        total=total,
+        limit=limit,
+        offset=offset,
+    )
 
 
 @router.post(
@@ -44,3 +69,16 @@ async def create_incident(
 @router.get("/{incident_id}", response_model=IncidentRead)
 async def get_incident(incident_id: IncidentId, service: Service) -> IncidentRead:
     return IncidentRead.from_domain(await service.get(incident_id))
+
+
+@router.patch("/{incident_id}", response_model=IncidentRead)
+async def update_incident(
+    incident_id: IncidentId, body: IncidentPatch, service: Service
+) -> IncidentRead:
+    return IncidentRead.from_domain(await service.update(incident_id, body))
+
+
+@router.delete("/{incident_id}", status_code=204)
+async def delete_incident(incident_id: IncidentId, service: Service) -> Response:
+    await service.delete(incident_id)
+    return Response(status_code=204)

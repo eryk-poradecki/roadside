@@ -1,12 +1,31 @@
-import { ArrowLeft, Car, Check, CircleCheck, MapPin, Phone, Sparkles, Store } from 'lucide-react'
-import { Link, useLocation, useParams } from 'react-router'
+import {
+  ArrowLeft,
+  Car,
+  Check,
+  CircleCheck,
+  MapPin,
+  Pencil,
+  Phone,
+  RotateCcw,
+  Sparkles,
+  Store,
+  Trash2,
+} from 'lucide-react'
+import { useState } from 'react'
+import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
-import { useIncident, type IncidentRead } from '../api/incidents'
+import {
+  useDeleteIncident,
+  useIncident,
+  useUpdateIncident,
+  type IncidentRead,
+} from '../api/incidents'
 import { useVehicles, type VehicleRead } from '../api/vehicles'
 import { DockAction } from '../components/AppShell'
 import { ErrorNotice } from '../components/ErrorNotice'
 import { SafetyChecklist } from '../components/SafetyChecklist'
 import { TILE_ICONS } from '../components/tiles'
+import { formatCoords } from '../lib/place'
 import { problemKey } from '../lib/problemType'
 import './IncidentScreen.css'
 
@@ -114,13 +133,12 @@ function Result({
           )}
           <span>
             <MapPin size={18} aria-hidden="true" />
-            {incident.location_label ??
-              (loc ? `${loc.lat.toFixed(5)}, ${loc.lon.toFixed(5)}` : t('incident.noLocation'))}
+            {incident.location_label ?? (loc ? formatCoords(loc) : t('incident.noLocation'))}
           </span>
         </p>
       </header>
 
-      <SafetyChecklist problem={key} />
+      <SafetyChecklist problem={key} resolved={resolved} />
 
       {noVehicles && (
         <p className="notice invite">
@@ -153,8 +171,99 @@ function Result({
         <p className="muted">{t('incident.nearbySoon')}</p>
       </section>
 
+      <Upkeep incident={incident} />
+
       {vehicle?.assistance_phone && <CallAssistance vehicle={vehicle} />}
     </div>
+  )
+}
+
+/** Mark resolved / Reopen, edit and delete: the driver's upkeep of the record (ADR 0001). */
+function Upkeep({ incident }: { incident: IncidentRead }) {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const update = useUpdateIncident(incident.id)
+  const remove = useDeleteIncident(incident.id)
+  const [confirming, setConfirming] = useState(false)
+  const resolved = incident.status === 'resolved'
+
+  const toggleStatus = async () => {
+    try {
+      await update.update({ status: resolved ? 'open' : 'resolved' })
+    } catch {
+      // Shown below from `update.error`.
+    }
+  }
+  const confirmDelete = async () => {
+    try {
+      await remove.remove(() => {
+        void navigate('/incidents', { replace: true })
+      })
+    } catch {
+      // Shown below from `remove.error`.
+    }
+  }
+
+  return (
+    <section className="upkeep" aria-label={t('incident.manageLabel')}>
+      <button
+        type="button"
+        className="btn btn-quiet upkeep-status"
+        disabled={update.isPending}
+        onClick={() => void toggleStatus()}
+      >
+        {resolved ? (
+          <RotateCcw size={20} aria-hidden="true" />
+        ) : (
+          <CircleCheck size={20} aria-hidden="true" />
+        )}
+        {resolved ? t('incident.reopen') : t('incident.markResolved')}
+      </button>
+      {update.isError && <ErrorNotice error={update.error} />}
+
+      {confirming ? (
+        <div className="upkeep-confirm" role="group" aria-label={t('incident.delete')}>
+          <p>{t('incident.confirmDelete')}</p>
+          <div className="upkeep-row">
+            <button
+              type="button"
+              className="btn btn-danger"
+              disabled={remove.isPending}
+              onClick={() => void confirmDelete()}
+            >
+              {t('incident.confirmDeleteYes')}
+            </button>
+            <button
+              type="button"
+              className="btn btn-quiet"
+              onClick={() => {
+                setConfirming(false)
+              }}
+            >
+              {t('common.cancel')}
+            </button>
+          </div>
+          {remove.isError && <ErrorNotice error={remove.error} />}
+        </div>
+      ) : (
+        <div className="upkeep-row">
+          <Link className="btn btn-quiet" to={`/incidents/${String(incident.id)}/edit`}>
+            <Pencil size={18} aria-hidden="true" />
+            {t('incident.edit')}
+          </Link>
+          <button
+            type="button"
+            className="btn btn-quiet"
+            onClick={() => {
+              setConfirming(true)
+            }}
+          >
+            <Trash2 size={18} aria-hidden="true" />
+            {t('incident.delete')}
+          </button>
+        </div>
+      )}
+    </section>
   )
 }
 

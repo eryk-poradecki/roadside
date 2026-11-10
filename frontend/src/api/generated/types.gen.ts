@@ -74,6 +74,48 @@ export type IncidentCreate = {
 };
 
 /**
+ * IncidentPage
+ */
+export type IncidentPage = {
+    /**
+     * Items
+     */
+    items: Array<IncidentSummary>;
+    /**
+     * Limit
+     */
+    limit: number;
+    /**
+     * Offset
+     */
+    offset: number;
+    /**
+     * Total
+     */
+    total: number;
+};
+
+/**
+ * IncidentPatch
+ *
+ * Send only the fields to change. `null` clears `note`, `vehicle_id` and `location`;
+ * `status` and `problem_type` can't be null. The status moves freely either way (ADR 0001).
+ */
+export type IncidentPatch = {
+    location?: LocationIn | null;
+    /**
+     * Note
+     */
+    note?: string | null;
+    problem_type?: ProblemType;
+    status?: IncidentStatus;
+    /**
+     * Vehicle Id
+     */
+    vehicle_id?: number | null;
+};
+
+/**
  * IncidentRead
  */
 export type IncidentRead = {
@@ -112,6 +154,33 @@ export type IncidentRead = {
 export type IncidentStatus = 'open' | 'resolved';
 
 /**
+ * IncidentSummary
+ *
+ * One row of the History list and a pin on its map: no note, no owned parts (ADR 0005).
+ */
+export type IncidentSummary = {
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Id
+     */
+    id: number;
+    location: LocationPoint | null;
+    /**
+     * Location Label
+     */
+    location_label: string | null;
+    problem_type: ProblemType;
+    status: IncidentStatus;
+    /**
+     * Vehicle Id
+     */
+    vehicle_id: number | null;
+};
+
+/**
  * LocationIn
  *
  * A GPS fix from the browser. `accuracy_m` is the reported radius in metres.
@@ -121,6 +190,20 @@ export type LocationIn = {
      * Accuracy M
      */
     accuracy_m?: number | null;
+    /**
+     * Lat
+     */
+    lat: number;
+    /**
+     * Lon
+     */
+    lon: number;
+};
+
+/**
+ * LocationPoint
+ */
+export type LocationPoint = {
     /**
      * Lat
      */
@@ -405,6 +488,48 @@ export type ReadConfigResponses = {
 
 export type ReadConfigResponse = ReadConfigResponses[keyof ReadConfigResponses];
 
+export type ListIncidentsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Status
+         */
+        status?: IncidentStatus | null;
+        /**
+         * Vehicle Id
+         */
+        vehicle_id?: number | null;
+        /**
+         * Limit
+         */
+        limit?: number;
+        /**
+         * Offset
+         */
+        offset?: number;
+    };
+    url: '/api/v1/incidents';
+};
+
+export type ListIncidentsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListIncidentsError = ListIncidentsErrors[keyof ListIncidentsErrors];
+
+export type ListIncidentsResponses = {
+    /**
+     * Successful Response
+     */
+    200: IncidentPage;
+};
+
+export type ListIncidentsResponse = ListIncidentsResponses[keyof ListIncidentsResponses];
+
 export type CreateIncidentData = {
     body: IncidentCreate;
     headers?: {
@@ -442,6 +567,36 @@ export type CreateIncidentResponses = {
 
 export type CreateIncidentResponse = CreateIncidentResponses[keyof CreateIncidentResponses];
 
+export type DeleteIncidentData = {
+    body?: never;
+    path: {
+        /**
+         * Incident Id
+         */
+        incident_id: number;
+    };
+    query?: never;
+    url: '/api/v1/incidents/{incident_id}';
+};
+
+export type DeleteIncidentErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteIncidentError = DeleteIncidentErrors[keyof DeleteIncidentErrors];
+
+export type DeleteIncidentResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteIncidentResponse = DeleteIncidentResponses[keyof DeleteIncidentResponses];
+
 export type GetIncidentData = {
     body?: never;
     path: {
@@ -471,6 +626,36 @@ export type GetIncidentResponses = {
 };
 
 export type GetIncidentResponse = GetIncidentResponses[keyof GetIncidentResponses];
+
+export type UpdateIncidentData = {
+    body: IncidentPatch;
+    path: {
+        /**
+         * Incident Id
+         */
+        incident_id: number;
+    };
+    query?: never;
+    url: '/api/v1/incidents/{incident_id}';
+};
+
+export type UpdateIncidentErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateIncidentError = UpdateIncidentErrors[keyof UpdateIncidentErrors];
+
+export type UpdateIncidentResponses = {
+    /**
+     * Successful Response
+     */
+    200: IncidentRead;
+};
+
+export type UpdateIncidentResponse = UpdateIncidentResponses[keyof UpdateIncidentResponses];
 
 export type ListVehiclesData = {
     body?: never;

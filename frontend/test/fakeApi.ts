@@ -1,5 +1,10 @@
 import { http, HttpResponse, type HttpHandler } from 'msw'
-import type { IncidentCreate, IncidentRead } from '../src/api/incidents'
+import type {
+  IncidentCreate,
+  IncidentPatch,
+  IncidentRead,
+  IncidentSummary,
+} from '../src/api/incidents'
 import type { VehicleCreate, VehicleRead } from '../src/api/vehicles'
 
 export const API = 'http://api.test'
@@ -30,6 +35,7 @@ export class FakeApi {
   /** When set, the next create commits but its response is lost (a network error). */
   loseNextCreateResponse = false
   private nextId = 1
+  private nextIncidentId = 1
   private keys = new Map<string, number>()
 
   reset() {
@@ -39,11 +45,15 @@ export class FakeApi {
     this.incidentRequests = []
     this.loseNextCreateResponse = false
     this.nextId = 1
+    this.nextIncidentId = 1
     this.keys.clear()
   }
 
-  seedIncident(body: IncidentCreate): IncidentRead {
-    return this.createIncident(body)
+  /** `extra` overrides server-set fields, e.g. `created_at` or `status`. */
+  seedIncident(body: IncidentCreate, extra: Partial<IncidentRead> = {}): IncidentRead {
+    const incident = { ...this.createIncident(body), ...extra }
+    this.incidents = this.incidents.map((i) => (i.id === incident.id ? incident : i))
+    return incident
   }
 
   private createIncident(body: IncidentCreate): IncidentRead {
@@ -56,7 +66,7 @@ export class FakeApi {
         }
       : null
     const incident: IncidentRead = {
-      id: this.incidents.length + 1,
+      id: this.nextIncidentId++,
       problem_type: body.problem_type,
       status: 'open',
       vehicle_id: body.vehicle_id ?? null,
@@ -155,6 +165,65 @@ export class FakeApi {
           headers: { Location: `/api/v1/incidents/${String(incident.id)}` },
         })
       }),
+      http.get(`${API}/api/v1/incidents`, ({ request }) => {
+        const query = new URL(request.url).searchParams
+        const status = query.get('status')
+        const limit = Number(query.get('limit') ?? 20)
+        const offset = Number(query.get('offset') ?? 0)
+        const matching = this.incidents
+          .filter((i) => status === null || i.status === status)
+          .sort((a, b) => b.created_at.localeCompare(a.created_at) || b.id - a.id)
+        const items: IncidentSummary[] = matching.slice(offset, offset + limit).map((i) => ({
+          id: i.id,
+          problem_type: i.problem_type,
+          status: i.status,
+          created_at: i.created_at,
+          location: i.location ? { lat: i.location.lat, lon: i.location.lon } : null,
+          location_label: i.location_label,
+          vehicle_id: i.vehicle_id,
+        }))
+        return HttpResponse.json({ items, total: matching.length, limit, offset })
+      }),
+      http.patch(`${API}/api/v1/incidents/:id`, async ({ params, request }) => {
+        const body = (await request.json()) as IncidentPatch
+        this.requests.push({ method: 'PATCH', body })
+        const current = this.incidents.find((i) => i.id === Number(params.id))
+        if (!current) return problem(404, 'not_found', 'Incident not found')
+        if (body.vehicle_id != null && !this.vehicles.some((v) => v.id === body.vehicle_id))
+          return problem(422, 'validation_error', 'Unknown vehicle')
+        // The types forbid null here, but a buggy client could still send it.
+        const raw = body as Record<string, unknown>
+        if (raw.status === null || raw.problem_type === null)
+          return problem(422, 'validation_error', "Can't be null")
+        const { location, note, ...rest } = body
+        const updated: IncidentRead = {
+          ...current,
+          ...rest,
+          updated_at: '2026-11-10T11:00:00.000Z',
+        }
+        if (note !== undefined) updated.note = note?.trim() || null
+        if (location !== undefined) {
+          updated.location = location
+            ? { lat: location.lat, lon: location.lon, accuracy_m: location.accuracy_m ?? null }
+            : null
+          // Like the server: the label goes only with a point that actually moved.
+          const old = current.location
+          const moved =
+            old?.lat !== updated.location?.lat ||
+            old?.lon !== updated.location?.lon ||
+            old?.accuracy_m !== updated.location?.accuracy_m
+          if (moved) updated.location_label = null
+        }
+        this.incidents = this.incidents.map((i) => (i.id === current.id ? updated : i))
+        return HttpResponse.json(updated)
+      }),
+      http.delete(`${API}/api/v1/incidents/:id`, ({ params }) => {
+        const before = this.incidents.length
+        this.incidents = this.incidents.filter((i) => i.id !== Number(params.id))
+        return this.incidents.length === before
+          ? problem(404, 'not_found', 'Incident not found')
+          : new HttpResponse(null, { status: 204 })
+      }),
       http.get(`${API}/api/v1/incidents/:id`, ({ params }) => {
         const found = this.incidents.find((i) => i.id === Number(params.id))
         return found ? HttpResponse.json(found) : problem(404, 'not_found', 'Incident not found')
@@ -162,9 +231,12 @@ export class FakeApi {
       http.delete(`${API}/api/v1/vehicles/:id`, ({ params }) => {
         const before = this.vehicles.length
         this.vehicles = this.vehicles.filter((v) => v.id !== Number(params.id))
-        return this.vehicles.length === before
-          ? notFound()
-          : new HttpResponse(null, { status: 204 })
+        if (this.vehicles.length === before) return notFound()
+        // The incident outlives its vehicle (ON DELETE SET NULL).
+        this.incidents = this.incidents.map((i) =>
+          i.vehicle_id === Number(params.id) ? { ...i, vehicle_id: null } : i,
+        )
+        return new HttpResponse(null, { status: 204 })
       }),
     ]
   }
