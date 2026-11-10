@@ -73,7 +73,7 @@ A real place from OpenStreetMap near the driver (tyre shop, fuel station, chargi
 _Avoid_: suggestion, recommendation
 
 **Damage report**:
-A draft document to the road authority describing pothole damage from an incident.
+A draft letter to the road manager describing pothole damage from an incident, written with the assistant's help and finished by the driver. An incident has at most one; it is a draft until the driver marks it sent. The driver's own details are added only when the letter leaves the app.
 _Avoid_: claim, complaint
 
 **Demo mode**:

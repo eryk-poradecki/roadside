@@ -54,7 +54,7 @@ All paths are under `/api/v1` except `/health`. Every error is a problem respons
 | `POST /incidents/{id}/ai-turns` | `AiTurnCreate`: `{locale: "pl"\|"en", reply?}` | 201 `AiTurnRead` (a `question` or the `advice`), no `Location` | 404, 409 `advice_exists` / `no_open_question` / `reply_required` / `turn_in_progress`, 502 `provider_error` / `invalid_output`, 504 `timeout` |
 | `POST /incidents/{id}/nearby` | `NearbyRequest`: `{radius_km}` (1–25) | 200 `NearbyRead` `{status: "found"\|"none", places[], radius_km, fetched_at}` | 404, 409 `no_location`, 503 `nearby_unavailable`, 422 |
 
-The damage report's endpoints are decided in *Damage report scope & creative twist*.
+The damage report's endpoints are in ADR 0009, which also adds `damage_report_status` to `IncidentSummary`.
 
 - **`IncidentSummary`:** `id`, `problem_type`, `status`, `created_at`, `location {lat, lon}`, `location_label`, `vehicle_id`, `photo_count`, `has_advice`.
 - **`IncidentRead`:** the incident fields plus `photos[]`, `ai_turns[]` (in `seq` order), `nearby` (null until the first successful lookup) and `location_label` (null until the location context is computed).
