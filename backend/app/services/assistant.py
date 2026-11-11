@@ -114,7 +114,8 @@ class AssistantService:
             started = time.monotonic()
             try:
                 async with asyncio.timeout(self._budget_s):
-                    output, result = await self._generate(
+                    output, result = await generate_turn(
+                        self._provider,
                         inputs,
                         locale,
                         allow_ask=allow_ask,
@@ -189,26 +190,6 @@ class AssistantService:
             self._conn, self._incidents, self._location, incident, locale, scenario
         )
 
-    async def _generate(
-        self,
-        inputs: TurnInputs,
-        locale: Locale,
-        *,
-        allow_ask: bool,
-        exchanges: tuple[Exchange, ...],
-        replay_key: str,
-    ) -> tuple[TurnOutput, LLMResult]:
-        rendered = prompt.render(inputs, locale, allow_ask=allow_ask, exchanges=exchanges)
-        logger.debug("ai prompt:\n%s\n%s", rendered.system, rendered.user)
-        messages = (LLMMessage("system", rendered.system), LLMMessage("user", rendered.user))
-        request = LLMRequest(
-            messages=messages, schema=rendered.schema, schema_name="ai_turn", replay_key=replay_key
-        )
-
-        return await complete_validated(
-            self._provider, request, lambda raw: validate_output(raw, allow_ask=allow_ask)
-        )
-
     async def _store(
         self,
         incident_id: int,
@@ -247,6 +228,31 @@ class AssistantService:
             # Only another worker can get here first; the in-process lock covers this one.
             raise AppError(409, "advice_exists", "The AI answer is complete") from exc
         return next(t for t in turns if t.id == turn_id)
+
+
+async def generate_turn(
+    provider: LLMProvider,
+    inputs: TurnInputs,
+    locale: Locale,
+    *,
+    allow_ask: bool,
+    exchanges: tuple[Exchange, ...] = (),
+    replay_key: str | None = None,
+) -> tuple[TurnOutput, LLMResult]:
+    """Render the prompt, make the call, validate, repair once. Stores nothing.
+
+    The service's turn and the eval script (`scripts/eval_assist.py`) both go through it, so
+    the evals check the prompt and validation the app ships.
+    """
+    rendered = prompt.render(inputs, locale, allow_ask=allow_ask, exchanges=exchanges)
+    logger.debug("ai prompt:\n%s\n%s", rendered.system, rendered.user)
+    messages = (LLMMessage("system", rendered.system), LLMMessage("user", rendered.user))
+    request = LLMRequest(
+        messages=messages, schema=rendered.schema, schema_name="ai_turn", replay_key=replay_key
+    )
+    return await complete_validated(
+        provider, request, lambda raw: validate_output(raw, allow_ask=allow_ask)
+    )
 
 
 def _check_no_advice(turns: list[AiTurn]) -> None:
