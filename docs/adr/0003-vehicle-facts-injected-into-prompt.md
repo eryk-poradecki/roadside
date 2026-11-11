@@ -14,7 +14,7 @@ The backend loads the incident's vehicle and puts a short "Vehicle" fact block i
   - push start only for a manual that is not electric or hybrid;
   - automatics and EVs get a "tell the tow company, flatbed preferred" line;
   - diesel gets the priming note after running dry;
-  - LPG can switch to petrol;
+  - for an LPG car that ran dry or won't start, check whether the system has switched to petrol on its own (the indicator and a beep). This hint is added to the user message only when `fuel_type` is `lpg`, so a petrol car or an unknown fuel type never hears about LPG (#90);
   - flat battery always means the 12 V battery.
 - **Out of fuel means out of charge for an EV.** There is still one problem type, `out_of_fuel`. For an electric vehicle, its label reads "Out of charge" and the nearby category is charging stations (`amenity=charging_station`) instead of fuel stations. The Start tile label follows the default vehicle. The vehicle chosen for the incident decides everything from the sheet on: the sheet header, the Result screen and the nearby category.
 - **Some fields never reach the model.** These are `registration`, `assistance_phone` and `policy_number`. The frontend renders the "Call <insurer>" button and the policy number from the Vehicle, so a phone number can never be hallucinated. The model sees "has assistance, insurer <name>" only when a phone is set; a name without a phone counts as no assistance. The model does see `name`, `make_model`, `year` and `tyre_size`.

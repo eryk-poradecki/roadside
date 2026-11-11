@@ -16,7 +16,7 @@ from app.assist.contract import model_schema
 from app.domain.ai_turn import Locale, Reply
 from app.domain.vehicle import VehicleFacts
 
-PROMPT_VERSION = "v1"
+PROMPT_VERSION = "v2"
 _PROMPTS = Path(__file__).parent / "prompts"
 
 _LANGUAGES: dict[Locale, str] = {"pl": "Polish", "en": "English"}
@@ -26,6 +26,15 @@ _ROAD_HELP = (
     "\nRoad help: on this road you may mention that road help on national roads can also be"
     " called on GDDKiA's 19 111, which is not an emergency number."
 )
+
+# Only for an LPG car that ran dry or won't start (#90): an unconditional rule leaked into advice
+# for petrol cars and cars with an unknown fuel type, against ADR 0003's "unknown is not none".
+_LPG = (
+    "\n\nLPG: most LPG systems switch to petrol on their own when the gas runs out, with a beep"
+    " and a change on the LPG indicator. If the car ran out of fuel, won't start or cut out, you"
+    " may tell the driver to check on the indicator whether it has switched to petrol."
+)
+_LPG_PROBLEMS = frozenset({"out_of_fuel", "other"})
 
 
 @dataclass(frozen=True, slots=True)
@@ -173,6 +182,11 @@ def render(
         problem=inputs.problem_type,
         note=inputs.note or "(none)",
         vehicle=inputs.vehicle.render() if inputs.vehicle else "No vehicle details were given.",
+        lpg=_LPG
+        if inputs.vehicle
+        and inputs.vehicle.fuel_type == "lpg"
+        and inputs.problem_type in _LPG_PROBLEMS
+        else "",
         road_class=inputs.road_class,
         settlement=inputs.settlement,
         situation=_SITUATIONS[inputs.situation],
