@@ -158,13 +158,13 @@ async def test_a_failed_lookup_is_503_and_keeps_the_previous_snapshot(
 
 
 async def test_demo_mode_makes_no_overpass_call(client: httpx.AsyncClient) -> None:
-    """Recorded results come with the demo scenarios (#58); until then, unavailable."""
+    """Recorded results come with the demo scenarios (#58); until then, a reason of its own."""
     incident_id = await make_incident(client, location=LOCATION)
 
     r = await nearby(client, incident_id)
 
     assert r.status_code == 503
-    assert r.json()["reason"] == "nearby_unavailable"
+    assert r.json()["reason"] == "nearby_not_recorded"
 
 
 async def test_a_location_patch_clears_the_snapshot(

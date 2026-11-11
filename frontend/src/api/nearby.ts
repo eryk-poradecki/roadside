@@ -20,7 +20,8 @@ const autoStarted = new Set<string>()
  */
 const autoStartKey = (incident: IncidentRead) => {
   const loc = incident.location
-  return `nearby-autostart-${String(incident.id)}-${incident.created_at}-${String(loc?.lat)},${String(loc?.lon)}`
+  // Accuracy too: the server clears the places on any change of the location.
+  return `nearby-autostart-${String(incident.id)}-${incident.created_at}-${String(loc?.lat)},${String(loc?.lon)},${String(loc?.accuracy_m)}`
 }
 
 /**

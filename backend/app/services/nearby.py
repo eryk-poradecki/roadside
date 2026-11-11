@@ -41,7 +41,8 @@ class NearbyService:
         if location is None:
             raise AppError(409, "no_location", "The incident has no location")
         if self._source is None:
-            raise AppError(503, "nearby_unavailable", "Demo mode has no recorded places yet")
+            # Recorded places come with the demo scenarios (#58); retrying can't help.
+            raise AppError(503, "nearby_not_recorded", "Demo mode has no recorded places")
         try:
             result = await self._source.search(location.lat, location.lon, radius_km * 1000)
         except NearbyUnavailable as exc:

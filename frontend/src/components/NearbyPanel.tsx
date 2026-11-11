@@ -16,6 +16,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { findAdvice } from '../api/aiTurns'
+import { isApiError } from '../api/client'
 import type { FuelType } from '../api/generated/types.gen'
 import type { IncidentRead } from '../api/incidents'
 import {
@@ -99,8 +100,13 @@ export function NearbyPanel({
   const selected = chosen ?? preselected
   const [mapOpen, setMapOpen] = useState(false)
   const [focus, setFocus] = useState<string | null>(null)
+  // The map unmounts without a close event when its places go (e.g. the location changed):
+  // don't let it pop up again by itself with the next places.
+  if (mapOpen && (!snapshot || !location)) setMapOpen(false)
 
   const failed = lookup.isError && !inFlight
+  // Demo mode with no recorded places: trying again can't help.
+  const notRecorded = isApiError(lookup.error) && lookup.error.reason === 'nearby_not_recorded'
   const searching = inFlight || starting
 
   return (
@@ -146,19 +152,21 @@ export function NearbyPanel({
               <strong>{t('nearby.unavailable')}</strong>
             </p>
             <p className="muted">
-              {message(lookup.error)} {t('nearby.unavailableSub')}
+              {message(lookup.error)} {!notRecorded && t('nearby.unavailableSub')}
               {snapshot && ` ${t('nearby.earlier')}`}
             </p>
-            <button
-              type="button"
-              className="btn btn-quiet"
-              onClick={() => {
-                find(lastRadius)
-              }}
-            >
-              <RotateCw size={18} aria-hidden="true" />
-              {t('nearby.retry')}
-            </button>
+            {!notRecorded && (
+              <button
+                type="button"
+                className="btn btn-quiet"
+                onClick={() => {
+                  find(lastRadius)
+                }}
+              >
+                <RotateCw size={18} aria-hidden="true" />
+                {t('nearby.retry')}
+              </button>
+            )}
           </div>
         ) : !snapshot ? (
           // Resolved, or opened later after a lookup that never finished.
@@ -254,7 +262,7 @@ function Found({
   onOpenMap: (focus: string | null) => void
 }) {
   const { t } = useTranslation()
-  const shown = filterPlaces(places, selected)
+  const shown = useShown(places, selected)
   const pins = usePins(shown)
 
   return (
@@ -316,6 +324,10 @@ function Found({
     </>
   )
 }
+
+/** Stable between renders, so the map keeps the driver's pan and zoom. */
+const useShown = (places: PlaceRead[], selected: NearbyCategory[]) =>
+  useMemo(() => filterPlaces(places, selected), [places, selected])
 
 const usePins = (places: PlaceRead[]): MapPin[] =>
   useMemo(() => places.map((p) => ({ id: placeId(p), lat: p.lat, lon: p.lon })), [places])
@@ -489,7 +501,7 @@ function FullMap({
 }) {
   const { t } = useTranslation()
   const ref = useRef<HTMLDialogElement>(null)
-  const shown = filterPlaces(places, selected)
+  const shown = useShown(places, selected)
   const pins = usePins(shown)
   const sheetHeight = typeof window === 'undefined' ? 0 : window.innerHeight * 0.46
 

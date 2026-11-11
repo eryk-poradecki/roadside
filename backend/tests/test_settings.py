@@ -87,6 +87,11 @@ def test_the_overpass_budget_stays_under_the_tunnel_limit(
         Settings()
 
 
+def test_one_overpass_attempt_must_fit_in_the_budget() -> None:
+    with pytest.raises(ValidationError, match="OVERPASS_TIMEOUT_S"):
+        Settings(overpass_timeout_s=90, overpass_budget_s=75)
+
+
 async def test_demo_mode_off_builds_the_overpass_client() -> None:
     app = create_app(Settings(**LIVE))  # type: ignore[arg-type]
     assert isinstance(app.state.place_source, OverpassClient)

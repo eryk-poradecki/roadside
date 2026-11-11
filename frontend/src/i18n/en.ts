@@ -325,6 +325,7 @@ export const en = {
     reply_required: 'Answer the question above first.',
     nearby_unavailable: 'The map service is busy right now.',
     no_location: 'This incident has no location yet.',
+    nearby_not_recorded: 'Demo mode has no recorded places for this case.',
     location_changed: 'The location changed while we were searching. Search again.',
   },
 }

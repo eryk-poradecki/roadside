@@ -75,6 +75,12 @@ class Settings(BaseSettings):
         return v
 
     @model_validator(mode="after")
+    def _overpass_attempt_fits_the_budget(self) -> Self:
+        if self.overpass_timeout_s > self.overpass_budget_s:
+            raise ValueError("OVERPASS_TIMEOUT_S must not exceed OVERPASS_BUDGET_S")
+        return self
+
+    @model_validator(mode="after")
     def _live_model_is_configured(self) -> Self:
         if self.demo_mode:
             return self

@@ -76,7 +76,9 @@ class OverpassClient:
             self._client = None
 
     async def search(self, lat: float, lon: float, radius_m: int) -> OverpassResult:
-        query = build_query(lat, lon, radius_m, max(1, int(self._timeout_s)))
+        # The server gives up first, so a slow query ends in a readable `remark` that this
+        # client sees, not in the client cutting a response that was about to arrive.
+        query = build_query(lat, lon, radius_m, max(1, int(self._timeout_s * 0.8)))
         try:
             async with asyncio.timeout(self._budget_s):
                 for attempt in range(self._attempts):

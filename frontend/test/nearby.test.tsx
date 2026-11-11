@@ -202,6 +202,15 @@ describe('Nearby places on the Result screen', () => {
     expect(fakeApi.nearbyRequests.map((r) => r.body.radius_km)).toEqual([25, 25])
   })
 
+  it('demo mode without recorded places says so, with no retry that cannot help', async () => {
+    fakeApi.nearbyScript = [{ status: 503, reason: 'nearby_not_recorded' }]
+    openIncident()
+
+    const alert = await within(await findPanel()).findByRole('alert')
+    expect(alert).toHaveTextContent(en.errors.nearby_not_recorded)
+    expect(within(alert).queryByRole('button')).not.toBeInTheDocument()
+  })
+
   it('a failed first lookup shows a retry instead of places', async () => {
     fakeApi.nearbyScript = [{ status: 503, reason: 'nearby_unavailable' }]
     const { user } = openIncident()

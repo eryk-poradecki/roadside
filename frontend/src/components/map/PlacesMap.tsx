@@ -124,7 +124,7 @@ export function PlacesMap({
     }
   }, [interactive, attribution, showAttribution, user.lat, user.lon])
 
-  // Pins, in list order.
+  // Pins, in list order. Also after the map above is rebuilt with an empty layer.
   useEffect(() => {
     const group = layer.current
     if (!group) return
@@ -140,7 +140,7 @@ export function PlacesMap({
       marker.on('click', () => select.current?.(p.id))
       marker.addTo(group)
     })
-  }, [pins, selected, interactive, onSelect])
+  }, [pins, selected, interactive, onSelect, attribution, showAttribution, user.lat, user.lon])
 
   // Frame the driver and every pin.
   useEffect(() => {

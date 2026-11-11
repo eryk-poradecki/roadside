@@ -341,6 +341,7 @@ export const pl: Localised<Translation> & {
     reply_required: 'Najpierw odpowiedz na pytanie powyżej.',
     nearby_unavailable: 'Serwis mapy jest teraz przeciążony.',
     no_location: 'To zdarzenie nie ma jeszcze lokalizacji.',
+    nearby_not_recorded: 'Tryb demo nie ma nagranych miejsc dla tego przypadku.',
     location_changed: 'Lokalizacja zmieniła się w trakcie wyszukiwania. Wyszukaj ponownie.',
   },
 }
