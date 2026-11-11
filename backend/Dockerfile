@@ -22,6 +22,7 @@ COPY recordings ./recordings
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
+    # Repeated in compose.yaml's `environment:`, which must beat an optional backend/.env.
     DATABASE_PATH=/data/roadside.db \
     UPLOAD_DIR=/data/uploads \
     LLM_RECORDINGS_DIR=/app/recordings

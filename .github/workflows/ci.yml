@@ -1,5 +1,6 @@
 # Quality gates for every PR and every push to main (ADR 0007).
-# Each job calls the Makefile, so `make check` runs exactly what CI runs.
+# Each job calls the Makefile, so `make check` runs what CI runs, bar `make docker-smoke`
+# (it needs Docker).
 # The e2e job is added by its own ticket.
 name: CI
 

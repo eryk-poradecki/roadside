@@ -147,7 +147,7 @@ async def test_demo_mode_off_builds_the_overpass_client() -> None:
     await app.state.place_source.aclose()
 
 
-def test_an_empty_frontend_origins_allows_no_cross_origin_caller(
+def test_empty_frontend_origins_allows_no_cross_origin_caller(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     # The compose stack is same-origin behind nginx (ADR 0007, 0011), so it sets this empty.

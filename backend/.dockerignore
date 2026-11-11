@@ -1,13 +1,8 @@
-# Only pyproject.toml, uv.lock, app/, migrations/ and recordings/ go into the image.
-.venv/
-.env
-data/
-tests/
+# Allowlist: only what the image needs enters the build context.
+*
+!pyproject.toml
+!uv.lock
+!app/
+!migrations/
+!recordings/
 **/__pycache__/
-.mypy_cache/
-.pytest_cache/
-.ruff_cache/
-.coverage
-requirements*.txt
-Dockerfile
-.dockerignore

@@ -11,6 +11,7 @@ services:
       - path: backend/.env
         required: false
     # These beat the env_file: the data must land on the volume, and there is no CORS caller.
+    # The paths repeat the image's defaults (backend/Dockerfile).
     environment:
       DATABASE_PATH: /data/roadside.db
       UPLOAD_DIR: /data/uploads

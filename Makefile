@@ -96,4 +96,5 @@ check-requirements: ## Fail if the requirements files drift from uv.lock
 check-backend: lint-backend typecheck-backend test-backend check-requirements
 check-frontend: lint-frontend typecheck-frontend test-frontend build
 
-check: check-backend check-frontend openapi-drift ## Everything CI runs
+# CI also runs docker-smoke, left out here because it needs Docker.
+check: check-backend check-frontend openapi-drift ## Everything CI runs except docker-smoke
