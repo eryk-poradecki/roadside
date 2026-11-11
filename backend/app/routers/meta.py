@@ -31,8 +31,9 @@ async def read_config(
 ) -> ConfigRead:
     return ConfigRead(
         demo_mode=settings.demo_mode,
-        # What the provider in use can do, not what was asked for (demo mode has no vision).
-        vision_enabled=provider.vision and provider.max_images > 0,
+        # Whether photos reach a model: what the provider in use can do, not what was asked
+        # for. Demo mode sends them nowhere, even when it replays recordings made with vision.
+        vision_enabled=not settings.demo_mode and provider.vision and provider.max_images > 0,
         max_photos=settings.max_photos,
         max_photo_bytes=settings.max_photo_bytes,
         sample_photos=[

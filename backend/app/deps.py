@@ -162,6 +162,7 @@ def get_assistant_service(
     provider: Annotated[LLMProvider, Depends(get_llm_provider)],
     locks: Annotated[TurnLocks, Depends(get_turn_locks)],
     location: Annotated[LocationResolver, Depends(get_location_resolver)],
+    files: Annotated[PhotoFiles, Depends(get_photo_files)],
 ) -> AssistantService:
     return AssistantService(
         conn,
@@ -169,6 +170,7 @@ def get_assistant_service(
         SqliteVehicleRepository(conn),
         SqliteAiTurnRepository(conn),
         SqlitePhotoRepository(conn),
+        files,
         provider,
         locks,
         settings.llm_turn_budget_s,

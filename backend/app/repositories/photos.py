@@ -120,6 +120,9 @@ class PhotoFiles:
     def path(self, stored_name: str) -> Path:
         return self._root / stored_name
 
+    async def read(self, stored_name: str) -> bytes:
+        return await asyncio.to_thread(self.path(stored_name).read_bytes)
+
     async def write(self, stored_name: str, data: bytes) -> None:
         def run() -> None:
             # "x": never overwrite, even on a (practically impossible) name clash.

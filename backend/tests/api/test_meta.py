@@ -82,7 +82,7 @@ async def test_413_response_carries_cors_headers(client: httpx.AsyncClient) -> N
 
 
 async def test_vision_follows_the_provider_in_use(tmp_path: Path) -> None:
-    # Demo mode has no model that sees photos, whatever LLM_VISION says.
+    # Demo mode sends photos nowhere, even when it replays recordings made with vision.
     settings = Settings(database_path=tmp_path / "v.db", upload_dir=tmp_path / "u", llm_vision=True)
     migrate(settings.database_path)
     transport = httpx.ASGITransport(app=create_app(settings))

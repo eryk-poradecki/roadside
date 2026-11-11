@@ -53,6 +53,14 @@ def test_demo_mode_off_with_nothing_set_fails(monkeypatch: pytest.MonkeyPatch) -
 def test_demo_mode_needs_no_llm_settings_and_replays() -> None:
     provider = build_provider(Settings())
     assert isinstance(provider, ReplayProvider)
+    assert (provider.vision, provider.max_images) == (False, 0)
+
+
+def test_demo_mode_replays_recordings_made_with_vision() -> None:
+    # The replay key says whether the recorded model saw the photos; LLM_VISION says which
+    # recordings demo mode plays. No image is sent anywhere.
+    provider = build_provider(Settings(llm_vision=True, llm_max_images=2))
+    assert (provider.vision, provider.max_images) == (True, 2)
 
 
 # --- startup refusals (ADR 0004, 0011) -------------------------------------------------------

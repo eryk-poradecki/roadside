@@ -18,6 +18,7 @@ export const pl: Localised<Translation> & {
   vehicles: PluralExtras
   checklist: PluralExtras
   history: PluralExtras
+  ai: PluralExtras
 } = {
   appName: 'Roadside',
   callEmergency: 'Zagrożenie? Dzwoń 112',
@@ -182,6 +183,11 @@ export const pl: Localised<Translation> & {
     dxLabel: { likely: 'Najpewniej', possible: 'Być może', unsure: 'Jeszcze nie wiadomo' },
     alsoCould: 'Może to też być',
     photoSeen: 'Na Twoich zdjęciach',
+    photosNotSeen_one: 'Asystent nie widział Twojego zdjęcia.',
+    photosNotSeen_few: 'Asystent nie widział Twoich zdjęć.',
+    photosNotSeen_many: 'Asystent nie widział Twoich zdjęć.',
+    photosNotSeen_other: 'Asystent nie widział Twoich zdjęć.',
+    photosPartlySeen: 'Asystent widział {{seen}} z {{total}} Twoich zdjęć.',
     stepsTitle: 'Co zrobić',
     escalateTitle: 'Przerwij i wezwij pomoc, jeśli',
     disclaimer: 'AI może się mylić. To nie są służby ratunkowe.',

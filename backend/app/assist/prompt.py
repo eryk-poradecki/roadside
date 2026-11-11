@@ -171,7 +171,8 @@ def render(
     seen = len(inputs.photo_ids_seen)
     photos = f"{seen} attached and shown to you" if seen else "none shown to you"
     if inputs.photos_not_sent:
-        photos += f"; {inputs.photos_not_sent} more not sent to you"
+        more = "more " if seen else ""
+        photos += f"; {inputs.photos_not_sent} {more}attached but not sent to you"
     language = _LANGUAGES[locale]
     conversation = (
         "\n\nClarifying questions so far:\n"

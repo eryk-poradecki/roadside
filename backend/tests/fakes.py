@@ -55,12 +55,18 @@ class ScriptedProvider:
 
     name = "fake"
 
-    def __init__(self, *script: Script, model: str = "fake-model-1") -> None:
+    def __init__(
+        self,
+        *script: Script,
+        model: str = "fake-model-1",
+        vision: bool = False,
+        max_images: int = 0,
+    ) -> None:
         self.script = list(script)
         self.requests: list[LLMRequest] = []
         self.model = model
-        self.vision = False
-        self.max_images = 0
+        self.vision = vision
+        self.max_images = max_images
         # Set on every call, so a test can wait for a turn to reach the model.
         self.called = asyncio.Event()
 

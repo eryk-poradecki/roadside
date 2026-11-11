@@ -11,6 +11,13 @@
 > - The file is written before the transaction, not inside it, so the database write lock is never held during disk I/O; a file whose row did not commit is removed. Removing a file after a delete is best effort and logged.
 > - The client uploads one photo at a time, and the first AI turn waits for the uploads for at most 20 s, so a stalled upload can't hold the advice back.
 
+> **Amended by #79:**
+> - Every photo goes to the model as a JPEG (long edge 1024 px, re-encoded per request), whatever its stored format. The stored file is not touched.
+> - A photo whose file can't be read or decoded is skipped, logged, and counted as not sent; the next one in upload order takes its place under the cap.
+> - The AI panel says when the advice was given without the photos ("The assistant did not see your photos") or without some of them ("saw 3 of your 5 photos"), read from the inputs snapshot.
+> - The damage report (ADR 0009) still gets no images, only the photo count.
+> - In demo mode `LLM_VISION` and `LLM_MAX_IMAGES` say how the recordings were made, so the replay key matches recordings made with vision. Nothing is sent, and `/config` reports `vision_enabled: false`, so the photo sheet shows no provider notice.
+
 An incident has up to five photos, each added or removed on its own. The bytes are files on disk in `UPLOAD_DIR` (a named docker volume) under server-generated UUID names, and each one has a row in `incident_photos` (`incident_id` FK with `ON DELETE CASCADE`, `stored_name`, `content_type`, `size_bytes`, `width`, `height`, `created_at`). Photos are served only through `GET /api/photos/{id}`, never a static mount, so the database stays the source of truth: a deleted row's file is unreachable at once, a missing photo is a clean 404, and there is one place to add cache headers or auth later. When the provider supports images, the model sees the photos, because a picture of a pothole or a shredded tyre tells it more than a problem type and a note.
 
 ## Considered Options

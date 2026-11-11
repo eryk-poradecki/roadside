@@ -17,6 +17,10 @@ services:
       UPLOAD_DIR: /data/uploads
       LLM_RECORDINGS_DIR: /app/recordings
       FRONTEND_ORIGINS: ""
+    # A model on the host (Ollama) is http://host.docker.internal:11434/v1/ from here; Docker
+    # Desktop has the name already, Linux needs this line. Ollama must listen on 0.0.0.0.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - roadside-data:/data
     # The healthcheck is the image's own (GET /health).

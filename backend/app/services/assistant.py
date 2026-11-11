@@ -10,6 +10,8 @@ steps", the schema allows only an answer.
 """
 
 import asyncio
+import base64
+import dataclasses
 import logging
 import sqlite3
 import time
@@ -32,8 +34,10 @@ from app.db.connection import read_snapshot, transaction
 from app.domain.ai_turn import AiTurn, AiTurnKind, Locale, ModelProvenance, NewAiTurn, Reply
 from app.domain.incident import Incident
 from app.domain.location_context import UNKNOWN_CONTEXT
+from app.domain.photo import Photo, UnsupportedImageError, downscale_for_model
 from app.errors import AppError, FieldValidationError, NotFoundError
 from app.integrations.llm.base import (
+    LLMImage,
     LLMMessage,
     LLMProvider,
     LLMRequest,
@@ -42,7 +46,7 @@ from app.integrations.llm.base import (
 )
 from app.repositories.ai_turns import AiTurnRepository
 from app.repositories.incidents import IncidentRepository
-from app.repositories.photos import PhotoRepository
+from app.repositories.photos import PhotoFiles, PhotoRepository
 from app.repositories.vehicles import VehicleRepository
 from app.services.clock import utc_now
 from app.services.location import LocationResolver, refresh_location_context
@@ -83,6 +87,7 @@ class AssistantService:
         vehicles: VehicleRepository,
         turns: AiTurnRepository,
         photos: PhotoRepository,
+        files: PhotoFiles,
         provider: LLMProvider,
         locks: TurnLocks,
         turn_budget_s: float,
@@ -93,6 +98,7 @@ class AssistantService:
         self._vehicles = vehicles
         self._turns = turns
         self._photos = photos
+        self._files = files
         self._provider = provider
         self._locks = locks
         self._budget_s = turn_budget_s
@@ -102,7 +108,7 @@ class AssistantService:
         self, incident_id: int, locale: Locale, reply: Reply | None = None
     ) -> AiTurn:
         async with self._locks.hold(incident_id):
-            inputs, turns, sample_ids = await self._prepare(incident_id, locale, reply)
+            inputs, images, turns, sample_ids = await self._prepare(incident_id, locale, reply)
             allow_ask = _may_ask(turns)
             key = replay_key(
                 inputs,
@@ -120,6 +126,7 @@ class AssistantService:
                         locale,
                         allow_ask=allow_ask,
                         exchanges=_exchanges(turns),
+                        images=images,
                         replay_key=key,
                     )
             except (TimeoutError, ProviderError, InvalidOutputError) as exc:
@@ -144,8 +151,9 @@ class AssistantService:
 
     async def _prepare(
         self, incident_id: int, locale: Locale, reply: Reply | None
-    ) -> tuple[TurnInputs, list[AiTurn], list[str]]:
-        """The inputs, the turns so far, and the ids of the sample photos attached."""
+    ) -> tuple[TurnInputs, tuple[LLMImage, ...], list[AiTurn], list[str]]:
+        """The inputs, the photos shown to the model, the turns so far, and the ids of the
+        sample photos attached."""
         async with read_snapshot(self._conn):
             incident = await self._incidents.get(incident_id)
             if incident is None:
@@ -164,7 +172,35 @@ class AssistantService:
         scenario = scenario_key(incident.problem_type.value, incident.situation.value, facts)
         incident = await self._with_location_context(incident, locale, scenario)
         sample_ids = [p.sample_id for p in photos if p.sample_id is not None]
-        return turn_inputs(incident, facts, datetime.now(UTC)), turns, sample_ids
+        seen, images = await self._shown_photos(photos)
+        inputs = dataclasses.replace(
+            turn_inputs(incident, facts, datetime.now(UTC)),
+            photo_ids_seen=seen,
+            photos_not_sent=len(photos) - len(seen),
+        )
+        return inputs, images, turns, sample_ids
+
+    async def _shown_photos(
+        self, photos: list[Photo]
+    ) -> tuple[tuple[int, ...], tuple[LLMImage, ...]]:
+        """The photos the model sees, in upload order up to the provider's cap, downscaled
+        for this request (ADR 0002). None for a text-only provider. A photo whose file can't
+        be read is skipped, so it counts as not sent."""
+        cap = self._provider.max_images if self._provider.vision else 0
+        seen: list[int] = []
+        images: list[LLMImage] = []
+        for photo in photos:
+            if len(images) >= cap:
+                break
+            try:
+                data = await self._files.read(photo.stored_name)
+                jpeg = await asyncio.to_thread(downscale_for_model, data)
+            except (OSError, UnsupportedImageError):
+                logger.warning("photo %d could not be read for the model", photo.id, exc_info=True)
+                continue
+            seen.append(photo.id)
+            images.append(LLMImage("image/jpeg", base64.b64encode(jpeg).decode("ascii")))
+        return tuple(seen), tuple(images)
 
     async def _store_reply(self, incident_id: int, reply: Reply) -> list[AiTurn]:
         """Append the reply in its own transaction, so it stays if the model call fails."""
@@ -237,6 +273,7 @@ async def generate_turn(
     *,
     allow_ask: bool,
     exchanges: tuple[Exchange, ...] = (),
+    images: tuple[LLMImage, ...] = (),
     replay_key: str | None = None,
 ) -> tuple[TurnOutput, LLMResult]:
     """Render the prompt, make the call, validate, repair once. Stores nothing.
@@ -246,7 +283,10 @@ async def generate_turn(
     """
     rendered = prompt.render(inputs, locale, allow_ask=allow_ask, exchanges=exchanges)
     logger.debug("ai prompt:\n%s\n%s", rendered.system, rendered.user)
-    messages = (LLMMessage("system", rendered.system), LLMMessage("user", rendered.user))
+    messages = (
+        LLMMessage("system", rendered.system),
+        LLMMessage("user", rendered.user, images=images),
+    )
     request = LLMRequest(
         messages=messages, schema=rendered.schema, schema_name="ai_turn", replay_key=replay_key
     )

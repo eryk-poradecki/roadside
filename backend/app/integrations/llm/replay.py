@@ -18,17 +18,24 @@ class NoRecordingError(ProviderError):
 
 
 class ReplayProvider:
-    name = "replay"
-    # Images are never sent: a recording made with vision has `vision` in its key instead.
-    vision = False
-    max_images = 0
+    """Images are never sent anywhere: a recording made with vision has `vision` in its key
+    instead. `vision` and `max_images` say how the recordings to play were made, so the
+    service builds the same key; the images it attaches are ignored."""
 
-    def __init__(self, recordings: Mapping[str, Recording]) -> None:
+    name = "replay"
+
+    def __init__(
+        self, recordings: Mapping[str, Recording], *, vision: bool = False, max_images: int = 0
+    ) -> None:
         self._recordings = dict(recordings)
+        self.vision = vision
+        self.max_images = max_images if vision else 0
 
     @classmethod
-    def from_dir(cls, directory: Path) -> "ReplayProvider":
-        return cls(load_recordings(directory))
+    def from_dir(
+        cls, directory: Path, *, vision: bool = False, max_images: int = 0
+    ) -> "ReplayProvider":
+        return cls(load_recordings(directory), vision=vision, max_images=max_images)
 
     async def complete(self, request: LLMRequest) -> LLMResult:
         rec = self._recordings.get(request.replay_key) if request.replay_key else None

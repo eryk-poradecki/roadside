@@ -14,6 +14,8 @@ MAX_PIXELS = 50_000_000
 _FORMATS = {"JPEG": "image/jpeg", "PNG": "image/png", "WEBP": "image/webp"}
 EXTENSIONS = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}
 _JPEG_QUALITY = 85
+# The long edge of a photo as sent to the model, for the request only (ADR 0002).
+MODEL_EDGE_PX = 1024
 
 
 @dataclass(frozen=True, slots=True)
@@ -84,3 +86,27 @@ def prepare_photo(data: bytes) -> PreparedPhoto:
         case _:
             clean.save(out, "WEBP", quality=_JPEG_QUALITY)
     return PreparedPhoto(out.getvalue(), content_type, clean.width, clean.height)
+
+
+def downscale_for_model(data: bytes) -> bytes:
+    """A stored photo as the model gets it: a JPEG with the long edge at most 1024 px.
+
+    The stored file stays as it is. Stored photos already went through `prepare_photo`, so
+    they are upright and carry no metadata. Raises `UnsupportedImageError` when the file does
+    not decode.
+    """
+    try:
+        opened = Image.open(BytesIO(data))
+        opened.load()
+    except (UnidentifiedImageError, OSError, SyntaxError, ValueError, EOFError) as exc:
+        raise UnsupportedImageError(str(exc)) from exc
+    img: Image.Image = opened
+    if img.mode not in ("RGB", "L"):
+        # Flatten transparency onto white: a plain RGB convert turns it black.
+        rgba = img.convert("RGBA")
+        img = Image.new("RGB", rgba.size, "white")
+        img.paste(rgba, mask=rgba.getchannel("A"))
+    img.thumbnail((MODEL_EDGE_PX, MODEL_EDGE_PX), Image.Resampling.LANCZOS)
+    out = BytesIO()
+    img.save(out, "JPEG", quality=_JPEG_QUALITY)
+    return out.getvalue()
