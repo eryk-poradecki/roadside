@@ -31,6 +31,8 @@ idna==3.20
     #   httpx
 opentelemetry-api==1.45.2
     # via fastapi
+pillow==13.0.0
+    # via roadside-backend
 pydantic==2.14.3
     # via
     #   fastapi
@@ -42,6 +44,8 @@ pydantic-settings==2.16.2
     # via roadside-backend
 python-dotenv==1.2.4
     # via pydantic-settings
+python-multipart==0.0.33
+    # via roadside-backend
 starlette==1.10.0
     # via fastapi
 typing-extensions==4.16.0

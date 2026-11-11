@@ -507,6 +507,13 @@
             ],
             "title": "Note"
           },
+          "photos": {
+            "items": {
+              "$ref": "#/components/schemas/PhotoRead"
+            },
+            "title": "Photos",
+            "type": "array"
+          },
           "problem_type": {
             "$ref": "#/components/schemas/ProblemType"
           },
@@ -539,6 +546,7 @@
           "location_label",
           "created_at",
           "updated_at",
+          "photos",
           "ai_turns",
           "nearby"
         ],
@@ -762,6 +770,45 @@
           "radius_km"
         ],
         "title": "NearbyRequest",
+        "type": "object"
+      },
+      "PhotoRead": {
+        "description": "A stored photo. `url` serves the file; there are no thumbnails (ADR 0002).",
+        "properties": {
+          "content_type": {
+            "title": "Content Type",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "height": {
+            "title": "Height",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          },
+          "width": {
+            "title": "Width",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "url",
+          "content_type",
+          "width",
+          "height",
+          "created_at"
+        ],
+        "title": "PhotoRead",
         "type": "object"
       },
       "PlaceRead": {
@@ -2182,6 +2229,221 @@
         "summary": "Find Nearby",
         "tags": [
           "nearby"
+        ]
+      }
+    },
+    "/api/v1/incidents/{incident_id}/photos": {
+      "post": {
+        "description": "Add one photo: a multipart `file`, or `{sample_id}` for a bundled sample photo.\n\nThe server re-encodes every file (EXIF orientation applied, long edge at most 2048 px,\nno metadata). 409 `photo_limit` past five, 413 `photo_too_large`, 415\n`unsupported_media_type` for anything but a decodable JPEG, PNG or WebP, 403\n`demo_uploads_disabled` for a file in demo mode, 422 `unknown_sample`.",
+        "operationId": "add_photo",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "maximum": 9223372036854775807,
+              "minimum": 1,
+              "title": "Incident Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "description": "Attach a bundled sample photo (`GET /config` lists them) instead of uploading a file.",
+                "properties": {
+                  "sample_id": {
+                    "maxLength": 64,
+                    "minLength": 1,
+                    "title": "Sample Id",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "sample_id"
+                ],
+                "title": "SamplePhotoCreate",
+                "type": "object"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "file": {
+                    "format": "binary",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "file"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhotoRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Photo",
+        "tags": [
+          "photos"
+        ]
+      }
+    },
+    "/api/v1/photos/{photo_id}": {
+      "delete": {
+        "operationId": "delete_photo",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "photo_id",
+            "required": true,
+            "schema": {
+              "maximum": 9223372036854775807,
+              "minimum": 1,
+              "title": "Photo Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Photo",
+        "tags": [
+          "photos"
+        ]
+      },
+      "get": {
+        "description": "The stored file. Never a static mount: a deleted row's file is unreachable at once.",
+        "operationId": "get_photo",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "photo_id",
+            "required": true,
+            "schema": {
+              "maximum": 9223372036854775807,
+              "minimum": 1,
+              "title": "Photo Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "image/jpeg": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "image/webp": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "The image file"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Photo",
+        "tags": [
+          "photos"
+        ]
+      }
+    },
+    "/api/v1/sample-photos/{sample_id}": {
+      "get": {
+        "description": "A bundled sample photo, freely licensed and credited (`credit` in `GET /config`).",
+        "operationId": "get_sample_photo",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sample_id",
+            "required": true,
+            "schema": {
+              "title": "Sample Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "image/jpeg": {}
+            },
+            "description": "The bundled image"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Sample Photo",
+        "tags": [
+          "meta"
         ]
       }
     },

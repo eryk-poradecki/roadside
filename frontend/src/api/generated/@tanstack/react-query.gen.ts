@@ -3,8 +3,8 @@
 import { type DefaultError, type InfiniteData, infiniteQueryOptions, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { createIncident, createVehicle, deleteIncident, deleteVehicle, findNearby, getIncident, getVehicle, health, listIncidents, listVehicles, type Options, readConfig, replaceVehicle, takeAiTurn, updateIncident } from '../sdk.gen';
-import type { CreateIncidentData, CreateIncidentError, CreateIncidentResponse, CreateVehicleData, CreateVehicleError, CreateVehicleResponse, DeleteIncidentData, DeleteIncidentError, DeleteIncidentResponse, DeleteVehicleData, DeleteVehicleError, DeleteVehicleResponse, FindNearbyData, FindNearbyError, FindNearbyResponse, GetIncidentData, GetIncidentError, GetIncidentResponse, GetVehicleData, GetVehicleError, GetVehicleResponse, HealthData, HealthResponse, ListIncidentsData, ListIncidentsError, ListIncidentsResponse, ListVehiclesData, ListVehiclesResponse, ReadConfigData, ReadConfigResponse, ReplaceVehicleData, ReplaceVehicleError, ReplaceVehicleResponse, TakeAiTurnData, TakeAiTurnError, TakeAiTurnResponse, UpdateIncidentData, UpdateIncidentError, UpdateIncidentResponse } from '../types.gen';
+import { addPhoto, createIncident, createVehicle, deleteIncident, deletePhoto, deleteVehicle, findNearby, getIncident, getPhoto, getSamplePhoto, getVehicle, health, listIncidents, listVehicles, type Options, readConfig, replaceVehicle, takeAiTurn, updateIncident } from '../sdk.gen';
+import type { AddPhotoData, AddPhotoError, AddPhotoResponse, CreateIncidentData, CreateIncidentError, CreateIncidentResponse, CreateVehicleData, CreateVehicleError, CreateVehicleResponse, DeleteIncidentData, DeleteIncidentError, DeleteIncidentResponse, DeletePhotoData, DeletePhotoError, DeletePhotoResponse, DeleteVehicleData, DeleteVehicleError, DeleteVehicleResponse, FindNearbyData, FindNearbyError, FindNearbyResponse, GetIncidentData, GetIncidentError, GetIncidentResponse, GetPhotoData, GetPhotoError, GetPhotoResponse, GetSamplePhotoData, GetSamplePhotoError, GetVehicleData, GetVehicleError, GetVehicleResponse, HealthData, HealthResponse, ListIncidentsData, ListIncidentsError, ListIncidentsResponse, ListVehiclesData, ListVehiclesResponse, ReadConfigData, ReadConfigResponse, ReplaceVehicleData, ReplaceVehicleError, ReplaceVehicleResponse, TakeAiTurnData, TakeAiTurnError, TakeAiTurnResponse, UpdateIncidentData, UpdateIncidentError, UpdateIncidentResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -257,6 +257,87 @@ export const findNearbyMutation = (options?: Partial<Options<FindNearbyData>>): 
     };
     return mutationOptions;
 };
+
+/**
+ * Add Photo
+ *
+ * Add one photo: a multipart `file`, or `{sample_id}` for a bundled sample photo.
+ *
+ * The server re-encodes every file (EXIF orientation applied, long edge at most 2048 px,
+ * no metadata). 409 `photo_limit` past five, 413 `photo_too_large`, 415
+ * `unsupported_media_type` for anything but a decodable JPEG, PNG or WebP, 403
+ * `demo_uploads_disabled` for a file in demo mode, 422 `unknown_sample`.
+ */
+export const addPhotoMutation = (options?: Partial<Options<AddPhotoData>>): UseMutationOptions<AddPhotoResponse, AddPhotoError, Options<AddPhotoData>> => {
+    const mutationOptions: UseMutationOptions<AddPhotoResponse, AddPhotoError, Options<AddPhotoData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await addPhoto({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Delete Photo
+ */
+export const deletePhotoMutation = (options?: Partial<Options<DeletePhotoData>>): UseMutationOptions<DeletePhotoResponse, DeletePhotoError, Options<DeletePhotoData>> => {
+    const mutationOptions: UseMutationOptions<DeletePhotoResponse, DeletePhotoError, Options<DeletePhotoData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await deletePhoto({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const getPhotoQueryKey = (options: Options<GetPhotoData>) => createQueryKey('getPhoto', options);
+
+/**
+ * Get Photo
+ *
+ * The stored file. Never a static mount: a deleted row's file is unreachable at once.
+ */
+export const getPhotoOptions = (options: Options<GetPhotoData>) => queryOptions<GetPhotoResponse, GetPhotoError, GetPhotoResponse, ReturnType<typeof getPhotoQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getPhoto({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getPhotoQueryKey(options)
+});
+
+export const getSamplePhotoQueryKey = (options: Options<GetSamplePhotoData>) => createQueryKey('getSamplePhoto', options);
+
+/**
+ * Get Sample Photo
+ *
+ * A bundled sample photo, freely licensed and credited (`credit` in `GET /config`).
+ */
+export const getSamplePhotoOptions = (options: Options<GetSamplePhotoData>) => queryOptions<unknown, GetSamplePhotoError, unknown, ReturnType<typeof getSamplePhotoQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getSamplePhoto({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getSamplePhotoQueryKey(options)
+});
 
 export const listVehiclesQueryKey = (options?: Options<ListVehiclesData>) => createQueryKey('listVehicles', options);
 

@@ -11,11 +11,13 @@ from app.integrations.overpass import PlaceSource
 from app.repositories.ai_turns import SqliteAiTurnRepository
 from app.repositories.incidents import SqliteIncidentRepository
 from app.repositories.nearby import SqliteNearbyRepository
+from app.repositories.photos import PhotoFiles, SqlitePhotoRepository
 from app.repositories.vehicles import SqliteVehicleRepository
 from app.services.assistant import AssistantService, TurnLocks
 from app.services.incidents import IncidentService
 from app.services.location import LocationResolver
 from app.services.nearby import NearbyService
+from app.services.photos import PhotoService
 from app.services.vehicles import VehicleService
 from app.settings import Settings
 
@@ -71,9 +73,14 @@ def get_location_resolver(
     )
 
 
+def get_photo_files(settings: Annotated[Settings, Depends(get_settings)]) -> PhotoFiles:
+    return PhotoFiles(settings.upload_dir)
+
+
 def get_incident_service(
     conn: Connection,
     location: Annotated[LocationResolver, Depends(get_location_resolver)],
+    files: Annotated[PhotoFiles, Depends(get_photo_files)],
 ) -> IncidentService:
     return IncidentService(
         conn,
@@ -81,7 +88,24 @@ def get_incident_service(
         SqliteVehicleRepository(conn),
         SqliteAiTurnRepository(conn),
         SqliteNearbyRepository(conn),
+        SqlitePhotoRepository(conn),
+        files,
         location,
+    )
+
+
+def get_photo_service(
+    conn: Connection,
+    settings: Annotated[Settings, Depends(get_settings)],
+    files: Annotated[PhotoFiles, Depends(get_photo_files)],
+) -> PhotoService:
+    return PhotoService(
+        conn,
+        SqliteIncidentRepository(conn),
+        SqlitePhotoRepository(conn),
+        files,
+        max_photos=settings.max_photos,
+        demo_mode=settings.demo_mode,
     )
 
 

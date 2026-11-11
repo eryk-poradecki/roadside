@@ -4,6 +4,7 @@ import { setupServer } from 'msw/node'
 import { createElement } from 'react'
 import { afterAll, afterEach, beforeAll, beforeEach, vi } from 'vitest'
 import { configureApiClient } from '../src/api/client'
+import { client } from '../src/api/generated/client.gen'
 import { i18n, initI18n } from '../src/i18n'
 import { API, fakeApi } from './fakeApi'
 
@@ -46,6 +47,15 @@ export const server = setupServer(...fakeApi.handlers())
 beforeAll(async () => {
   server.listen({ onUnhandledFrame: 'error' })
   configureApiClient(API)
+  // msw can't intercept a streamed multipart body under Node's fetch (a photo upload): send
+  // every body buffered instead. Browsers are unaffected; this is the test client only.
+  client.setConfig({
+    fetch: async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (!(input instanceof Request) || !input.body) return fetch(input, init)
+      const { url, method, headers } = input
+      return fetch(new Request(url, { method, headers, body: await input.arrayBuffer() }), init)
+    },
+  })
   await initI18n()
 })
 beforeEach(async () => {

@@ -25,6 +25,7 @@ import { AiPanel } from '../components/AiPanel'
 import { DockAction, EmergencyFirst, useDockUrgent } from '../components/AppShell'
 import { ErrorNotice } from '../components/ErrorNotice'
 import { NearbyPanel } from '../components/NearbyPanel'
+import { PhotosPanel } from '../components/PhotosPanel'
 import { SafetyChecklist } from '../components/SafetyChecklist'
 import { TILE_ICONS } from '../components/tiles'
 import { formatCoords } from '../lib/place'
@@ -177,6 +178,8 @@ function Result({
       <AiPanel incident={incident} autoStart={fromHelp} />
 
       <NearbyPanel incident={incident} fuelType={vehicle?.fuel_type} />
+
+      <PhotosPanel incident={incident} />
 
       <Upkeep incident={incident} />
 

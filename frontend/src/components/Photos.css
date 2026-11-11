@@ -1,0 +1,136 @@
+/* Photos: tiles in a grid, each removable on its own. */
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.photo {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+}
+.photo img,
+.photo-blank {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photo-pending img {
+  opacity: 0.5;
+}
+.photo-status {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px;
+  background: oklch(0.12 0.01 255 / 0.72);
+  color: var(--text);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+.photo-remove {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+}
+/* The visible dot is smaller than the 48 px target around it. */
+.photo-remove::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border-radius: 999px;
+  background: oklch(0.12 0.01 255 / 0.78);
+}
+.photo-remove svg {
+  position: relative;
+}
+.photo-remove:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.photo-add {
+  align-self: flex-start;
+  position: relative;
+}
+.photo-add:focus-within {
+  outline: 3px solid var(--amber);
+  outline-offset: 3px;
+}
+.photo-note {
+  font-size: 0.9375rem;
+}
+
+.photo-failed {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.photo-failed-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Demo mode: the bundled sample photos instead of a file picker. */
+.samples {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sample-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sample {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+.sample img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+.sample span {
+  padding: 8px 10px 10px;
+  min-height: 48px;
+}
+.sample:active {
+  border-color: var(--amber);
+}

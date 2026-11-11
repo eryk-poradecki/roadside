@@ -31,8 +31,9 @@ def settings(tmp_path: Path) -> Settings:
 
 @pytest.fixture
 def app(settings: Settings) -> FastAPI:
-    # ASGITransport does not run the lifespan, so migrate here with the same function.
+    # ASGITransport does not run the lifespan, so do its setup here.
     migrate(settings.database_path)
+    settings.upload_dir.mkdir(parents=True, exist_ok=True)
     return create_app(settings)
 
 

@@ -19,10 +19,14 @@ import {
 } from '../api/aiTurns'
 import type { FuelType } from '../api/generated/types.gen'
 import type { IncidentRead } from '../api/incidents'
+import { usePhotosUploading } from '../api/photos'
 import { isProblemType, problemKey } from '../lib/problemType'
 import { useErrorMessage } from './ErrorNotice'
 import { NOTE_MAX } from './HelpSheet'
 import './AiPanel.css'
+
+/** The longest the first AI turn waits for photos still uploading. */
+export const UPLOAD_WAIT_MS = 20_000
 
 /**
  * The AI answer on the Result screen, labelled as AI. Right after "Get help now"
@@ -34,6 +38,21 @@ export function AiPanel({ incident, autoStart }: { incident: IncidentRead; autoS
   const { t, i18n } = useTranslation()
   const turn = useTakeAiTurn(incident.id)
   const inFlight = useTurnInFlight(incident.id)
+  // Photos picked in the help sheet are still uploading: the first turn waits for every one
+  // to succeed or fail, so a failed upload never blocks it (ADR 0002).
+  const uploadsPending = usePhotosUploading(incident.id)
+  // A stalled upload on a weak signal must not hold the advice back for long.
+  const [waitedOut, setWaitedOut] = useState(false)
+  useEffect(() => {
+    if (!uploadsPending) return
+    const timer = setTimeout(() => {
+      setWaitedOut(true)
+    }, UPLOAD_WAIT_MS)
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [uploadsPending])
+  const uploading = uploadsPending && !waitedOut
   const message = useErrorMessage()
   const adviceTurn = findAdvice(incident)
   const question = openQuestion(incident)
@@ -53,7 +72,7 @@ export function AiPanel({ incident, autoStart }: { incident: IncidentRead; autoS
   // At most once per incident and session: not again after a remount, a reload or
   // StrictMode's second effect run, and never once the AI answer has begun.
   useEffect(() => {
-    if (!autoStart || started || inFlight || !claimAutoStart(incident)) return
+    if (!autoStart || started || inFlight || uploading || !claimAutoStart(incident)) return
     ask()
   })
 

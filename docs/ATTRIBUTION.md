@@ -34,6 +34,20 @@ This repo vendors a few third-party agent skills so reviewers can see exactly wh
   npx impeccable install --providers=claude,codex --scope=project
   ```
 
+## Sample photos
+
+Demo mode refuses uploads and offers these bundled photos instead (ADR 0002). Each is from Wikimedia Commons, downloaded as the 1280 px rendition and re-encoded as JPEG without metadata. None shows a number plate or a face.
+
+**Location in this repo:** `backend/app/assets/sample_photos/`
+
+| File                 | Shows                   | Original                                                                                                                 | Author        | License                                                       |
+| -------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------- | ------------------------------------------------------------- |
+| `flat_tyre.jpg`      | A flat front tyre       | [Flat Tyre.jpg](https://commons.wikimedia.org/wiki/File:Flat_Tyre.jpg)                                                   | Pujanak       | Public domain (as marked on its Commons page)                 |
+| `screw_in_tread.jpg` | A screw in a tyre tread | [Flat Tire.jpg](https://commons.wikimedia.org/wiki/File:Flat_Tire.jpg)                                                   | Godstar23     | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| `pothole.jpg`        | A deep pothole          | [A pothole in Dilova Street in Kyiv.jpg](https://commons.wikimedia.org/wiki/File:A_pothole_in_Dilova_Street_in_Kyiv.jpg) | Роман Рябенко | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
+
+The API also returns each photo's credit in `GET /api/v1/config` (`sample_photos[].credit`).
+
 ## Change log for vendored skills
 
 Every change to a vendored skill is recorded here with a reason.
