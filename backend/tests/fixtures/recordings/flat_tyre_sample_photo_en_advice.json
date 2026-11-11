@@ -1,0 +1,13 @@
+{
+  "key": "{\"dark\":false,\"fuel_type\":null,\"has_assistance\":false,\"locale\":\"en\",\"problem_type\":\"flat_tyre\",\"replies\":[],\"road_class\":\"unknown\",\"sample_photo_ids\":[\"screw_in_tread\"],\"spare_wheel\":null,\"transmission\":null,\"vision\":false}",
+  "request": {
+    "schema_name": "ai_turn",
+    "messages": [],
+    "note": "hand-made test fixture: flat_tyre_sample_photo_en_advice"
+  },
+  "raw_output": "{\"kind\": \"answer\", \"urgent\": false, \"ask\": null, \"answer\": {\"cause\": \"A screw in the tread\", \"confidence\": \"likely\", \"alternatives\": [\"A damaged valve\"], \"steps\": [\"Get everyone behind the barrier first\", \"Call your assistance\"], \"escalate_if\": [\"You smell fuel\"], \"photo_observation\": null, \"extra_categories\": [\"repair\"]}}",
+  "provider": "openai_compatible",
+  "model": "fixture-model",
+  "prompt_version": "v1",
+  "recorded_at": "2026-11-11T10:00:00.000Z"
+}

@@ -1,8 +1,12 @@
+from pathlib import Path
+
 import pytest
 from pydantic import ValidationError
 
-from app.integrations.llm.factory import NoRecordingsProvider, build_provider
+from app.integrations.llm.factory import build_provider
 from app.integrations.llm.openai_compatible import OpenAICompatibleProvider
+from app.integrations.llm.recording import RecordingProvider
+from app.integrations.llm.replay import ReplayProvider
 from app.integrations.overpass import OverpassClient
 from app.main import create_app
 from app.settings import Settings
@@ -46,9 +50,53 @@ def test_demo_mode_off_with_nothing_set_fails(monkeypatch: pytest.MonkeyPatch) -
         create_app()
 
 
-def test_demo_mode_needs_no_llm_settings() -> None:
+def test_demo_mode_needs_no_llm_settings_and_replays() -> None:
     provider = build_provider(Settings())
-    assert isinstance(provider, NoRecordingsProvider)
+    assert isinstance(provider, ReplayProvider)
+
+
+# --- startup refusals (ADR 0004, 0011) -------------------------------------------------------
+
+
+def test_a_public_deploy_refuses_a_live_model() -> None:
+    with pytest.raises(ValidationError, match="PUBLIC_DEPLOY"):
+        Settings(**LIVE, public_deploy=True)  # type: ignore[arg-type]
+
+
+def test_a_public_deploy_refuses_recording() -> None:
+    with pytest.raises(ValidationError, match="PUBLIC_DEPLOY"):
+        Settings(**LIVE, public_deploy=True, llm_record=True)  # type: ignore[arg-type]
+
+
+def test_a_public_deploy_refuses_recording_even_in_demo_mode() -> None:
+    with pytest.raises(ValidationError, match="PUBLIC_DEPLOY"):
+        Settings(public_deploy=True, llm_record=True)
+
+
+def test_a_public_deploy_in_demo_mode_starts() -> None:
+    assert Settings(public_deploy=True).demo_mode is True
+
+
+def test_recording_is_refused_in_demo_mode() -> None:
+    with pytest.raises(ValidationError, match="LLM_RECORD"):
+        Settings(llm_record=True)
+
+
+def test_the_public_deploy_guard_reads_the_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    for name, value in {**LIVE, "public_deploy": True}.items():
+        monkeypatch.setenv(name.upper(), str(value))
+    with pytest.raises(ValidationError, match="PUBLIC_DEPLOY"):
+        create_app()
+
+
+async def test_recording_wraps_the_live_provider(tmp_path: Path) -> None:
+    settings = Settings(**LIVE, llm_record=True, llm_recordings_dir=tmp_path)  # type: ignore[arg-type]
+    provider = build_provider(settings)
+    try:
+        assert isinstance(provider, RecordingProvider)
+        assert provider.name == "openai_compatible"
+    finally:
+        await provider.aclose()
 
 
 async def test_demo_mode_off_builds_the_openai_compatible_provider() -> None:

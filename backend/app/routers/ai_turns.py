@@ -23,7 +23,9 @@ async def take_ai_turn(incident_id: IncidentId, body: AiTurnCreate, service: Ser
     refused (409 `no_open_question`). The reply is stored first and stays if the turn then
     fails, so "Try again" posts `{locale}` only. One turn at a time per incident (409
     `turn_in_progress`); the advice closes the AI answer (409 `advice_exists`). Failures: 502
-    `provider_error` or `invalid_output`, 504 `timeout`.
+    `provider_error` or `invalid_output`, 504 `timeout`. In demo mode the answer is replayed
+    from a recording; with none for this case, 503 `no_recording`: no turn is stored (a reply
+    sent with it stays, as on any failure), and trying again gives the same answer.
     """
     reply = body.reply.to_domain() if body.reply else None
     return AiTurnRead.from_domain(await service.take_turn(incident_id, body.locale, reply))

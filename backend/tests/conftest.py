@@ -25,6 +25,8 @@ def settings(tmp_path: Path) -> Settings:
     return Settings(
         database_path=tmp_path / "test.db",
         upload_dir=tmp_path / "uploads",
+        # Empty: demo-mode tests bring their own recordings.
+        llm_recordings_dir=tmp_path / "recordings",
         frontend_origins=[ORIGIN],
     )
 

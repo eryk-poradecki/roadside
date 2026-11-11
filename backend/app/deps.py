@@ -134,6 +134,7 @@ def get_assistant_service(
         SqliteIncidentRepository(conn),
         SqliteVehicleRepository(conn),
         SqliteAiTurnRepository(conn),
+        SqlitePhotoRepository(conn),
         provider,
         locks,
         settings.llm_turn_budget_s,

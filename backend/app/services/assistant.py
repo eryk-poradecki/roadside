@@ -29,6 +29,7 @@ from app.assist import prompt
 from app.assist.contract import TurnOutput, validate_output
 from app.assist.daylight import POLAND_CENTRE, is_dark
 from app.assist.prompt import Exchange, TurnInputs, VehicleFactBlock
+from app.assist.replay_key import replay_key
 from app.db.connection import read_snapshot, transaction
 from app.domain.ai_turn import AiTurn, AiTurnKind, Locale, ModelProvenance, NewAiTurn, Reply
 from app.domain.incident import Incident
@@ -42,8 +43,10 @@ from app.integrations.llm.base import (
     ProviderError,
     ProviderTimeoutError,
 )
+from app.integrations.llm.replay import NoRecordingError
 from app.repositories.ai_turns import AiTurnRepository
 from app.repositories.incidents import IncidentRepository
+from app.repositories.photos import PhotoRepository
 from app.repositories.vehicles import VehicleRepository
 from app.services.clock import utc_now
 from app.services.location import LocationResolver, refresh_location_context
@@ -82,6 +85,9 @@ class _InvalidOutputError(Exception):
 def _problem_for(exc: BaseException) -> AppError:
     if isinstance(exc, TimeoutError | ProviderTimeoutError):
         return AppError(504, "timeout", "The assistant did not answer in time")
+    if isinstance(exc, NoRecordingError):
+        # Demo mode: a labelled fallback, never another scenario's answer (ADR 0004).
+        return AppError(503, "no_recording", "No recorded answer for this case in demo mode")
     if isinstance(exc, _InvalidOutputError):
         return AppError(502, "invalid_output", "The assistant's answer was not valid")
     return AppError(502, "provider_error", "The assistant could not be reached")
@@ -109,6 +115,7 @@ class AssistantService:
         incidents: IncidentRepository,
         vehicles: VehicleRepository,
         turns: AiTurnRepository,
+        photos: PhotoRepository,
         provider: LLMProvider,
         locks: TurnLocks,
         turn_budget_s: float,
@@ -118,6 +125,7 @@ class AssistantService:
         self._incidents = incidents
         self._vehicles = vehicles
         self._turns = turns
+        self._photos = photos
         self._provider = provider
         self._locks = locks
         self._budget_s = turn_budget_s
@@ -127,13 +135,24 @@ class AssistantService:
         self, incident_id: int, locale: Locale, reply: Reply | None = None
     ) -> AiTurn:
         async with self._locks.hold(incident_id):
-            inputs, turns = await self._prepare(incident_id, locale, reply)
+            inputs, turns, sample_ids = await self._prepare(incident_id, locale, reply)
             allow_ask = _may_ask(turns)
+            key = replay_key(
+                inputs,
+                locale=locale,
+                sample_photo_ids=sample_ids,
+                vision=bool(inputs.photo_ids_seen),
+                replies=_replies(turns),
+            )
             started = time.monotonic()
             try:
                 async with asyncio.timeout(self._budget_s):
                     output, result = await self._generate(
-                        inputs, locale, allow_ask=allow_ask, exchanges=_exchanges(turns)
+                        inputs,
+                        locale,
+                        allow_ask=allow_ask,
+                        exchanges=_exchanges(turns),
+                        replay_key=key,
                     )
             except (TimeoutError, ProviderError, _InvalidOutputError) as exc:
                 problem = _problem_for(exc)
@@ -157,7 +176,8 @@ class AssistantService:
 
     async def _prepare(
         self, incident_id: int, locale: Locale, reply: Reply | None
-    ) -> tuple[TurnInputs, list[AiTurn]]:
+    ) -> tuple[TurnInputs, list[AiTurn], list[str]]:
+        """The inputs, the turns so far, and the ids of the sample photos attached."""
         async with read_snapshot(self._conn):
             incident = await self._incidents.get(incident_id)
             if incident is None:
@@ -168,12 +188,14 @@ class AssistantService:
                 if incident.vehicle_id is not None
                 else None
             )
+            photos = await self._photos.list_for_incident(incident_id)
         _check_can_take(turns, reply)
         if reply is not None:
             turns = await self._store_reply(incident_id, reply)
         incident = await self._with_location_context(incident, locale)
         facts = VehicleFactBlock.from_facts(vehicle.facts) if vehicle else None
-        return _inputs(incident, facts), turns
+        sample_ids = [p.sample_id for p in photos if p.sample_id is not None]
+        return _inputs(incident, facts), turns, sample_ids
 
     async def _store_reply(self, incident_id: int, reply: Reply) -> list[AiTurn]:
         """Append the reply in its own transaction, so it stays if the model call fails."""
@@ -204,11 +226,14 @@ class AssistantService:
         *,
         allow_ask: bool,
         exchanges: tuple[Exchange, ...],
+        replay_key: str,
     ) -> tuple[TurnOutput, LLMResult]:
         rendered = prompt.render(inputs, locale, allow_ask=allow_ask, exchanges=exchanges)
         logger.debug("ai prompt:\n%s\n%s", rendered.system, rendered.user)
         messages = (LLMMessage("system", rendered.system), LLMMessage("user", rendered.user))
-        request = LLMRequest(messages=messages, schema=rendered.schema, schema_name="ai_turn")
+        request = LLMRequest(
+            messages=messages, schema=rendered.schema, schema_name="ai_turn", replay_key=replay_key
+        )
 
         result = await self._provider.complete(request)
         try:
@@ -294,6 +319,11 @@ def _may_ask(turns: list[AiTurn]) -> bool:
     questions = sum(t.kind is AiTurnKind.QUESTION for t in turns)
     skipped = any(t.kind is AiTurnKind.REPLY and Reply.from_payload(t.payload).skip for t in turns)
     return questions < MAX_QUESTIONS and not skipped
+
+
+def _replies(turns: list[AiTurn]) -> list[Reply]:
+    """The driver's replies so far, in order."""
+    return [Reply.from_payload(t.payload) for t in turns if t.kind is AiTurnKind.REPLY]
 
 
 def _exchanges(turns: list[AiTurn]) -> tuple[Exchange, ...]:

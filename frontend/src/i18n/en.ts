@@ -159,6 +159,9 @@ export const en = {
     notAnswered: 'The assistant has not answered for this incident yet.',
     errorTitle: "The assistant couldn't answer",
     errorBody: 'The safety steps above and 112 still work.',
+    noRecordingTitle: 'No recorded answer for this case — demo mode',
+    noRecordingBody:
+      'The demo replays answers recorded for fixed scenarios, and this case is not one of them. The safety steps above and 112 still work.',
     retry: 'Try again',
     confidenceLabel: 'How sure the assistant is',
     confidence: { likely: 'Likely', possible: 'Possible', unsure: 'Unsure' },
@@ -346,6 +349,7 @@ export const en = {
     advice_exists: 'The assistant has already answered.',
     no_open_question: 'That question has already been answered.',
     reply_required: 'Answer the question above first.',
+    no_recording: 'No recorded answer for this case — demo mode.',
     nearby_unavailable: 'The map service is busy right now.',
     no_location: 'This incident has no location yet.',
     nearby_not_recorded: 'Demo mode has no recorded places for this case.',
