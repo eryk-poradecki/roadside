@@ -4,6 +4,7 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 
 from app.integrations.llm.base import LLMRequest, LLMResult
+from app.integrations.overpass import OverpassResult
 
 Script = str | BaseException | Callable[[], Awaitable[str]]
 
@@ -111,3 +112,30 @@ def nominatim_result(
         "lon": "21.0100",
         "address": {"road": road, locality[0]: locality[1]},
     }
+
+
+PlaceScript = list[object] | BaseException | Callable[[], Awaitable[list[object]]]
+
+
+class FakePlaceSource:
+    """A scripted Overpass: each call plays the next item (elements, or an exception)."""
+
+    def __init__(
+        self, *script: "list[object] | BaseException | Callable[[], Awaitable[list[object]]]"
+    ) -> None:
+        self.script = list(script)
+        self.calls: list[tuple[float, float, int]] = []
+
+    async def search(self, lat: float, lon: float, radius_m: int) -> OverpassResult:
+        self.calls.append((lat, lon, radius_m))
+        if not self.script:
+            raise AssertionError("FakePlaceSource ran out of scripted results")
+        item = self.script.pop(0)
+        if isinstance(item, BaseException):
+            raise item
+        elements = item if isinstance(item, list) else await item()
+        return OverpassResult(elements=elements, endpoint="https://overpass.test/api/interpreter")
+
+
+def osm_node(osm_id: int, lat: float, lon: float, **tags: str) -> dict[str, Any]:
+    return {"type": "node", "id": osm_id, "lat": lat, "lon": lon, "tags": tags}

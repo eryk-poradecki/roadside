@@ -7,12 +7,15 @@ from fastapi import Depends, Request
 from app.db.connection import connect
 from app.integrations.llm.base import LLMProvider
 from app.integrations.nominatim import ReverseGeocoder
+from app.integrations.overpass import PlaceSource
 from app.repositories.ai_turns import SqliteAiTurnRepository
 from app.repositories.incidents import SqliteIncidentRepository
+from app.repositories.nearby import SqliteNearbyRepository
 from app.repositories.vehicles import SqliteVehicleRepository
 from app.services.assistant import AssistantService, TurnLocks
 from app.services.incidents import IncidentService
 from app.services.location import LocationResolver
+from app.services.nearby import NearbyService
 from app.services.vehicles import VehicleService
 from app.settings import Settings
 
@@ -77,8 +80,22 @@ def get_incident_service(
         SqliteIncidentRepository(conn),
         SqliteVehicleRepository(conn),
         SqliteAiTurnRepository(conn),
+        SqliteNearbyRepository(conn),
         location,
     )
+
+
+def get_place_source(request: Request) -> PlaceSource | None:
+    """None in demo mode; tests override it with a fake."""
+    source: PlaceSource | None = request.app.state.place_source
+    return source
+
+
+def get_nearby_service(
+    conn: Connection,
+    source: Annotated[PlaceSource | None, Depends(get_place_source)],
+) -> NearbyService:
+    return NearbyService(conn, SqliteIncidentRepository(conn), SqliteNearbyRepository(conn), source)
 
 
 def get_assistant_service(

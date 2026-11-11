@@ -14,6 +14,7 @@ from app.domain.incident import (
     ProblemType,
 )
 from app.schemas.ai_turn import AiTurnRead
+from app.schemas.nearby import NearbyRead
 
 Note = Annotated[str, StringConstraints(strip_whitespace=True, max_length=NOTE_MAX_LENGTH)]
 DbId = Annotated[int, Field(ge=1, le=2**63 - 1)]
@@ -135,6 +136,8 @@ class IncidentRead(BaseModel):
     updated_at: str
     # The AI answer in sequence order: append-only, the advice last (ADR 0004).
     ai_turns: list[AiTurnRead]
+    # Null until the first successful lookup, and again after a location change.
+    nearby: NearbyRead | None
 
     @classmethod
     def from_domain(cls, detail: IncidentDetail) -> "IncidentRead":
@@ -153,6 +156,7 @@ class IncidentRead(BaseModel):
             created_at=i.created_at,
             updated_at=i.updated_at,
             ai_turns=[AiTurnRead.from_domain(t) for t in detail.ai_turns],
+            nearby=NearbyRead.from_domain(detail.nearby) if detail.nearby else None,
         )
 
 

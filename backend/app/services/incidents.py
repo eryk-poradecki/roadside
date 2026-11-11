@@ -8,6 +8,7 @@ from app.domain.incident import Incident, IncidentDetail, IncidentStatus, NewInc
 from app.errors import FieldValidationError, NotFoundError
 from app.repositories.ai_turns import AiTurnRepository
 from app.repositories.incidents import IncidentRepository
+from app.repositories.nearby import NearbyRepository
 from app.repositories.vehicles import VehicleRepository
 from app.schemas.incident import IncidentPatch
 from app.services.clock import utc_now
@@ -23,12 +24,14 @@ class IncidentService:
         incidents: IncidentRepository,
         vehicles: VehicleRepository,
         ai_turns: AiTurnRepository,
+        nearby: NearbyRepository,
         location: LocationResolver,
     ) -> None:
         self._conn = conn
         self._incidents = incidents
         self._vehicles = vehicles
         self._ai_turns = ai_turns
+        self._nearby = nearby
         self._location = location
 
     async def get(self, incident_id: int) -> Incident:
@@ -41,7 +44,8 @@ class IncidentService:
         async with read_snapshot(self._conn):
             incident = await self.get(incident_id)
             turns = await self._ai_turns.list_for_incident(incident_id)
-        return IncidentDetail(incident, tuple(turns))
+            nearby = await self._nearby.get(incident_id)
+        return IncidentDetail(incident, tuple(turns), nearby)
 
     async def create(
         self, data: NewIncident, idempotency_key: str | None = None
@@ -88,6 +92,7 @@ class IncidentService:
 
         A new location recomputes the location context and label inline (ADR 0005), in the
         locale of the latest AI turn. A failed lookup leaves them empty for the next turn.
+        It also clears the nearby snapshot, whose places were found around the old point.
         """
         async with transaction(self._conn):
             current = await self.get(incident_id)
@@ -100,6 +105,8 @@ class IncidentService:
                 ):
                     raise FieldValidationError("vehicle_id", "Unknown vehicle")
                 await self._incidents.update(new, utc_now())
+                if new.location != current.location:
+                    await self._nearby.delete(incident_id)
         if new.location is not None and new.location != current.location:
             turns = await self._ai_turns.list_for_incident(incident_id)
             locales = [t.provenance.locale for t in turns if t.provenance is not None]

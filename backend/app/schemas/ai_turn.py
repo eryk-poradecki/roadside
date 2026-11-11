@@ -2,9 +2,10 @@ from typing import Annotated, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, StringConstraints, model_validator
 
-from app.assist.contract import Confidence, NearbyCategory
+from app.assist.contract import Confidence
 from app.domain.ai_turn import AiTurn, AiTurnKind, Locale, Reply
 from app.domain.incident import NOTE_MAX_LENGTH
+from app.domain.nearby import NearbyCategory
 
 ReplyText = Annotated[
     str, StringConstraints(strip_whitespace=True, min_length=1, max_length=NOTE_MAX_LENGTH)

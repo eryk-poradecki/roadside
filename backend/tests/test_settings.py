@@ -3,6 +3,7 @@ from pydantic import ValidationError
 
 from app.integrations.llm.factory import NoRecordingsProvider, build_provider
 from app.integrations.llm.openai_compatible import OpenAICompatibleProvider
+from app.integrations.overpass import OverpassClient
 from app.main import create_app
 from app.settings import Settings
 
@@ -65,3 +66,29 @@ def test_the_api_key_is_never_printed() -> None:
     settings = Settings(**{**LIVE, "llm_api_key": "sk-very-secret"})  # type: ignore[arg-type]
     assert "sk-very-secret" not in repr(settings)
     assert "sk-very-secret" not in str(settings.model_dump())
+
+
+def test_overpass_urls_come_from_a_comma_separated_list(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("OVERPASS_URLS", "https://a.test/api/interpreter, https://b.test/api/x")
+    assert Settings().overpass_urls == ["https://a.test/api/interpreter", "https://b.test/api/x"]
+
+
+def test_overpass_needs_at_least_one_endpoint(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("OVERPASS_URLS", " , ")
+    with pytest.raises(ValidationError, match="overpass_urls"):
+        Settings()
+
+
+def test_the_overpass_budget_stays_under_the_tunnel_limit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("OVERPASS_BUDGET_S", "100")
+    with pytest.raises(ValidationError, match="overpass_budget_s"):
+        Settings()
+
+
+async def test_demo_mode_off_builds_the_overpass_client() -> None:
+    app = create_app(Settings(**LIVE))  # type: ignore[arg-type]
+    assert isinstance(app.state.place_source, OverpassClient)
+    assert create_app(Settings()).state.place_source is None
+    await app.state.place_source.aclose()
