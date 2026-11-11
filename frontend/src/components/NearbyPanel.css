@@ -1,0 +1,252 @@
+/* The Nearby panel on the Result screen, as in the #8 prototype. */
+.nearby-state {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+.nearby-state:empty {
+  display: none;
+}
+.nearby-error {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+.nearby-within {
+  margin: -4px 0;
+}
+.skeleton-rows i {
+  height: 40px;
+  border-radius: var(--r-sm);
+}
+
+.chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin: 0 -18px;
+  padding: 2px 18px;
+  scrollbar-width: none;
+}
+.chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 160ms var(--ease),
+    border-color 160ms var(--ease);
+}
+.chip[aria-pressed='true'] {
+  background: var(--surface-2);
+  border-color: var(--text);
+}
+.chip-count {
+  color: var(--muted);
+}
+
+/* The 240 px preview: a still map under one "Open map" cover. */
+.map-preview {
+  position: relative;
+  height: 240px;
+  margin: 0 -18px;
+  overflow: hidden;
+  background: var(--bg);
+}
+.map-preview-cover {
+  position: absolute;
+  /* Leaves the attribution strip along the bottom uncovered and clickable. */
+  inset: 0 0 24px 0;
+  z-index: 500;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 12px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.map-preview-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  box-shadow: 0 4px 14px oklch(0.05 0.01 255 / 0.5);
+}
+
+.places {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.place {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-top: 1px solid var(--line);
+}
+.place:first-child {
+  border-top: 0;
+}
+.place-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 8px 0;
+  background: none;
+  border: 0;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.pin-static {
+  flex: none;
+  border-color: transparent;
+  box-shadow: none;
+}
+.place-active .pin-static {
+  background: var(--text);
+  color: var(--bg);
+}
+.place-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.place-text strong {
+  font-size: 1.0625rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.place-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+.place-meta svg {
+  flex: none;
+}
+.place-dist {
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.place-actions {
+  display: flex;
+  gap: 6px;
+  flex: none;
+}
+.place-actions .icon-btn {
+  width: 44px;
+  height: 44px;
+}
+a.icon-btn {
+  color: var(--text);
+}
+.btn-block {
+  width: 100%;
+}
+
+/* Full map: the map fills the screen, the list sits in a sheet over its lower part. */
+.fullmap {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: 520px;
+  height: 100dvh;
+  max-height: none;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+}
+.fullmap::backdrop {
+  background: var(--bg);
+}
+.fullmap-map {
+  position: absolute;
+  inset: 0;
+}
+.fullmap-close {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top));
+  right: 16px;
+  z-index: 600;
+  box-shadow: 0 4px 14px oklch(0.05 0.01 255 / 0.5);
+}
+.fullmap-sheet {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 600;
+  height: 46dvh;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 18px max(12px, env(safe-area-inset-bottom));
+  border-radius: 24px 24px 0 0;
+  background: var(--surface);
+  box-shadow: 0 -12px 40px oklch(0.05 0.01 255 / 0.55);
+}
+.sheet-handle {
+  align-self: center;
+  width: 44px;
+  height: 5px;
+  margin-bottom: 4px;
+  border-radius: 3px;
+  background: var(--line);
+}
+.fullmap-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+/* OSM attribution rides on the sheet's top edge, so the sheet can never cover it. */
+.fullmap-attr {
+  position: absolute;
+  right: 12px;
+  bottom: 100%;
+  margin-bottom: 6px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: oklch(0.16 0.008 255 / 0.85);
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.fullmap-attr a {
+  color: var(--text);
+  text-decoration: none;
+}
+.fullmap-attr a:hover {
+  text-decoration: underline;
+}

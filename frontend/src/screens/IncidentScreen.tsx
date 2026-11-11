@@ -8,7 +8,6 @@ import {
   Pencil,
   Phone,
   RotateCcw,
-  Store,
   Trash2,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -25,6 +24,7 @@ import { findAdvice } from '../api/aiTurns'
 import { AiPanel } from '../components/AiPanel'
 import { DockAction, EmergencyFirst, useDockUrgent } from '../components/AppShell'
 import { ErrorNotice } from '../components/ErrorNotice'
+import { NearbyPanel } from '../components/NearbyPanel'
 import { SafetyChecklist } from '../components/SafetyChecklist'
 import { TILE_ICONS } from '../components/tiles'
 import { formatCoords } from '../lib/place'
@@ -176,16 +176,7 @@ function Result({
 
       <AiPanel incident={incident} autoStart={fromHelp} />
 
-      <section className="panel" aria-labelledby="nearby-title">
-        <div className="panel-head">
-          <h2 id="nearby-title">{t('incident.nearbyTitle')}</h2>
-          <span className="badge">
-            <Store size={14} aria-hidden="true" />
-            {t('incident.nearbyBadge')}
-          </span>
-        </div>
-        <p className="muted">{t('incident.nearbySoon')}</p>
-      </section>
+      <NearbyPanel incident={incident} fuelType={vehicle?.fuel_type} />
 
       <Upkeep incident={incident} />
 
