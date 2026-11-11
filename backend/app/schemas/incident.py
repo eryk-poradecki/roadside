@@ -119,7 +119,7 @@ class IncidentPatch(BaseModel):
             loc = self.location
             location = Location(loc.lat, loc.lon, loc.accuracy_m) if loc else None
             if location != current.location:
-                new = replace(new, location=location, location_label=None)
+                new = replace(new, location=location, location_label=None, location_context=None)
         return new
 
 

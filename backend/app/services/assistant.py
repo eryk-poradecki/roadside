@@ -28,6 +28,7 @@ from app.assist.prompt import TurnInputs, VehicleFactBlock
 from app.db.connection import read_snapshot, transaction
 from app.domain.ai_turn import AiTurn, AiTurnKind, Locale, ModelProvenance, NewAiTurn
 from app.domain.incident import Incident
+from app.domain.location_context import UNKNOWN_CONTEXT
 from app.errors import AppError, NotFoundError
 from app.integrations.llm.base import (
     LLMMessage,
@@ -41,6 +42,7 @@ from app.repositories.ai_turns import AiTurnRepository
 from app.repositories.incidents import IncidentRepository
 from app.repositories.vehicles import VehicleRepository
 from app.services.clock import utc_now
+from app.services.location import LocationResolver, refresh_location_context
 
 logger = logging.getLogger(__name__)
 
@@ -103,6 +105,7 @@ class AssistantService:
         provider: LLMProvider,
         locks: TurnLocks,
         turn_budget_s: float,
+        location: LocationResolver,
     ) -> None:
         self._conn = conn
         self._incidents = incidents
@@ -111,10 +114,11 @@ class AssistantService:
         self._provider = provider
         self._locks = locks
         self._budget_s = turn_budget_s
+        self._location = location
 
     async def take_turn(self, incident_id: int, locale: Locale) -> AiTurn:
         async with self._locks.hold(incident_id):
-            inputs = await self._prepare(incident_id)
+            inputs = await self._prepare(incident_id, locale)
             started = time.monotonic()
             try:
                 async with asyncio.timeout(self._budget_s):
@@ -139,7 +143,7 @@ class AssistantService:
             )
             return await self._store(incident_id, inputs, locale, output, result)
 
-    async def _prepare(self, incident_id: int) -> TurnInputs:
+    async def _prepare(self, incident_id: int, locale: Locale) -> TurnInputs:
         async with read_snapshot(self._conn):
             incident = await self._incidents.get(incident_id)
             if incident is None:
@@ -152,7 +156,19 @@ class AssistantService:
             )
         if any(t.kind is AiTurnKind.ADVICE for t in turns):
             raise AppError(409, "advice_exists", "The AI answer is complete")
+        incident = await self._with_location_context(incident, locale)
         return _inputs(incident, VehicleFactBlock.from_facts(vehicle.facts) if vehicle else None)
+
+    async def _with_location_context(self, incident: Incident, locale: Locale) -> Incident:
+        """Look the context up once, lazily, and cache it with the label on the incident.
+
+        A failed lookup gives unknown for this turn and caches nothing, so a later turn tries again.
+        """
+        if incident.location_context is not None:
+            return incident
+        return await refresh_location_context(
+            self._conn, self._incidents, self._location, incident, locale
+        )
 
     async def _generate(self, inputs: TurnInputs, locale: Locale) -> tuple[TurnOutput, LLMResult]:
         # Clarifying questions arrive with their own ticket; until then every turn answers.
@@ -219,8 +235,11 @@ def _inputs(incident: Incident, vehicle: VehicleFactBlock | None) -> TurnInputs:
     lat, lon = (
         (incident.location.lat, incident.location.lon) if incident.location else POLAND_CENTRE
     )
+    context = incident.location_context or UNKNOWN_CONTEXT
     return TurnInputs(
         vehicle=vehicle,
+        road_class=context.road_class.value,
+        settlement=context.settlement.value,
         problem_type=incident.problem_type.value,
         note=incident.note,
         local_time=now.astimezone(LOCAL_TZ).isoformat(timespec="minutes"),

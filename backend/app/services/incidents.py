@@ -3,6 +3,7 @@ import sqlite3
 import aiosqlite
 
 from app.db.connection import read_snapshot, transaction
+from app.domain.ai_turn import Locale
 from app.domain.incident import Incident, IncidentDetail, IncidentStatus, NewIncident
 from app.errors import FieldValidationError, NotFoundError
 from app.repositories.ai_turns import AiTurnRepository
@@ -10,6 +11,9 @@ from app.repositories.incidents import IncidentRepository
 from app.repositories.vehicles import VehicleRepository
 from app.schemas.incident import IncidentPatch
 from app.services.clock import utc_now
+from app.services.location import LocationResolver, refresh_location_context
+
+DEFAULT_LOCALE: Locale = "en"
 
 
 class IncidentService:
@@ -19,11 +23,13 @@ class IncidentService:
         incidents: IncidentRepository,
         vehicles: VehicleRepository,
         ai_turns: AiTurnRepository,
+        location: LocationResolver,
     ) -> None:
         self._conn = conn
         self._incidents = incidents
         self._vehicles = vehicles
         self._ai_turns = ai_turns
+        self._location = location
 
     async def get(self, incident_id: int) -> Incident:
         incident = await self._incidents.get(incident_id)
@@ -78,7 +84,11 @@ class IncidentService:
             return await self._incidents.list_page(status, vehicle_id, limit, offset)
 
     async def update(self, incident_id: int, patch: IncidentPatch) -> IncidentDetail:
-        """Apply a partial update. A patch that changes nothing writes nothing."""
+        """Apply a partial update. A patch that changes nothing writes nothing.
+
+        A new location recomputes the location context and label inline (ADR 0005), in the
+        locale of the latest AI turn. A failed lookup leaves them empty for the next turn.
+        """
         async with transaction(self._conn):
             current = await self.get(incident_id)
             new = patch.apply(current)
@@ -90,6 +100,11 @@ class IncidentService:
                 ):
                     raise FieldValidationError("vehicle_id", "Unknown vehicle")
                 await self._incidents.update(new, utc_now())
+        if new.location is not None and new.location != current.location:
+            turns = await self._ai_turns.list_for_incident(incident_id)
+            locales = [t.provenance.locale for t in turns if t.provenance is not None]
+            locale = locales[-1] if locales else DEFAULT_LOCALE
+            await refresh_location_context(self._conn, self._incidents, self._location, new, locale)
         return await self.detail(incident_id)
 
     async def delete(self, incident_id: int) -> None:

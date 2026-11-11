@@ -39,6 +39,14 @@ class Settings(BaseSettings):
     # The whole turn: the call, its one retry and the one repair call.
     llm_turn_budget_s: Annotated[float, Field(gt=0, lt=TURN_BUDGET_CEILING_S)] = 90.0
 
+    # Location context (ADR 0004). Never called in demo mode.
+    nominatim_url: str = "https://nominatim.openstreetmap.org/"
+    osm_user_agent: str = "Roadside/0.1.0 (+https://github.com/eryk-poradecki/roadside)"
+    nominatim_timeout_s: Annotated[float, Field(gt=0)] = 3.0
+    # road_class is forced to unknown past either limit; to be tuned.
+    location_max_gps_accuracy_m: Annotated[float, Field(gt=0)] = 150.0
+    location_max_road_distance_m: Annotated[float, Field(gt=0)] = 50.0
+
     @field_validator("frontend_origins", mode="before")
     @classmethod
     def _split_origins(cls, v: object) -> object:

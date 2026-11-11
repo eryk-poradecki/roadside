@@ -9,6 +9,7 @@ from fastapi.routing import APIRoute
 from app.db.migrate import migrate
 from app.errors import install_error_handlers
 from app.integrations.llm.factory import build_provider
+from app.integrations.nominatim import NominatimGeocoder
 from app.middleware import BodyLimitMiddleware
 from app.routers import ai_turns, incidents, meta, vehicles
 from app.services.assistant import TurnLocks
@@ -29,6 +30,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
 
     provider = build_provider(settings)
+    # Demo mode makes no Nominatim call (ADR 0004).
+    geocoder = (
+        None
+        if settings.demo_mode
+        else NominatimGeocoder(
+            base_url=settings.nominatim_url,
+            user_agent=settings.osm_user_agent,
+            timeout_s=settings.nominatim_timeout_s,
+        )
+    )
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -44,6 +55,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             yield
         finally:
             await provider.aclose()
+            if geocoder is not None:
+                await geocoder.aclose()
 
     app = FastAPI(
         title="Roadside API",
@@ -54,6 +67,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.settings = settings
     app.state.llm_provider = provider
     app.state.turn_locks = TurnLocks()
+    app.state.geocoder = geocoder
 
     api = APIRouter(prefix="/api/v1")
     api.include_router(meta.config_router)

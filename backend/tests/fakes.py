@@ -75,3 +75,28 @@ def sleeping(seconds: float, text: str) -> Callable[[], Awaitable[str]]:
         return text
 
     return run
+
+
+class FakeGeocoder:
+    """A scripted reverse geocoder: returns `result` (None = a failed lookup) and records calls."""
+
+    def __init__(self, result: dict[str, Any] | None) -> None:
+        self.result = result
+        self.calls: list[tuple[float, float, str]] = []
+
+    async def reverse(self, lat: float, lon: float, locale: str) -> dict[str, Any] | None:
+        self.calls.append((lat, lon, locale))
+        return self.result
+
+
+def nominatim_result(
+    highway: str = "motorway", road: str = "A2", locality: tuple[str, str] = ("village", "Wola")
+) -> dict[str, Any]:
+    """A jsonv2 reverse result centred on `LOCATION_POINT`."""
+    return {
+        "category": "highway",
+        "type": highway,
+        "lat": "52.2300",
+        "lon": "21.0100",
+        "address": {"road": road, locality[0]: locality[1]},
+    }

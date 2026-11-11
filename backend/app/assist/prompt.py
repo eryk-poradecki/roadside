@@ -21,6 +21,12 @@ _PROMPTS = Path(__file__).parent / "prompts"
 
 _LANGUAGES: dict[Locale, str] = {"pl": "Polish", "en": "English"}
 
+# Only on a motorway or expressway (ADR 0004): elsewhere the number would mislead.
+_ROAD_HELP = (
+    "\nRoad help: on this road you may mention that road help on national roads can also be"
+    " called on GDDKiA's 19 111, which is not an emergency number."
+)
+
 
 @dataclass(frozen=True, slots=True)
 class VehicleFactBlock:
@@ -131,6 +137,7 @@ def render(inputs: TurnInputs, locale: Locale, *, allow_ask: bool) -> RenderedPr
         vehicle=inputs.vehicle.render() if inputs.vehicle else "No vehicle details were given.",
         road_class=inputs.road_class,
         settlement=inputs.settlement,
+        road_help=_ROAD_HELP if inputs.road_class == "motorway_expressway" else "",
         local_time=inputs.local_time,
         light="dark" if inputs.dark else "daylight",
         photos=photos,
