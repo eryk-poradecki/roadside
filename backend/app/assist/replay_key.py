@@ -35,5 +35,6 @@ def replay_key(
         "replies": [r.to_payload() for r in replies],
         "road_class": inputs.road_class,
         "dark": inputs.dark,
+        "situation": inputs.situation,
     }
     return json.dumps(parts, sort_keys=True, ensure_ascii=False, separators=(",", ":"))

@@ -22,6 +22,13 @@ class ProblemType(StrEnum):
     OTHER = "other"
 
 
+class Situation(StrEnum):
+    """Where the car stands. On the road unless the driver says parked; never inferred (#93)."""
+
+    ON_ROAD = "on_road"
+    PARKED = "parked"
+
+
 class IncidentStatus(StrEnum):
     OPEN = "open"
     RESOLVED = "resolved"
@@ -42,6 +49,7 @@ class NewIncident:
     vehicle_id: int | None = None
     note: str | None = None
     location: Location | None = None
+    situation: Situation = Situation.ON_ROAD
 
 
 @dataclass(frozen=True, slots=True)
@@ -57,6 +65,7 @@ class Incident:
     updated_at: str
     # Cached at the first AI turn; None until looked up, and cleared with a new location.
     location_context: "LocationContext | None" = None
+    situation: Situation = Situation.ON_ROAD
 
 
 @dataclass(frozen=True, slots=True)

@@ -162,6 +162,7 @@ export type HealthRead = {
  * IncidentCreate
  *
  * Only `problem_type` is required. The server sets the status (`open`) and `created_at`.
+ * `situation` is `on_road` unless the driver says `parked`; it is never inferred.
  */
 export type IncidentCreate = {
     location?: LocationIn | null;
@@ -170,6 +171,7 @@ export type IncidentCreate = {
      */
     note?: string | null;
     problem_type: ProblemType;
+    situation?: Situation;
     /**
      * Vehicle Id
      */
@@ -202,7 +204,8 @@ export type IncidentPage = {
  * IncidentPatch
  *
  * Send only the fields to change. `null` clears `note`, `vehicle_id` and `location`;
- * `status` and `problem_type` can't be null. The status moves freely either way (ADR 0001).
+ * `status`, `problem_type` and `situation` can't be null. The status moves freely either way
+ * (ADR 0001).
  */
 export type IncidentPatch = {
     location?: LocationIn | null;
@@ -211,6 +214,7 @@ export type IncidentPatch = {
      */
     note?: string | null;
     problem_type?: ProblemType;
+    situation?: Situation;
     status?: IncidentStatus;
     /**
      * Vehicle Id
@@ -249,6 +253,7 @@ export type IncidentRead = {
      */
     photos: Array<PhotoRead>;
     problem_type: ProblemType;
+    situation: Situation;
     status: IncidentStatus;
     /**
      * Updated At
@@ -550,6 +555,13 @@ export type SamplePhoto = {
 };
 
 /**
+ * Situation
+ *
+ * Where the car stands. On the road unless the driver says parked; never inferred (#93).
+ */
+export type Situation = 'on_road' | 'parked';
+
+/**
  * SpareWheel
  */
 export type SpareWheel = 'full_size' | 'space_saver' | 'repair_kit' | 'none';
@@ -597,6 +609,10 @@ export type TurnInputsRead = {
      * Settlement
      */
     settlement: string;
+    /**
+     * Situation
+     */
+    situation?: string;
     vehicle: VehicleFactsRead | null;
 };
 

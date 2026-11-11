@@ -10,6 +10,7 @@ import type { GeoState } from '../lib/geolocation'
 import { problemKey, type ProblemType } from '../lib/problemType'
 import { EmergencyLink } from './AppShell'
 import { ErrorNotice } from './ErrorNotice'
+import { SituationPick, type Situation } from './SituationPick'
 import { AddPhotos, DEFAULT_MAX_PHOTOS, PhotoGrid, VisionNote } from './PhotoPicker'
 import { TILE_ICONS } from './tiles'
 import './HelpSheet.css'
@@ -66,6 +67,8 @@ export function HelpSheet({
   // A request that finishes after the driver closed the sheet must not navigate them away.
   const mounted = useRef(true)
   const [note, setNote] = useState('')
+  // Never parked unless the driver says so: the full checklist is the safe default.
+  const [situation, setSituation] = useState<Situation>('on_road')
   const [photos, setPhotos] = useState<Picked[]>([])
   // The latest list, for revoking previews on unmount.
   const photosRef = useRef(photos)
@@ -104,7 +107,13 @@ export function HelpSheet({
       geo.status === 'found' ? { lat: geo.lat, lon: geo.lon, accuracy_m: geo.accuracy } : null
     try {
       const incident = await create.create(
-        { problem_type: problemType, vehicle_id: vehicleId, note: note.trim() || null, location },
+        {
+          problem_type: problemType,
+          vehicle_id: vehicleId,
+          note: note.trim() || null,
+          location,
+          situation,
+        },
         idempotencyKey,
       )
       // Into the mutation cache, so they keep going after the sheet closes and the Result
@@ -198,6 +207,8 @@ export function HelpSheet({
           )}
           <VisionNote />
         </div>
+
+        <SituationPick value={situation} onChange={setSituation} />
 
         {vehicles.length > 0 && (
           <fieldset className="vehicle-pick">

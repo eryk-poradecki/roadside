@@ -35,7 +35,8 @@ const shared = new Map(
 
 const KEYS = ['tyre', 'battery', 'fuel', 'charge', 'pothole', 'other'] as const
 
-function listFromDoc(key: (typeof KEYS)[number]) {
+/** `tyre` for the on-road list, `parked.tyre` for its parked variant (#93). */
+function listFromDoc(key: string) {
   const heading = doc.split('\n').find((l) => l.startsWith('### ') && l.includes(`(\`${key}\``))
   if (!heading) throw new Error(`No section for ${key}`)
   const result = {
@@ -68,6 +69,23 @@ describe('safety checklist copy', () => {
       expect(en.checklist.lists[key].items.at(-1)).toBe(shared.get('call112')?.en)
       expect(pl.checklist.lists[key].items.at(-1)).toBe(shared.get('call112')?.pl)
       expect(en.checklist.lists[key].items.length).toBeLessThanOrEqual(4)
+    }
+  })
+
+  it.each(KEYS)('matches the parked variant in the copy doc for %s in both languages', (key) => {
+    const fromDoc = listFromDoc(`parked.${key}`)
+    expect(en.checklist.parkedLists[key]).toEqual(fromDoc.en)
+    expect(pl.checklist.parkedLists[key]).toEqual(fromDoc.pl)
+  })
+
+  it('ends every parked list with the parked 112 line and leaves out the roadside steps', () => {
+    const roadside = /hazard|triangle|vest|barrier|lane/i
+    for (const key of KEYS) {
+      const list = en.checklist.parkedLists[key]
+      expect(list.items.at(-1)).toBe(shared.get('call112Parked')?.en)
+      expect(pl.checklist.parkedLists[key].items.at(-1)).toBe(shared.get('call112Parked')?.pl)
+      expect(list.items.length).toBeLessThanOrEqual(4)
+      for (const line of [list.first, ...list.items]) expect(line).not.toMatch(roadside)
     }
   })
 

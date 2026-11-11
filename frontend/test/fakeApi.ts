@@ -184,6 +184,7 @@ export class FakeApi {
       id: this.nextIncidentId++,
       problem_type: body.problem_type,
       status: 'open',
+      situation: body.situation ?? 'on_road',
       vehicle_id: body.vehicle_id ?? null,
       note: body.note ?? null,
       location,
@@ -272,6 +273,7 @@ export class FakeApi {
       dark: false,
       road_class: 'unknown',
       settlement: 'unknown',
+      situation: incident.situation,
       photo_ids_seen: [],
       photos_not_sent: 0,
     }
@@ -389,7 +391,7 @@ export class FakeApi {
           return problem(422, 'validation_error', 'Unknown vehicle')
         // The types forbid null here, but a buggy client could still send it.
         const raw = body as Record<string, unknown>
-        if (raw.status === null || raw.problem_type === null)
+        if (raw.status === null || raw.problem_type === null || raw.situation === null)
           return problem(422, 'validation_error', "Can't be null")
         const { location, note, ...rest } = body
         const updated: IncidentRead = {

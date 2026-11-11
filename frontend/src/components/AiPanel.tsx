@@ -300,7 +300,9 @@ function AnsweredFor({ inputs }: { inputs: TurnInputsRead }) {
   // A value this client doesn't know yet is left out rather than shown as a raw key.
   if (!isProblemType(inputs.problem_type)) return null
   const key = problemKey(inputs.problem_type, inputs.vehicle?.fuel_type as FuelType | null)
-  const problem = t(`start.tiles.${key}`)
+  const tile = t(`start.tiles.${key}`)
+  // The checklist follows the incident as edited; this keeps what the advice was told.
+  const problem = inputs.situation === 'parked' ? t('ai.problemParked', { problem: tile }) : tile
   return (
     <p>
       {inputs.vehicle

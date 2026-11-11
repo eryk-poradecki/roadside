@@ -65,8 +65,12 @@ The driver's daily driver: the vehicle a new help request uses unless the driver
 _Avoid_: favorite, primary, last used vehicle
 
 **Safety checklist**:
-Static, non-AI safety steps for a problem type, shown immediately and working without a connection, before and alongside any AI answer: one first step, a few more steps, and always the same "call 112" line last. The same for every road and every vehicle, except that out of charge has its own list. The assistant never contradicts it, but it doesn't assume the driver has read it either.
+Static, non-AI safety steps for a problem type, shown immediately and working without a connection, before and alongside any AI answer: one first step, a few more steps, and always a "call 112" line last (the parked lists drop its live-lane clause). The same for every road and every vehicle, except that out of charge has its own list, and a parked car gets a short variant without the roadside steps. The assistant never contradicts it, but it doesn't assume the driver has read it either.
 _Avoid_: instructions, tips, AI steps
+
+**Situation**:
+Where the car stands, as the driver says in the help sheet: on the road (the default) or parked (a parking lot, a driveway, away from moving traffic). It is asked, never inferred from the location, and it is never assumed to be parked. It picks the safety checklist variant and is part of what the assistant is told.
+_Avoid_: location type, place (that is the location context)
 
 **First step**:
 The one safety step of the safety checklist that is never hidden while the incident is open ("Do this first").

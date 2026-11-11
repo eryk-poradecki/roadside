@@ -321,7 +321,7 @@
       },
       "IncidentCreate": {
         "additionalProperties": false,
-        "description": "Only `problem_type` is required. The server sets the status (`open`) and `created_at`.",
+        "description": "Only `problem_type` is required. The server sets the status (`open`) and `created_at`.\n`situation` is `on_road` unless the driver says `parked`; it is never inferred.",
         "properties": {
           "location": {
             "anyOf": [
@@ -347,6 +347,10 @@
           },
           "problem_type": {
             "$ref": "#/components/schemas/ProblemType"
+          },
+          "situation": {
+            "$ref": "#/components/schemas/Situation",
+            "default": "on_road"
           },
           "vehicle_id": {
             "anyOf": [
@@ -401,7 +405,7 @@
       },
       "IncidentPatch": {
         "additionalProperties": false,
-        "description": "Send only the fields to change. `null` clears `note`, `vehicle_id` and `location`;\n`status` and `problem_type` can't be null. The status moves freely either way (ADR 0001).",
+        "description": "Send only the fields to change. `null` clears `note`, `vehicle_id` and `location`;\n`status`, `problem_type` and `situation` can't be null. The status moves freely either way\n(ADR 0001).",
         "properties": {
           "location": {
             "anyOf": [
@@ -427,6 +431,9 @@
           },
           "problem_type": {
             "$ref": "#/components/schemas/ProblemType"
+          },
+          "situation": {
+            "$ref": "#/components/schemas/Situation"
           },
           "status": {
             "$ref": "#/components/schemas/IncidentStatus"
@@ -517,6 +524,9 @@
           "problem_type": {
             "$ref": "#/components/schemas/ProblemType"
           },
+          "situation": {
+            "$ref": "#/components/schemas/Situation"
+          },
           "status": {
             "$ref": "#/components/schemas/IncidentStatus"
           },
@@ -540,6 +550,7 @@
           "id",
           "problem_type",
           "status",
+          "situation",
           "vehicle_id",
           "note",
           "location",
@@ -1038,6 +1049,15 @@
         "title": "SamplePhoto",
         "type": "object"
       },
+      "Situation": {
+        "description": "Where the car stands. On the road unless the driver says parked; never inferred (#93).",
+        "enum": [
+          "on_road",
+          "parked"
+        ],
+        "title": "Situation",
+        "type": "string"
+      },
       "SpareWheel": {
         "enum": [
           "full_size",
@@ -1099,6 +1119,11 @@
           },
           "settlement": {
             "title": "Settlement",
+            "type": "string"
+          },
+          "situation": {
+            "default": "on_road",
+            "title": "Situation",
             "type": "string"
           },
           "vehicle": {

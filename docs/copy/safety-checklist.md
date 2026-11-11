@@ -21,6 +21,7 @@ Voice: short sentences, second person, reassuring (`PRODUCT.md`). Shape: one fir
 | `getOut` | Put on a reflective vest if you have one. Get everyone out on the side away from traffic, behind the barrier or well away from the road. | Jeśli masz kamizelkę odblaskową, załóż ją. Wysiądźcie od strony pobocza i stańcie za barierą albo z dala od jezdni. | Vest not mandatory: [EQ] § 11; vest, passenger side, behind the barrier: [POL-A], [GD-PAS] |
 | `triangle` | Place the warning triangle behind the car: right behind it in town, 30–50 m outside built-up areas, 100 m on a motorway or expressway. | Ustaw trójkąt ostrzegawczy za autem: w terenie zabudowanym tuż za nim, poza nim 30–50 m, na autostradzie lub drodze ekspresowej 100 m. | [PoRD] art. 50 ust. 2; mandatory: [EQ] § 11 ust. 1 pkt 13 |
 | `call112` | Anyone hurt, smoke, fire, leaking fuel, or the car standing in a live lane: call 112. | Ktoś jest ranny, widać dym lub ogień, cieknie paliwo albo auto stoi na pasie ruchu: dzwoń pod 112. | 112 as the emergency number: [GD-19111] (contrasts 19 111, "nie jest numerem alarmowym") |
+| `call112Parked` | Anyone hurt, smoke, fire or leaking fuel: call 112. | Ktoś jest ranny, widać dym lub ogień albo cieknie paliwo: dzwoń pod 112. | As `call112`. The last item of every parked list: the "live lane" clause doesn't apply off the road. |
 
 In a built-up area art. 50 ust. 2 puts the triangle behind or on the car (the copy leaves out the 1 m height limit). Whether it is legally required there when hazard lights work is ambiguous, so the copy gives it as guidance and never says it is required.
 
@@ -90,6 +91,62 @@ The pothole list has no `triangle`, because the driver often drives on. If the c
 | 1 | `getOut` | | |
 | 2 | `triangle` | | |
 | 3 | `call112` | | |
+
+## Parked variant (`parked`)
+
+Shown instead of the lists above when the driver says the car is parked off the road (a parking lot, a driveway), [#93](https://github.com/eryk-poradecki/roadside/issues/93). The car is away from moving traffic, so these lists have no hazard-light, vest, barrier or triangle steps. The shared `call112Parked` line, the 112 line without the "live lane" clause, stays last. On the road is the default, and the app never assumes parked. Same shape: one first step, at most 4 more items.
+
+Approved by the project owner on 2026-11-11. Every line is general safety advice that makes no legal claim, except the flatbed line, which reuses the sources of the `charge` list.
+
+### Flat tyre, parked (`parked.tyre`)
+
+| | EN | PL | Sources |
+| --- | --- | --- | --- |
+| first | Don't drive on a flat tyre. It can damage the wheel and make the car hard to steer. | Nie jedź na płaskiej oponie. Możesz uszkodzić felgę, a auto będzie się gorzej prowadzić. | General safety advice, no legal claim |
+| 1 | Change the wheel only on firm, level ground, with the parking brake on and nobody in the car. | Zmieniaj koło tylko na twardym, równym podłożu, z zaciągniętym hamulcem ręcznym i gdy nikt nie siedzi w aucie. | General safety advice, no legal claim |
+| 2 | Never put any part of your body under a car held up only by the jack. | Nigdy nie wkładaj żadnej części ciała pod auto podparte tylko podnośnikiem. | General safety advice, no legal claim |
+| 3 | `call112Parked` | | |
+
+### Flat battery, parked (`parked.battery`)
+
+| | EN | PL | Sources |
+| --- | --- | --- | --- |
+| first | Turn off the lights, radio, air con and anything else drawing power. | Wyłącz światła, radio, klimatyzację i wszystko, co pobiera prąd. | General safety advice, no legal claim |
+| 1 | Don't jump-start a battery that is cracked, leaking or swollen. | Nie odpalaj „na kable” akumulatora, który jest pęknięty, cieknie lub jest spuchnięty. | General safety advice, no legal claim |
+| 2 | `call112Parked` | | |
+
+Off the road the lights can go off too: unlike on the road, nobody needs them to see the car.
+
+### Out of fuel, parked (`parked.fuel`)
+
+| | EN | PL | Sources |
+| --- | --- | --- | --- |
+| first | Stop trying to start the engine. It only drains the battery. | Przestań próbować uruchomić silnik. To tylko rozładowuje akumulator. | General safety advice, no legal claim |
+| 1 | No smoking or open flame near the car while you pour in fuel from a canister. | Nie pal i nie używaj otwartego ognia przy aucie, gdy wlewasz paliwo z kanistra. | General safety advice, no legal claim |
+| 2 | `call112Parked` | | |
+
+### Out of charge, parked (`parked.charge`)
+
+| | EN | PL | Sources |
+| --- | --- | --- | --- |
+| first | Switch off what you don't need, like the heating or air con, to save the charge that's left. | Wyłącz to, czego nie potrzebujesz, np. ogrzewanie lub klimatyzację, żeby oszczędzić resztę energii. | General safety advice, no legal claim |
+| 1 | Ask for a flatbed truck. Many electric cars can't be towed on their wheels. | Poproś o lawetę. Wiele aut elektrycznych nie może być holowanych na kołach. | Manufacturer, not government (accepted for this item only): [NISSAN], [VW] |
+| 2 | `call112Parked` | | |
+
+### Pothole damage, parked (`parked.pothole`)
+
+| | EN | PL | Sources |
+| --- | --- | --- | --- |
+| first | Don't drive on if a tyre, a wheel or the steering feels wrong. | Nie jedź dalej, jeśli opona, koło lub kierownica zachowują się dziwnie. | General safety advice, no legal claim |
+| 1 | Take photos of the hole and the damage, and note the exact place. They help with a claim later. | Zrób zdjęcia dziury i uszkodzeń i zapisz dokładne miejsce. Przydadzą się przy zgłoszeniu szkody. | [RF] |
+| 2 | `call112Parked` | | |
+
+### Something else, parked (`parked.other`)
+
+| | EN | PL | Sources |
+| --- | --- | --- | --- |
+| first | Parking brake on, engine off. | Zaciągnij hamulec ręczny i wyłącz silnik. | General safety advice, no legal claim |
+| 1 | `call112Parked` | | |
 
 ## Damage report: addressee help line
 

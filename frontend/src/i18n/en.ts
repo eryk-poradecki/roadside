@@ -5,6 +5,8 @@ const triangle =
   'Place the warning triangle behind the car: right behind it in town, 30–50 m outside built-up areas, 100 m on a motorway or expressway.'
 const call112 =
   'Anyone hurt, smoke, fire, leaking fuel, or the car standing in a live lane: call 112.'
+// The parked lists' 112 line: off the road there is no live lane (#93).
+const call112Parked = 'Anyone hurt, smoke, fire or leaking fuel: call 112.'
 
 /** English is the source of truth. `pl.ts` is typed against it, so a missing key fails `tsc`. */
 export const en = {
@@ -173,6 +175,7 @@ export const en = {
     disclaimer: 'AI can be wrong. It is not an emergency service.',
     answeredFor: 'Answered for {{vehicle}} · {{problem}}',
     answeredForNoVehicle: 'Answered for {{problem}} with no vehicle, so the steps are general.',
+    problemParked: '{{problem}} (parked)',
     urgentTitle: 'This could be an emergency',
     urgentBody: 'Call 112 first, then follow the steps below.',
     thinking: 'Thinking about your answer…',
@@ -259,6 +262,54 @@ export const en = {
         items: [getOut, triangle, call112],
       },
     },
+    // The car is parked off the road, away from traffic: no roadside steps (#93).
+    parkedLists: {
+      tyre: {
+        first:
+          "Don't drive on a flat tyre. It can damage the wheel and make the car hard to steer.",
+        items: [
+          'Change the wheel only on firm, level ground, with the parking brake on and nobody in the car.',
+          'Never put any part of your body under a car held up only by the jack.',
+          call112Parked,
+        ],
+      },
+      battery: {
+        first: 'Turn off the lights, radio, air con and anything else drawing power.',
+        items: ["Don't jump-start a battery that is cracked, leaking or swollen.", call112Parked],
+      },
+      fuel: {
+        first: 'Stop trying to start the engine. It only drains the battery.',
+        items: [
+          'No smoking or open flame near the car while you pour in fuel from a canister.',
+          call112Parked,
+        ],
+      },
+      charge: {
+        first:
+          "Switch off what you don't need, like the heating or air con, to save the charge that's left.",
+        items: [
+          "Ask for a flatbed truck. Many electric cars can't be towed on their wheels.",
+          call112Parked,
+        ],
+      },
+      pothole: {
+        first: "Don't drive on if a tyre, a wheel or the steering feels wrong.",
+        items: [
+          'Take photos of the hole and the damage, and note the exact place. They help with a claim later.',
+          call112Parked,
+        ],
+      },
+      other: {
+        first: 'Parking brake on, engine off.',
+        items: [call112Parked],
+      },
+    },
+  },
+  situation: {
+    label: 'Where is the car?',
+    on_road: 'On the road',
+    parked: 'Parked (parking lot, driveway)',
+    parkedShort: 'Parked',
   },
   vehicles: {
     heading: 'Vehicles',

@@ -182,6 +182,25 @@ describe('"Answered for …"', () => {
     expect(within(aiPanel()).getByText('Answered for Golf · Flat tyre')).toBeInTheDocument()
   })
 
+  it('says the advice was for a parked car, even after the situation is edited', async () => {
+    fakeApi.seed({ name: 'Golf' })
+    const incident = fakeApi.seedIncident({
+      problem_type: 'flat_tyre',
+      vehicle_id: 1,
+      situation: 'parked',
+    })
+    const snapshot = fakeApi.inputsFor(incident)
+    // Later the driver said the car is on the road after all.
+    incident.situation = 'on_road'
+    incident.ai_turns = [fakeApi.adviceTurn(ADVICE, 'en', { inputs: snapshot })]
+    renderApp(`/incidents/${String(incident.id)}`)
+
+    await screen.findByText(en.checklist.lists.tyre.first)
+    expect(
+      within(aiPanel()).getByText('Answered for Golf · Flat tyre (parked)'),
+    ).toBeInTheDocument()
+  })
+
   it('says the steps are general when the advice had no vehicle', async () => {
     await getHelp()
     await within(aiPanel()).findByText(ADVICE.cause)

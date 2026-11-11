@@ -8,6 +8,7 @@ import {
   Pencil,
   Phone,
   RotateCcw,
+  SquareParking,
   Trash2,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -150,6 +151,12 @@ function Result({
             <MapPin size={18} aria-hidden="true" />
             {incident.location_label ?? (loc ? formatCoords(loc) : t('incident.noLocation'))}
           </span>
+          {incident.situation === 'parked' && (
+            <span>
+              <SquareParking size={18} aria-hidden="true" />
+              {t('situation.parkedShort')}
+            </span>
+          )}
         </p>
       </header>
 
@@ -164,7 +171,12 @@ function Result({
         </div>
       )}
 
-      <SafetyChecklist problem={key} resolved={resolved} answered={adviceTurn !== undefined} />
+      <SafetyChecklist
+        problem={key}
+        situation={incident.situation}
+        resolved={resolved}
+        answered={adviceTurn !== undefined}
+      />
 
       {noVehicles && (
         <p className="notice invite">

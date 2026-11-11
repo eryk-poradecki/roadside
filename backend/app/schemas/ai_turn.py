@@ -101,6 +101,8 @@ class TurnInputsRead(BaseModel):
     dark: bool
     road_class: str
     settlement: str
+    # Snapshots stored before #93 have no situation; they were all answered as on the road.
+    situation: str = "on_road"
     photo_ids_seen: list[int]
     photos_not_sent: int
 

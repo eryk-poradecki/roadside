@@ -3,12 +3,19 @@ from typing import Protocol
 
 import aiosqlite
 
-from app.domain.incident import Incident, IncidentStatus, Location, NewIncident, ProblemType
+from app.domain.incident import (
+    Incident,
+    IncidentStatus,
+    Location,
+    NewIncident,
+    ProblemType,
+    Situation,
+)
 from app.domain.location_context import LocationContext, RoadClass, Settlement
 
 _SELECT = (
     "SELECT id, problem_type, status, vehicle_id, note, lat, lon, accuracy_m, location_label, "
-    "road_class, settlement, created_at, updated_at FROM incidents"
+    "road_class, settlement, situation, created_at, updated_at FROM incidents"
 )
 
 
@@ -45,6 +52,7 @@ def _to_domain(r: sqlite3.Row) -> Incident:
         created_at=r["created_at"],
         updated_at=r["updated_at"],
         location_context=context,
+        situation=Situation(r["situation"]),
     )
 
 
@@ -69,7 +77,7 @@ class SqliteIncidentRepository:
         loc = data.location
         cur = await self._conn.execute(
             "INSERT INTO incidents (problem_type, status, vehicle_id, note, lat, lon, accuracy_m, "
-            "idempotency_key, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)",
+            "situation, idempotency_key, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
             (
                 data.problem_type.value,
                 IncidentStatus.OPEN.value,
@@ -78,6 +86,7 @@ class SqliteIncidentRepository:
                 loc.lat if loc else None,
                 loc.lon if loc else None,
                 loc.accuracy_m if loc else None,
+                data.situation.value,
                 idempotency_key,
                 now,
                 now,
@@ -115,7 +124,7 @@ class SqliteIncidentRepository:
         await self._conn.execute(
             "UPDATE incidents SET problem_type = ?, status = ?, vehicle_id = ?, note = ?, "
             "lat = ?, lon = ?, accuracy_m = ?, location_label = ?, road_class = ?, settlement = ?, "
-            "updated_at = ? WHERE id = ?",
+            "situation = ?, updated_at = ? WHERE id = ?",
             (
                 incident.problem_type.value,
                 incident.status.value,
@@ -127,6 +136,7 @@ class SqliteIncidentRepository:
                 incident.location_label,
                 ctx.road_class.value if ctx else None,
                 ctx.settlement.value if ctx else None,
+                incident.situation.value,
                 now,
                 incident.id,
             ),

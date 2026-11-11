@@ -12,6 +12,7 @@ from app.domain.incident import (
     Location,
     NewIncident,
     ProblemType,
+    Situation,
 )
 from app.schemas.ai_turn import AiTurnRead
 from app.schemas.nearby import NearbyRead
@@ -38,7 +39,9 @@ class LocationRead(BaseModel):
 
 
 class IncidentCreate(BaseModel):
-    """Only `problem_type` is required. The server sets the status (`open`) and `created_at`."""
+    """Only `problem_type` is required. The server sets the status (`open`) and `created_at`.
+    `situation` is `on_road` unless the driver says `parked`; it is never inferred.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
@@ -46,6 +49,7 @@ class IncidentCreate(BaseModel):
     vehicle_id: DbId | None = None
     note: Note | None = None
     location: LocationIn | None = None
+    situation: Situation = Situation.ON_ROAD
 
     @field_validator("note")
     @classmethod
@@ -59,10 +63,11 @@ class IncidentCreate(BaseModel):
             vehicle_id=self.vehicle_id,
             note=self.note,
             location=Location(loc.lat, loc.lon, loc.accuracy_m) if loc else None,
+            situation=self.situation,
         )
 
 
-_REQUIRED_VALUE = ("status", "problem_type")
+_REQUIRED_VALUE = ("status", "problem_type", "situation")
 
 
 def _non_nullable(fields: tuple[str, ...]) -> Callable[[dict[str, Any]], None]:
@@ -80,7 +85,8 @@ def _non_nullable(fields: tuple[str, ...]) -> Callable[[dict[str, Any]], None]:
 
 class IncidentPatch(BaseModel):
     """Send only the fields to change. `null` clears `note`, `vehicle_id` and `location`;
-    `status` and `problem_type` can't be null. The status moves freely either way (ADR 0001).
+    `status`, `problem_type` and `situation` can't be null. The status moves freely either way
+    (ADR 0001).
     """
 
     model_config = ConfigDict(extra="forbid", json_schema_extra=_non_nullable(_REQUIRED_VALUE))
@@ -92,6 +98,7 @@ class IncidentPatch(BaseModel):
     vehicle_id: DbId | None = None
     note: Note | None = None
     location: LocationIn | None = None
+    situation: Situation | None = None
 
     @field_validator(*_REQUIRED_VALUE)
     @classmethod
@@ -113,6 +120,8 @@ class IncidentPatch(BaseModel):
             new = replace(new, status=self.status)
         if self.problem_type is not None:
             new = replace(new, problem_type=self.problem_type)
+        if self.situation is not None:
+            new = replace(new, situation=self.situation)
         if "vehicle_id" in sent:
             new = replace(new, vehicle_id=self.vehicle_id)
         if "note" in sent:
@@ -129,6 +138,8 @@ class IncidentRead(BaseModel):
     id: int
     problem_type: ProblemType
     status: IncidentStatus
+    # Picks the checklist variant on the Result screen and goes into the AI fact block.
+    situation: Situation
     vehicle_id: int | None
     note: str | None
     location: LocationRead | None
@@ -150,6 +161,7 @@ class IncidentRead(BaseModel):
             id=i.id,
             problem_type=i.problem_type,
             status=i.status,
+            situation=i.situation,
             vehicle_id=i.vehicle_id,
             note=i.note,
             location=LocationRead(lat=loc.lat, lon=loc.lon, accuracy_m=loc.accuracy_m)

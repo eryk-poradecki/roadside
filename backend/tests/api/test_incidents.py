@@ -25,6 +25,8 @@ async def test_create_needs_only_the_problem_type(client: httpx.AsyncClient) -> 
     assert body["location"] is None
     assert body["location_label"] is None
     assert body["created_at"].endswith("Z")
+    # Never defaults to parked: the full roadside checklist is the safe default (#93).
+    assert body["situation"] == "on_road"
 
 
 async def test_create_with_every_field_and_read_back(client: httpx.AsyncClient) -> None:
@@ -36,10 +38,12 @@ async def test_create_with_every_field_and_read_back(client: httpx.AsyncClient) 
             "vehicle_id": vehicle_id,
             "note": "  Warning light is on  ",
             "location": {"lat": 52.2297, "lon": 21.0122, "accuracy_m": 12.5},
+            "situation": "parked",
         },
     )
     assert r.status_code == 201, r.text
     created = r.json()
+    assert created["situation"] == "parked"
     assert created["vehicle_id"] == vehicle_id
     assert created["note"] == "Warning light is on"
     assert created["location"] == {"lat": 52.2297, "lon": 21.0122, "accuracy_m": 12.5}
@@ -53,6 +57,13 @@ async def test_client_cannot_set_status_or_created_at(client: httpx.AsyncClient)
     for extra in ({"status": "resolved"}, {"created_at": "2020-01-01T00:00:00.000Z"}):
         r = await client.post(INC, json={"problem_type": "other", **extra})
         assert r.status_code == 422
+
+
+async def test_unknown_or_null_situation_is_422(client: httpx.AsyncClient) -> None:
+    for situation in ("ditch", None):
+        r = await client.post(INC, json={"problem_type": "flat_tyre", "situation": situation})
+        assert r.status_code == 422, situation
+        assert r.json()["errors"][0]["field"] == "situation"
 
 
 async def test_every_problem_type_is_accepted(client: httpx.AsyncClient) -> None:
@@ -304,6 +315,10 @@ async def test_patch_changes_only_the_fields_sent(client: httpx.AsyncClient) -> 
     assert r.json()["location"] == {"lat": 50.0, "lon": 19.9, "accuracy_m": 8.0}
     assert r.json()["location_label"] is None
 
+    r = await client.patch(url, json={"situation": "parked"})
+    assert r.json()["situation"] == "parked"
+    assert r.json()["note"] == "new note"
+
 
 async def test_patch_null_clears_the_optional_fields(client: httpx.AsyncClient) -> None:
     v = await make_vehicle(client)
@@ -327,6 +342,8 @@ async def test_patch_rejects_invalid_bodies(client: httpx.AsyncClient) -> None:
         ({"status": None}, "status"),
         ({"problem_type": None}, "problem_type"),
         ({"problem_type": "engine_fire"}, "problem_type"),
+        ({"situation": None}, "situation"),
+        ({"situation": "ditch"}, "situation"),
         ({"note": "x" * 281}, "note"),
         ({"location": {"lat": 91, "lon": 0}}, "location.lat"),
         ({"created_at": "2020-01-01T00:00:00.000Z"}, "created_at"),

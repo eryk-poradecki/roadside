@@ -345,6 +345,7 @@ def _inputs(incident: Incident, vehicle: VehicleFactBlock | None) -> TurnInputs:
         vehicle=vehicle,
         road_class=context.road_class.value,
         settlement=context.settlement.value,
+        situation=incident.situation.value,
         problem_type=incident.problem_type.value,
         note=incident.note,
         local_time=now.astimezone(LOCAL_TZ).isoformat(timespec="minutes"),
