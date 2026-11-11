@@ -435,6 +435,10 @@ export const en = {
       yearRange: 'Enter a year between 1900 and 2100.',
     },
   },
+  offline: {
+    label: 'Offline',
+    body: 'No connection. The safety steps and 112 still work.',
+  },
   errors: {
     generic: 'Something went wrong. Please try again.',
     offline: "You're offline, or the server can't be reached. Check your connection and try again.",

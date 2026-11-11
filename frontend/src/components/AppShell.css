@@ -44,6 +44,32 @@
   flex: none;
 }
 
+/* Offline: a quiet strip under the masthead. The screen below keeps working. */
+.offline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  border: 1px solid var(--amber);
+  color: var(--text);
+  font-size: 0.9375rem;
+}
+.offline:empty {
+  display: none;
+}
+.offline svg {
+  flex: none;
+  color: var(--amber);
+}
+.offline strong {
+  font-weight: 800;
+}
+.offline span {
+  color: var(--muted);
+}
+
 .lang {
   flex: none;
   display: flex;
