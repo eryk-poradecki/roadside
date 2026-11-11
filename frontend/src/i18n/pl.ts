@@ -171,6 +171,9 @@ export const pl: Localised<Translation> & {
     notAnswered: 'Asystent jeszcze nie odpowiedział w tym zdarzeniu.',
     errorTitle: 'Asystent nie odpowiedział',
     errorBody: 'Kroki bezpieczeństwa powyżej i numer 112 nadal działają.',
+    noRecordingTitle: 'Brak nagranej odpowiedzi dla tego przypadku — tryb demo',
+    noRecordingBody:
+      'Demo odtwarza odpowiedzi nagrane dla ustalonych scenariuszy, a ten przypadek do nich nie należy. Kroki bezpieczeństwa powyżej i numer 112 nadal działają.',
     retry: 'Spróbuj ponownie',
     confidenceLabel: 'Na ile asystent jest pewny',
     confidence: { likely: 'Prawdopodobne', possible: 'Możliwe', unsure: 'Niepewne' },
@@ -362,6 +365,7 @@ export const pl: Localised<Translation> & {
     advice_exists: 'Asystent już odpowiedział.',
     no_open_question: 'Na to pytanie już odpowiedziano.',
     reply_required: 'Najpierw odpowiedz na pytanie powyżej.',
+    no_recording: 'Brak nagranej odpowiedzi dla tego przypadku — tryb demo.',
     nearby_unavailable: 'Serwis mapy jest teraz przeciążony.',
     no_location: 'To zdarzenie nie ma jeszcze lokalizacji.',
     nearby_not_recorded: 'Tryb demo nie ma nagranych miejsc dla tego przypadku.',

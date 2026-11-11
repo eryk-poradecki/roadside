@@ -539,22 +539,6 @@ async def test_nothing_sensitive_is_logged_at_info(
         assert secret not in logged
 
 
-# --- demo mode -----------------------------------------------------------------------------
-
-
-async def test_demo_mode_without_recordings_fails_like_a_provider(
-    client: httpx.AsyncClient,
-) -> None:
-    # Replay arrives with the demo-mode ticket; until then demo mode has no model to ask.
-    incident_id = await make_incident(client)
-
-    r = await turn(client, incident_id)
-
-    assert r.status_code == 502
-    assert r.json()["reason"] == "provider_error"
-    assert await stored_turns(client, incident_id) == []
-
-
 def _returning(fake: ScriptedProvider) -> Callable[[], ScriptedProvider]:
     # A closure with no parameters: FastAPI would read a default argument as a query param.
     return lambda: fake

@@ -107,6 +107,33 @@ describe('AI answer on the Result screen', () => {
     expect(within(alert).getByRole('button', { name: 'Try again' })).toBeInTheDocument()
   })
 
+  it('a demo-mode key miss is labelled as demo mode, with no "Try again"; the checklist stays', async () => {
+    fakeApi.turnScript = [{ status: 503, reason: 'no_recording' }]
+    await getHelp()
+
+    const alert = await within(aiPanel()).findByRole('alert')
+    expect(within(alert).getByText(en.ai.noRecordingTitle)).toBeInTheDocument()
+    expect(alert).not.toHaveTextContent("The assistant couldn't answer")
+    expect(alert).not.toHaveTextContent('internal detail')
+    expect(within(alert).queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument()
+    for (const item of en.checklist.lists.tyre.items)
+      expect(within(checklist()).getByText(item)).toBeVisible()
+    expect(fakeApi.turnRequests).toHaveLength(1)
+  })
+
+  it('the demo-mode label is translated', async () => {
+    await i18n.changeLanguage('pl')
+    fakeApi.turnScript = [{ status: 503, reason: 'no_recording' }]
+    const { user } = renderApp('/')
+    await user.click(await screen.findByRole('button', { name: 'Przebita opona' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Przebita opona' })
+    await user.click(within(sheet).getByRole('button', { name: 'Potrzebuję pomocy' }))
+
+    expect(
+      await screen.findByText('Brak nagranej odpowiedzi dla tego przypadku — tryb demo'),
+    ).toBeInTheDocument()
+  })
+
   it('an incident opened later does not ask on its own', async () => {
     const incident = fakeApi.seedIncident({ problem_type: 'flat_battery' })
     const { user } = renderApp(`/incidents/${String(incident.id)}`)

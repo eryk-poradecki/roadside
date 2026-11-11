@@ -1,0 +1,13 @@
+{
+  "key": "{\"dark\":false,\"fuel_type\":null,\"has_assistance\":false,\"locale\":\"en\",\"problem_type\":\"flat_battery\",\"replies\":[],\"road_class\":\"unknown\",\"sample_photo_ids\":[],\"spare_wheel\":null,\"transmission\":null,\"vision\":false}",
+  "request": {
+    "schema_name": "ai_turn",
+    "messages": [],
+    "note": "hand-made test fixture: flat_battery_en_invalid"
+  },
+  "raw_output": "not a JSON object",
+  "provider": "openai_compatible",
+  "model": "fixture-model",
+  "prompt_version": "v1",
+  "recorded_at": "2026-11-11T10:00:00.000Z"
+}

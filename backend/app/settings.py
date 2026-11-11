@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     upload_dir: Path = Path("data/uploads")
     # Single switch for replay mode. True by default so `docker compose up` needs no keys.
     demo_mode: bool = True
+    # The public demo (ADR 0011): startup refuses a live model or recording.
+    public_deploy: bool = False
     frontend_origins: Annotated[list[str], NoDecode] = ["http://localhost:5173"]
     log_level: str = "INFO"
     max_body_bytes: int = 12 * 1024 * 1024
@@ -38,6 +40,10 @@ class Settings(BaseSettings):
     llm_timeout_s: Annotated[float, Field(gt=0)] = 60.0
     # The whole turn: the call, its one retry and the one repair call.
     llm_turn_budget_s: Annotated[float, Field(gt=0, lt=TURN_BUDGET_CEILING_S)] = 90.0
+    # Write each live answer to the recordings dir; refused in demo mode and on a public deploy.
+    llm_record: bool = False
+    # What demo mode replays, and where recording writes.
+    llm_recordings_dir: Path = Path("recordings")
 
     # Location context (ADR 0004). Never called in demo mode.
     nominatim_url: str = "https://nominatim.openstreetmap.org/"
@@ -78,6 +84,20 @@ class Settings(BaseSettings):
     def _overpass_attempt_fits_the_budget(self) -> Self:
         if self.overpass_timeout_s > self.overpass_budget_s:
             raise ValueError("OVERPASS_TIMEOUT_S must not exceed OVERPASS_BUDGET_S")
+        return self
+
+    @model_validator(mode="after")
+    def _public_deploy_is_demo_only(self) -> Self:
+        if self.public_deploy and (not self.demo_mode or self.llm_record):
+            raise ValueError(
+                "PUBLIC_DEPLOY=true needs DEMO_MODE=true and LLM_RECORD=false (ADR 0011)"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def _recording_needs_a_live_model(self) -> Self:
+        if self.demo_mode and self.llm_record:
+            raise ValueError("LLM_RECORD=true needs DEMO_MODE=false: replay is never recorded")
         return self
 
     @model_validator(mode="after")

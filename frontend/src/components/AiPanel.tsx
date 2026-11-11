@@ -1,4 +1,4 @@
-import { ArrowRight, Camera, Loader, RotateCw, Send, Sparkles, WifiOff } from 'lucide-react'
+import { ArrowRight, Camera, Info, Loader, RotateCw, Send, Sparkles, WifiOff } from 'lucide-react'
 import { useEffect, useId, useRef, useState, type SyntheticEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -18,6 +18,7 @@ import {
   type TurnInputsRead,
 } from '../api/aiTurns'
 import type { FuelType } from '../api/generated/types.gen'
+import { isApiError } from '../api/client'
 import type { IncidentRead } from '../api/incidents'
 import { usePhotosUploading } from '../api/photos'
 import { isProblemType, problemKey } from '../lib/problemType'
@@ -32,7 +33,8 @@ export const UPLOAD_WAIT_MS = 20_000
  * The AI answer on the Result screen, labelled as AI. Right after "Get help now"
  * (`autoStart`) it asks at once; the assistant may first ask up to two clarifying questions,
  * each replied to with a tap, a short text or "Just give me the steps". A failed turn shows
- * why and "Try again", while the safety checklist above stays as it is.
+ * why and "Try again", while the safety checklist above stays as it is. In demo mode a case
+ * with no recorded answer is labelled as such, with no "Try again": it would only miss again.
  */
 export function AiPanel({ incident, autoStart }: { incident: IncidentRead; autoStart: boolean }) {
   const { t, i18n } = useTranslation()
@@ -112,6 +114,14 @@ export function AiPanel({ incident, autoStart }: { incident: IncidentRead; autoS
             error={turn.isError && turn.variables.body.reply ? message(turn.error) : null}
             onReply={ask}
           />
+        ) : turn.isError && isApiError(turn.error) && turn.error.reason === 'no_recording' ? (
+          <div className="ai-error" role="alert">
+            <p className="ai-line">
+              <Info size={20} aria-hidden="true" />
+              <strong>{t('ai.noRecordingTitle')}</strong>
+            </p>
+            <p className="muted">{t('ai.noRecordingBody')}</p>
+          </div>
         ) : turn.isError ? (
           <div className="ai-error" role="alert">
             <p className="ai-line">
