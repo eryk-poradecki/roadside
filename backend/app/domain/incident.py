@@ -6,6 +6,7 @@ from app.domain.ai_turn import AiTurn
 
 if TYPE_CHECKING:
     from app.domain.location_context import LocationContext
+    from app.domain.nearby import NearbySnapshot
 
 
 # The driver's note, and a free-text reply to a clarifying question, are at most this long.
@@ -63,3 +64,5 @@ class IncidentDetail:
 
     incident: Incident
     ai_turns: tuple[AiTurn, ...]
+    # The last successful nearby lookup; None until one succeeds or after a location change.
+    nearby: "NearbySnapshot | None" = None

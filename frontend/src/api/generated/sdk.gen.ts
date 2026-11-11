@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateIncidentData, CreateIncidentErrors, CreateIncidentResponses, CreateVehicleData, CreateVehicleErrors, CreateVehicleResponses, DeleteIncidentData, DeleteIncidentErrors, DeleteIncidentResponses, DeleteVehicleData, DeleteVehicleErrors, DeleteVehicleResponses, GetIncidentData, GetIncidentErrors, GetIncidentResponses, GetVehicleData, GetVehicleErrors, GetVehicleResponses, HealthData, HealthResponses, ListIncidentsData, ListIncidentsErrors, ListIncidentsResponses, ListVehiclesData, ListVehiclesResponses, ReadConfigData, ReadConfigResponses, ReplaceVehicleData, ReplaceVehicleErrors, ReplaceVehicleResponses, TakeAiTurnData, TakeAiTurnErrors, TakeAiTurnResponses, UpdateIncidentData, UpdateIncidentErrors, UpdateIncidentResponses } from './types.gen';
+import type { CreateIncidentData, CreateIncidentErrors, CreateIncidentResponses, CreateVehicleData, CreateVehicleErrors, CreateVehicleResponses, DeleteIncidentData, DeleteIncidentErrors, DeleteIncidentResponses, DeleteVehicleData, DeleteVehicleErrors, DeleteVehicleResponses, FindNearbyData, FindNearbyErrors, FindNearbyResponses, GetIncidentData, GetIncidentErrors, GetIncidentResponses, GetVehicleData, GetVehicleErrors, GetVehicleResponses, HealthData, HealthResponses, ListIncidentsData, ListIncidentsErrors, ListIncidentsResponses, ListVehiclesData, ListVehiclesResponses, ReadConfigData, ReadConfigResponses, ReplaceVehicleData, ReplaceVehicleErrors, ReplaceVehicleResponses, TakeAiTurnData, TakeAiTurnErrors, TakeAiTurnResponses, UpdateIncidentData, UpdateIncidentErrors, UpdateIncidentResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -81,6 +81,23 @@ export const updateIncident = <ThrowOnError extends boolean = false>(options: Op
  */
 export const takeAiTurn = <ThrowOnError extends boolean = false>(options: Options<TakeAiTurnData, ThrowOnError>): RequestResult<TakeAiTurnResponses, TakeAiTurnErrors, ThrowOnError> => (options.client ?? client).post<TakeAiTurnResponses, TakeAiTurnErrors, ThrowOnError>({
     url: '/api/v1/incidents/{incident_id}/ai-turns',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Find Nearby
+ *
+ * Look up real places around the incident's location and store them as its snapshot.
+ *
+ * Replaces the snapshot only on success: 503 `nearby_unavailable` keeps the previous one.
+ * 409 `no_location` when the incident has none.
+ */
+export const findNearby = <ThrowOnError extends boolean = false>(options: Options<FindNearbyData, ThrowOnError>): RequestResult<FindNearbyResponses, FindNearbyErrors, ThrowOnError> => (options.client ?? client).post<FindNearbyResponses, FindNearbyErrors, ThrowOnError>({
+    url: '/api/v1/incidents/{incident_id}/nearby',
     ...options,
     headers: {
         'Content-Type': 'application/json',

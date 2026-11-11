@@ -486,6 +486,16 @@
             ],
             "title": "Location Label"
           },
+          "nearby": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NearbyRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "note": {
             "anyOf": [
               {
@@ -529,7 +539,8 @@
           "location_label",
           "created_at",
           "updated_at",
-          "ai_turns"
+          "ai_turns",
+          "nearby"
         ],
         "title": "IncidentRead",
         "type": "object"
@@ -689,6 +700,7 @@
         "type": "object"
       },
       "NearbyCategory": {
+        "description": "The four chips. Towing has no settled OSM tag, so it is not one (ADR 0004).",
         "enum": [
           "tyres",
           "fuel",
@@ -697,6 +709,139 @@
         ],
         "title": "NearbyCategory",
         "type": "string"
+      },
+      "NearbyRead": {
+        "description": "The last successful lookup. `none` is a success: nothing within the radius.",
+        "properties": {
+          "fetched_at": {
+            "title": "Fetched At",
+            "type": "string"
+          },
+          "places": {
+            "items": {
+              "$ref": "#/components/schemas/PlaceRead"
+            },
+            "maxItems": 20,
+            "title": "Places",
+            "type": "array"
+          },
+          "radius_km": {
+            "title": "Radius Km",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "found",
+              "none"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "places",
+          "radius_km",
+          "fetched_at"
+        ],
+        "title": "NearbyRead",
+        "type": "object"
+      },
+      "NearbyRequest": {
+        "additionalProperties": false,
+        "description": "5 km first; 25 km when the driver asks to search wider.",
+        "properties": {
+          "radius_km": {
+            "maximum": 25.0,
+            "minimum": 1.0,
+            "title": "Radius Km",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "radius_km"
+        ],
+        "title": "NearbyRequest",
+        "type": "object"
+      },
+      "PlaceRead": {
+        "description": "A real place from OpenStreetMap, never from the model.",
+        "properties": {
+          "category": {
+            "$ref": "#/components/schemas/NearbyCategory"
+          },
+          "distance_m": {
+            "title": "Distance M",
+            "type": "integer"
+          },
+          "lat": {
+            "title": "Lat",
+            "type": "number"
+          },
+          "lon": {
+            "title": "Lon",
+            "type": "number"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "opening_hours": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Opening Hours"
+          },
+          "osm_id": {
+            "title": "Osm Id",
+            "type": "integer"
+          },
+          "osm_type": {
+            "enum": [
+              "node",
+              "way",
+              "relation"
+            ],
+            "title": "Osm Type",
+            "type": "string"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          }
+        },
+        "required": [
+          "osm_type",
+          "osm_id",
+          "category",
+          "name",
+          "lat",
+          "lon",
+          "distance_m",
+          "phone",
+          "opening_hours"
+        ],
+        "title": "PlaceRead",
+        "type": "object"
       },
       "ProblemType": {
         "enum": [
@@ -1982,6 +2127,61 @@
         "summary": "Take Ai Turn",
         "tags": [
           "ai"
+        ]
+      }
+    },
+    "/api/v1/incidents/{incident_id}/nearby": {
+      "post": {
+        "description": "Look up real places around the incident's location and store them as its snapshot.\n\nReplaces the snapshot only on success: 503 `nearby_unavailable` keeps the previous one.\n409 `no_location` when the incident has none.",
+        "operationId": "find_nearby",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "maximum": 9223372036854775807,
+              "minimum": 1,
+              "title": "Incident Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NearbyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NearbyRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Find Nearby",
+        "tags": [
+          "nearby"
         ]
       }
     },

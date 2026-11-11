@@ -10,8 +10,9 @@ from app.db.migrate import migrate
 from app.errors import install_error_handlers
 from app.integrations.llm.factory import build_provider
 from app.integrations.nominatim import NominatimGeocoder
+from app.integrations.overpass import OverpassClient
 from app.middleware import BodyLimitMiddleware
-from app.routers import ai_turns, incidents, meta, vehicles
+from app.routers import ai_turns, incidents, meta, nearby, vehicles
 from app.services.assistant import TurnLocks
 from app.settings import Settings
 
@@ -41,6 +42,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
     )
 
+    # Nor any Overpass call: recorded places come with the demo scenarios (ADR 0004).
+    place_source = (
+        None
+        if settings.demo_mode
+        else OverpassClient(
+            urls=settings.overpass_urls,
+            user_agent=settings.osm_user_agent,
+            timeout_s=settings.overpass_timeout_s,
+            budget_s=settings.overpass_budget_s,
+            attempts=settings.overpass_attempts,
+            backoff_s=settings.overpass_backoff_s,
+        )
+    )
+
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         version = migrate(settings.database_path)
@@ -57,6 +72,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             await provider.aclose()
             if geocoder is not None:
                 await geocoder.aclose()
+            if place_source is not None:
+                await place_source.aclose()
 
     app = FastAPI(
         title="Roadside API",
@@ -68,12 +85,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.llm_provider = provider
     app.state.turn_locks = TurnLocks()
     app.state.geocoder = geocoder
+    app.state.place_source = place_source
 
     api = APIRouter(prefix="/api/v1")
     api.include_router(meta.config_router)
     api.include_router(vehicles.router)
     api.include_router(incidents.router)
     api.include_router(ai_turns.router)
+    api.include_router(nearby.router)
     app.include_router(api)
     app.include_router(meta.health_router)
 

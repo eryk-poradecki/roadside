@@ -239,6 +239,7 @@ export type IncidentRead = {
      * Location Label
      */
     location_label: string | null;
+    nearby: NearbyRead | null;
     /**
      * Note
      */
@@ -341,8 +342,87 @@ export type LocationRead = {
 
 /**
  * NearbyCategory
+ *
+ * The four chips. Towing has no settled OSM tag, so it is not one (ADR 0004).
  */
 export type NearbyCategory = 'tyres' | 'fuel' | 'charging' | 'repair';
+
+/**
+ * NearbyRead
+ *
+ * The last successful lookup. `none` is a success: nothing within the radius.
+ */
+export type NearbyRead = {
+    /**
+     * Fetched At
+     */
+    fetched_at: string;
+    /**
+     * Places
+     */
+    places: Array<PlaceRead>;
+    /**
+     * Radius Km
+     */
+    radius_km: number;
+    /**
+     * Status
+     */
+    status: 'found' | 'none';
+};
+
+/**
+ * NearbyRequest
+ *
+ * 5 km first; 25 km when the driver asks to search wider.
+ */
+export type NearbyRequest = {
+    /**
+     * Radius Km
+     */
+    radius_km: number;
+};
+
+/**
+ * PlaceRead
+ *
+ * A real place from OpenStreetMap, never from the model.
+ */
+export type PlaceRead = {
+    category: NearbyCategory;
+    /**
+     * Distance M
+     */
+    distance_m: number;
+    /**
+     * Lat
+     */
+    lat: number;
+    /**
+     * Lon
+     */
+    lon: number;
+    /**
+     * Name
+     */
+    name: string | null;
+    /**
+     * Opening Hours
+     */
+    opening_hours: string | null;
+    /**
+     * Osm Id
+     */
+    osm_id: number;
+    /**
+     * Osm Type
+     */
+    osm_type: 'node' | 'way' | 'relation';
+    /**
+     * Phone
+     */
+    phone: string | null;
+};
 
 /**
  * ProblemType
@@ -953,6 +1033,36 @@ export type TakeAiTurnResponses = {
 };
 
 export type TakeAiTurnResponse = TakeAiTurnResponses[keyof TakeAiTurnResponses];
+
+export type FindNearbyData = {
+    body: NearbyRequest;
+    path: {
+        /**
+         * Incident Id
+         */
+        incident_id: number;
+    };
+    query?: never;
+    url: '/api/v1/incidents/{incident_id}/nearby';
+};
+
+export type FindNearbyErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type FindNearbyError = FindNearbyErrors[keyof FindNearbyErrors];
+
+export type FindNearbyResponses = {
+    /**
+     * Successful Response
+     */
+    200: NearbyRead;
+};
+
+export type FindNearbyResponse = FindNearbyResponses[keyof FindNearbyResponses];
 
 export type ListVehiclesData = {
     body?: never;

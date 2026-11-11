@@ -47,9 +47,22 @@ class Settings(BaseSettings):
     location_max_gps_accuracy_m: Annotated[float, Field(gt=0)] = 150.0
     location_max_road_distance_m: Annotated[float, Field(gt=0)] = 50.0
 
-    @field_validator("frontend_origins", mode="before")
+    # Nearby places (ADR 0004). Never called in demo mode. Primary first, then the mirrors.
+    overpass_urls: Annotated[list[str], NoDecode, Field(min_length=1)] = [
+        "https://overpass-api.de/api/interpreter",
+        "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+    ]
+    # One attempt; public Overpass took 13-47 s per query (research #5).
+    overpass_timeout_s: Annotated[float, Field(gt=0)] = 40.0
+    # The whole lookup, backoff included: under the tunnel's ~100 s like an AI turn.
+    overpass_budget_s: Annotated[float, Field(gt=0, lt=TURN_BUDGET_CEILING_S)] = 75.0
+    overpass_attempts: Annotated[int, Field(ge=1, le=10)] = 3
+    # Doubles after each failed attempt.
+    overpass_backoff_s: Annotated[float, Field(ge=0)] = 2.0
+
+    @field_validator("frontend_origins", "overpass_urls", mode="before")
     @classmethod
-    def _split_origins(cls, v: object) -> object:
+    def _split_list(cls, v: object) -> object:
         if isinstance(v, str):
             return [o.strip() for o in v.split(",") if o.strip()]
         return v
@@ -60,6 +73,12 @@ class Settings(BaseSettings):
         if "*" in v:
             raise ValueError("FRONTEND_ORIGINS must list explicit origins, never '*'")
         return v
+
+    @model_validator(mode="after")
+    def _overpass_attempt_fits_the_budget(self) -> Self:
+        if self.overpass_timeout_s > self.overpass_budget_s:
+            raise ValueError("OVERPASS_TIMEOUT_S must not exceed OVERPASS_BUDGET_S")
+        return self
 
     @model_validator(mode="after")
     def _live_model_is_configured(self) -> Self:

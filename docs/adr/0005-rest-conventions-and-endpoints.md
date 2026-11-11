@@ -7,6 +7,12 @@
 > - `NearbyRead` has a fixed place shape, capped at 20.
 > - The desktop History map needs no extra query parameters.
 
+> **Amended by #55:**
+> - `opening_hours` carries the raw OSM string; the frontend shows it only in the simple forms (`24/7`, `Mo-Su HH:MM-HH:MM`), because the display text is translated there.
+> - When there are more than 20 places, each category found keeps its nearest places in turn before the list is sorted by distance, so a crowded category (garages in a city) can't push a sparse one (the only tyre shop) off the list.
+> - `POST /incidents/{id}/nearby` also answers 409 `location_changed` when a PATCH moved the incident during the lookup (nothing is stored), and 503 `nearby_not_recorded` in demo mode until recorded places exist (#58).
+> - The snapshot's source endpoint is stored but not sent.
+
 > **Amended by #53:** `AiTurnRead` carries `question` (`QuestionRead` `{now, question, options}`) on a question turn and `reply` (`ReplyRead` `{option, text, skip}`) on a reply turn; the reply body is `ReplyCreate`. A `reply.option` that is not one of the open question's options is 422 (`errors[].field` = `reply.option`).
 
 The API is plain resource-oriented REST under `/api/v1`, with one error format (RFC 9457 problem details carrying a machine-readable `reason`) and Pydantic DTOs kept separate from database rows. The reviewers grade API design directly, so the conventions follow the standards a reviewer expects instead of FastAPI's defaults. The few places that are not plain CRUD (AI turns, the nearby lookup) are modelled as sub-resources, not RPC verbs. The endpoint table below is the spec input for the build.

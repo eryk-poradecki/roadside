@@ -13,18 +13,13 @@ from typing import Annotated, Any, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
+from app.domain.nearby import NearbyCategory
+
 
 class Confidence(StrEnum):
     LIKELY = "likely"
     POSSIBLE = "possible"
     UNSURE = "unsure"
-
-
-class NearbyCategory(StrEnum):
-    TYRES = "tyres"
-    FUEL = "fuel"
-    CHARGING = "charging"
-    REPAIR = "repair"
 
 
 Short = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=160)]

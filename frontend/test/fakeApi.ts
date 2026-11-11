@@ -12,6 +12,7 @@ import type {
   IncidentRead,
   IncidentSummary,
 } from '../src/api/incidents'
+import type { NearbyRead, PlaceRead } from '../src/api/nearby'
 import type { VehicleCreate, VehicleRead } from '../src/api/vehicles'
 
 export const API = 'http://api.test'
@@ -33,6 +34,37 @@ export const QUESTION: QuestionRead = {
   question: 'Is the car on the hard shoulder?',
   options: ['Yes, on the hard shoulder', 'No, off the road'],
 }
+
+/** A real-looking place, nearest first in `PLACES`. */
+export const place = (
+  osm_id: number,
+  category: PlaceRead['category'],
+  extra: Partial<PlaceRead> = {},
+): PlaceRead => ({
+  osm_type: 'node',
+  osm_id,
+  category,
+  name: `Place ${String(osm_id)}`,
+  lat: 52.23 + osm_id / 1000,
+  lon: 21.01,
+  distance_m: osm_id * 300,
+  phone: null,
+  opening_hours: null,
+  ...extra,
+})
+
+/** What the fake map lookup finds unless a test scripts something else. */
+export const PLACES: PlaceRead[] = [
+  place(1, 'repair', { name: 'Auto Serwis Hoża', phone: '+48 22 000 00 01' }),
+  place(2, 'tyres', { name: 'Wulkanizacja Nowa', opening_hours: '24/7' }),
+  place(3, 'fuel', { name: null, opening_hours: 'Mo-Su 06:00-22:00' }),
+  place(4, 'tyres', { name: 'Opony Max', opening_hours: 'Mo-Fr 08:00-18:00' }),
+  place(5, 'fuel', { name: 'Orlen' }),
+  place(6, 'charging', { name: 'GreenWay' }),
+]
+
+/** One scripted `POST /nearby` outcome: the places found, or a problem response. */
+export type NearbyScript = PlaceRead[] | { status: number; reason: string }
 
 /** One scripted `POST /ai-turns` outcome: an advice, a question, or a problem response. */
 export type TurnScript =
@@ -69,6 +101,10 @@ export class FakeApi {
   turnScript: TurnScript[] = []
   /** Every `POST /incidents/:id/ai-turns` with its body. */
   turnRequests: { incidentId: number; body: unknown }[] = []
+  /** Outcomes of the next nearby lookups, in order; when empty, a lookup finds `PLACES`. */
+  nearbyScript: NearbyScript[] = []
+  /** Every `POST /incidents/:id/nearby` with its body. */
+  nearbyRequests: { incidentId: number; body: { radius_km: number } }[] = []
   private nextTurnId = 1
   private nextId = 1
   private nextIncidentId = 1
@@ -82,6 +118,8 @@ export class FakeApi {
     this.loseNextCreateResponse = false
     this.turnScript = []
     this.turnRequests = []
+    this.nearbyScript = []
+    this.nearbyRequests = []
     this.nextTurnId = 1
     this.nextId = 1
     this.nextIncidentId = 1
@@ -115,6 +153,7 @@ export class FakeApi {
       created_at: now,
       updated_at: now,
       ai_turns: [],
+      nearby: null,
     }
     this.incidents.push(incident)
     return incident
@@ -331,7 +370,10 @@ export class FakeApi {
             old?.lat !== updated.location?.lat ||
             old?.lon !== updated.location?.lon ||
             old?.accuracy_m !== updated.location?.accuracy_m
-          if (moved) updated.location_label = null
+          if (moved) {
+            updated.location_label = null
+            updated.nearby = null
+          }
         }
         this.incidents = this.incidents.map((i) => (i.id === current.id ? updated : i))
         return HttpResponse.json(updated)
@@ -374,6 +416,25 @@ export class FakeApi {
             ? this.questionTurn(next.ask, { ...extra, locale: body.locale })
             : this.adviceTurn(next.advice, body.locale, { ...extra, urgent: next.urgent ?? false })
         return HttpResponse.json(append(turn), { status: 201 })
+      }),
+      http.post(`${API}/api/v1/incidents/:id/nearby`, async ({ params, request }) => {
+        const incidentId = Number(params.id)
+        const body = (await request.json()) as { radius_km: number }
+        this.nearbyRequests.push({ incidentId, body })
+        const incident = this.incidents.find((i) => i.id === incidentId)
+        if (!incident) return problem(404, 'not_found', 'Incident not found')
+        if (!incident.location) return problem(409, 'no_location', 'No location')
+        const next = this.nearbyScript.shift() ?? PLACES
+        // Like the server: a failure keeps the previous snapshot.
+        if ('reason' in next) return problem(next.status, next.reason, 'internal detail')
+        const nearby: NearbyRead = {
+          status: next.length > 0 ? 'found' : 'none',
+          places: next,
+          radius_km: body.radius_km,
+          fetched_at: '2026-11-10T10:00:20.000Z',
+        }
+        this.incidents = this.incidents.map((i) => (i.id === incidentId ? { ...i, nearby } : i))
+        return HttpResponse.json(nearby)
       }),
       http.get(`${API}/api/v1/incidents/:id`, ({ params }) => {
         const found = this.incidents.find((i) => i.id === Number(params.id))

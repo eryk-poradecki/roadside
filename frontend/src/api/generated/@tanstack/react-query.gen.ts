@@ -3,8 +3,8 @@
 import { type DefaultError, type InfiniteData, infiniteQueryOptions, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { createIncident, createVehicle, deleteIncident, deleteVehicle, getIncident, getVehicle, health, listIncidents, listVehicles, type Options, readConfig, replaceVehicle, takeAiTurn, updateIncident } from '../sdk.gen';
-import type { CreateIncidentData, CreateIncidentError, CreateIncidentResponse, CreateVehicleData, CreateVehicleError, CreateVehicleResponse, DeleteIncidentData, DeleteIncidentError, DeleteIncidentResponse, DeleteVehicleData, DeleteVehicleError, DeleteVehicleResponse, GetIncidentData, GetIncidentError, GetIncidentResponse, GetVehicleData, GetVehicleError, GetVehicleResponse, HealthData, HealthResponse, ListIncidentsData, ListIncidentsError, ListIncidentsResponse, ListVehiclesData, ListVehiclesResponse, ReadConfigData, ReadConfigResponse, ReplaceVehicleData, ReplaceVehicleError, ReplaceVehicleResponse, TakeAiTurnData, TakeAiTurnError, TakeAiTurnResponse, UpdateIncidentData, UpdateIncidentError, UpdateIncidentResponse } from '../types.gen';
+import { createIncident, createVehicle, deleteIncident, deleteVehicle, findNearby, getIncident, getVehicle, health, listIncidents, listVehicles, type Options, readConfig, replaceVehicle, takeAiTurn, updateIncident } from '../sdk.gen';
+import type { CreateIncidentData, CreateIncidentError, CreateIncidentResponse, CreateVehicleData, CreateVehicleError, CreateVehicleResponse, DeleteIncidentData, DeleteIncidentError, DeleteIncidentResponse, DeleteVehicleData, DeleteVehicleError, DeleteVehicleResponse, FindNearbyData, FindNearbyError, FindNearbyResponse, GetIncidentData, GetIncidentError, GetIncidentResponse, GetVehicleData, GetVehicleError, GetVehicleResponse, HealthData, HealthResponse, ListIncidentsData, ListIncidentsError, ListIncidentsResponse, ListVehiclesData, ListVehiclesResponse, ReadConfigData, ReadConfigResponse, ReplaceVehicleData, ReplaceVehicleError, ReplaceVehicleResponse, TakeAiTurnData, TakeAiTurnError, TakeAiTurnResponse, UpdateIncidentData, UpdateIncidentError, UpdateIncidentResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -226,6 +226,28 @@ export const takeAiTurnMutation = (options?: Partial<Options<TakeAiTurnData>>): 
     const mutationOptions: UseMutationOptions<TakeAiTurnResponse, TakeAiTurnError, Options<TakeAiTurnData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await takeAiTurn({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Find Nearby
+ *
+ * Look up real places around the incident's location and store them as its snapshot.
+ *
+ * Replaces the snapshot only on success: 503 `nearby_unavailable` keeps the previous one.
+ * 409 `no_location` when the incident has none.
+ */
+export const findNearbyMutation = (options?: Partial<Options<FindNearbyData>>): UseMutationOptions<FindNearbyResponse, FindNearbyError, Options<FindNearbyData>> => {
+    const mutationOptions: UseMutationOptions<FindNearbyResponse, FindNearbyError, Options<FindNearbyData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await findNearby({
                 ...options,
                 ...fnOptions,
                 throwOnError: true
