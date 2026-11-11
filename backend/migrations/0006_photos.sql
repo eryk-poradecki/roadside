@@ -1,7 +1,8 @@
 -- Photos (ADR 0002): the bytes are files in UPLOAD_DIR, one row per file. The cascade removes
 -- rows only; the incident service removes the files.
 CREATE TABLE incident_photos (
-  id INTEGER PRIMARY KEY,
+  -- AUTOINCREMENT: a deleted photo's id (and URL) is never reused for another photo.
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   incident_id INTEGER NOT NULL REFERENCES incidents(id) ON DELETE CASCADE,
   -- Server-generated (a UUID and the extension), never the client's file name.
   stored_name TEXT NOT NULL UNIQUE,

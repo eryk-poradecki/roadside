@@ -110,6 +110,7 @@ export function HelpSheet({
       // Into the mutation cache, so they keep going after the sheet closes and the Result
       // screen can wait for them before the first AI turn.
       for (const photo of photos) addPhoto.mutate({ incidentId: incident.id, source: photo.source })
+      photos.forEach(revoke)
       setPhotos([])
       onCreated()
       if (mounted.current)

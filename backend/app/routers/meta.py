@@ -8,6 +8,7 @@ from app.domain.sample_photo import SAMPLE_PHOTOS, find_sample
 from app.errors import AppError, NotFoundError
 from app.integrations.llm.base import LLMProvider
 from app.schemas.meta import ConfigRead, HealthRead, SamplePhoto
+from app.schemas.photo import sample_photo_url
 from app.settings import Settings
 
 health_router = APIRouter(tags=["meta"])
@@ -35,9 +36,7 @@ async def read_config(
         max_photos=settings.max_photos,
         max_photo_bytes=settings.max_photo_bytes,
         sample_photos=[
-            SamplePhoto(
-                id=s.id, url=f"/api/v1/sample-photos/{s.id}", title=s.title, credit=s.credit
-            )
+            SamplePhoto(id=s.id, url=sample_photo_url(s.id), title=s.title, credit=s.credit)
             for s in SAMPLE_PHOTOS
         ],
     )

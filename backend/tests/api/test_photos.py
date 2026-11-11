@@ -460,3 +460,32 @@ async def test_sample_on_unknown_incident_is_404(client: httpx.AsyncClient) -> N
     sample_id = (await client.get("/api/v1/config")).json()["sample_photos"][0]["id"]
     r = await attach_sample(client, 999, sample_id)
     assert r.status_code == 404
+
+
+async def test_a_deleted_photo_id_is_never_reused(live: httpx.AsyncClient) -> None:
+    incident_id = await make_incident(live)
+    gone = (await upload(live, incident_id)).json()
+    assert (await live.delete(gone["url"])).status_code == 204
+
+    other = await make_incident(live)
+    new = (await upload(live, other)).json()
+
+    assert new["id"] > gone["id"]
+    assert (await live.get(gone["url"])).status_code == 404
+
+
+async def test_a_file_that_cannot_be_removed_does_not_fail_a_committed_delete(
+    live: httpx.AsyncClient, live_settings: Settings, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    incident_id = await make_incident(live)
+    photo_url = (await upload(live, incident_id)).json()["url"]
+    for _ in range(2):
+        await upload(live, incident_id)
+
+    def broken_unlink(self: Path, missing_ok: bool = False) -> None:
+        raise PermissionError("read-only volume")
+
+    monkeypatch.setattr(Path, "unlink", broken_unlink)
+    assert (await live.delete(photo_url)).status_code == 204
+    assert (await live.delete(f"{INC}/{incident_id}")).status_code == 204
+    assert (await live.get(f"{INC}/{incident_id}")).status_code == 404

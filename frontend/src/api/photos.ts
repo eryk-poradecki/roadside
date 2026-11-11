@@ -62,6 +62,20 @@ export function useAddPhoto() {
     mutationKey: addKey,
     mutationFn: upload,
     networkMode: 'always',
+    // One at a time: five phone photos decoded to canvases at once can exhaust a phone's
+    // memory, and they share one weak connection anyway. Queued ones count as uploading.
+    scope: { id: 'photo-upload' },
+    // A failed upload stays until the driver dismisses it or tries again, even after the
+    // sheet that started it is gone. Finished ones are dropped once they have landed.
+    gcTime: Infinity,
+    onSettled: (_photo, error) => {
+      if (error) return
+      // After this mutation records its success.
+      setTimeout(() => {
+        const cache = queryClient.getMutationCache()
+        for (const m of cache.findAll({ mutationKey: addKey, status: 'success' })) cache.remove(m)
+      })
+    },
     onSuccess: (photo, { incidentId }) => {
       queryClient.setQueryData<IncidentRead>(
         getIncidentQueryKey({ path: { incident_id: incidentId } }),

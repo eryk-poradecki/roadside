@@ -102,22 +102,26 @@ class PhotoService:
         if await self._photos.count_for_incident(incident_id) >= self._max_photos:
             raise AppError(409, "photo_limit", f"An incident has at most {self._max_photos}")
 
+    async def _remove_orphan(self, stored_name: str) -> None:
+        """Remove a file whose row was not committed. A cancellation can land while COMMIT
+        still completes in aiosqlite's thread, so check for the row first."""
+        if not await self._photos.has_stored_name(stored_name):
+            await self._files.remove(stored_name)
+
     async def _store(
         self, incident_id: int, prepared: PreparedPhoto, sample_id: str | None
     ) -> Photo:
         name = PhotoFiles.new_name(prepared.content_type)
         now = utc_now()
-        written = False
+        # The file first, outside the write lock; the row commits only if it was written.
+        await self._files.write(name, prepared.data)
         try:
             async with transaction(self._conn):
                 # Under the write lock, so two parallel uploads can't both take the last slot.
                 await self._check_room_now(incident_id)
-                await self._files.write(name, prepared.data)
-                written = True
                 photo_id = await self._photos.insert(incident_id, name, prepared, sample_id, now)
         except BaseException:
-            if written:
-                await asyncio.shield(self._files.remove(name))
+            await asyncio.shield(self._remove_orphan(name))
             raise
         return Photo(
             id=photo_id,

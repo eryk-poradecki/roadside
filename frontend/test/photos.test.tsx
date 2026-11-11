@@ -1,4 +1,5 @@
 import { screen, waitFor, within } from '@testing-library/react'
+import { UPLOAD_WAIT_MS } from '../src/components/AiPanel'
 import { ADVICE, fakeApi } from './fakeApi'
 import { renderApp } from './render'
 
@@ -109,8 +110,9 @@ describe('the first AI turn waits for the uploads', () => {
     await user.click(within(sheet).getByRole('button', { name: 'Deep pothole in the road' }))
     await user.click(within(sheet).getByRole('button', { name: 'Get help now' }))
 
+    // One upload at a time: the second waits its turn, and counts as uploading.
     await waitFor(() => {
-      expect(fakeApi.photoRequests).toHaveLength(2)
+      expect(fakeApi.photoRequests).toHaveLength(1)
     })
     expect(within(await resultPanel()).getAllByText('Uploading…')).toHaveLength(2)
     // The panel already waits, but has not asked yet.
@@ -123,6 +125,28 @@ describe('the first AI turn waits for the uploads', () => {
     expect(await within(aiPanel()).findByText(ADVICE.cause)).toBeInTheDocument()
     expect(fakeApi.turnRequests).toHaveLength(1)
     expect(within(photosPanel()).getAllByRole('img', { name: /^Photo \d$/ })).toHaveLength(2)
+  })
+
+  it('does not wait for a stalled upload for long', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      holdUploads()
+      const { user, sheet } = await openSheet()
+      await user.click(within(sheet).getByRole('button', { name: 'Flat front tyre' }))
+      await user.click(within(sheet).getByRole('button', { name: 'Get help now' }))
+      await waitFor(() => {
+        expect(fakeApi.photoRequests).toHaveLength(1)
+      })
+      expect(fakeApi.turnRequests).toEqual([])
+
+      await vi.advanceTimersByTimeAsync(UPLOAD_WAIT_MS)
+
+      expect(await within(aiPanel()).findByText(ADVICE.cause)).toBeInTheDocument()
+      expect(fakeApi.turnRequests).toHaveLength(1)
+      expect(within(photosPanel()).getByText('Uploading…')).toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('still asks when an upload fails, and shows why it failed', async () => {

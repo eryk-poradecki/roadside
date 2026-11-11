@@ -25,6 +25,9 @@ import { useErrorMessage } from './ErrorNotice'
 import { NOTE_MAX } from './HelpSheet'
 import './AiPanel.css'
 
+/** The longest the first AI turn waits for photos still uploading. */
+export const UPLOAD_WAIT_MS = 20_000
+
 /**
  * The AI answer on the Result screen, labelled as AI. Right after "Get help now"
  * (`autoStart`) it asks at once; the assistant may first ask up to two clarifying questions,
@@ -37,7 +40,19 @@ export function AiPanel({ incident, autoStart }: { incident: IncidentRead; autoS
   const inFlight = useTurnInFlight(incident.id)
   // Photos picked in the help sheet are still uploading: the first turn waits for every one
   // to succeed or fail, so a failed upload never blocks it (ADR 0002).
-  const uploading = usePhotosUploading(incident.id)
+  const uploadsPending = usePhotosUploading(incident.id)
+  // A stalled upload on a weak signal must not hold the advice back for long.
+  const [waitedOut, setWaitedOut] = useState(false)
+  useEffect(() => {
+    if (!uploadsPending) return
+    const timer = setTimeout(() => {
+      setWaitedOut(true)
+    }, UPLOAD_WAIT_MS)
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [uploadsPending])
+  const uploading = uploadsPending && !waitedOut
   const message = useErrorMessage()
   const adviceTurn = findAdvice(incident)
   const question = openQuestion(incident)

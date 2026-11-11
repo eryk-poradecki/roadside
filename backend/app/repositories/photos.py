@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import sqlite3
 from pathlib import Path
 from typing import Protocol
@@ -7,6 +8,8 @@ from uuid import uuid4
 import aiosqlite
 
 from app.domain.photo import EXTENSIONS, Photo, PreparedPhoto
+
+logger = logging.getLogger("roadside.photos")
 
 _SELECT = (
     "SELECT id, incident_id, stored_name, content_type, size_bytes, width, height, sample_id, "
@@ -27,6 +30,7 @@ class PhotoRepository(Protocol):
         now: str,
     ) -> int: ...
     async def delete(self, photo_id: int) -> bool: ...
+    async def has_stored_name(self, stored_name: str) -> bool: ...
 
 
 def _to_domain(r: sqlite3.Row) -> Photo:
@@ -96,6 +100,12 @@ class SqlitePhotoRepository:
         cur = await self._conn.execute("DELETE FROM incident_photos WHERE id = ?", (photo_id,))
         return cur.rowcount > 0
 
+    async def has_stored_name(self, stored_name: str) -> bool:
+        cur = await self._conn.execute(
+            "SELECT 1 FROM incident_photos WHERE stored_name = ?", (stored_name,)
+        )
+        return await cur.fetchone() is not None
+
 
 class PhotoFiles:
     """The photo files in `UPLOAD_DIR`. Names are generated here, never taken from a client."""
@@ -119,5 +129,9 @@ class PhotoFiles:
         await asyncio.to_thread(run)
 
     async def remove(self, stored_name: str) -> None:
-        """A file that is already gone is fine: the row was the source of truth."""
-        await asyncio.to_thread(self.path(stored_name).unlink, missing_ok=True)
+        """Best effort, after the row is gone: a file that is already gone is fine, and a
+        failure is logged rather than failing a delete that has already committed."""
+        try:
+            await asyncio.to_thread(self.path(stored_name).unlink, missing_ok=True)
+        except OSError:
+            logger.warning("could not remove photo file %s", stored_name, exc_info=True)

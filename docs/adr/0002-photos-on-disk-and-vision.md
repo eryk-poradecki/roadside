@@ -7,7 +7,9 @@
 > - A file that decodes to more than 50 megapixels is 413 `photo_too_large`, like one over 10 MB (a small file can still be a decompression bomb).
 > - A body that is neither multipart nor JSON is 415 `unsupported_media_type`; a multipart body without a `file` part is 422 (`errors[].field` = `file`).
 > - The row keeps the id of the sample photo it was copied from (`sample_id`), for the demo's replay key. It is not sent.
-> - `GET /photos/{id}` answers `Cache-Control: private, no-cache`: SQLite can reuse the id of a deleted photo, so the browser revalidates.
+> - Photo ids use `AUTOINCREMENT`, so a deleted photo's id and URL never point at another photo. `GET /photos/{id}` still answers `Cache-Control: private, no-cache`, because a wiped database (the demo) starts again at 1.
+> - The file is written before the transaction, not inside it, so the database write lock is never held during disk I/O; a file whose row did not commit is removed. Removing a file after a delete is best effort and logged.
+> - The client uploads one photo at a time, and the first AI turn waits for the uploads for at most 20 s, so a stalled upload can't hold the advice back.
 
 An incident has up to five photos, each added or removed on its own. The bytes are files on disk in `UPLOAD_DIR` (a named docker volume) under server-generated UUID names, and each one has a row in `incident_photos` (`incident_id` FK with `ON DELETE CASCADE`, `stored_name`, `content_type`, `size_bytes`, `width`, `height`, `created_at`). Photos are served only through `GET /api/photos/{id}`, never a static mount, so the database stays the source of truth: a deleted row's file is unreachable at once, a missing photo is a clean 404, and there is one place to add cache headers or auth later. When the provider supports images, the model sees the photos, because a picture of a pothole or a shredded tyre tells it more than a problem type and a note.
 

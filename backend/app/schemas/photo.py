@@ -9,6 +9,10 @@ def photo_url(photo_id: int) -> str:
     return f"/api/v1/photos/{photo_id}"
 
 
+def sample_photo_url(sample_id: str) -> str:
+    return f"/api/v1/sample-photos/{sample_id}"
+
+
 class PhotoRead(BaseModel):
     """A stored photo. `url` serves the file; there are no thumbnails (ADR 0002)."""
 
