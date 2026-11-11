@@ -411,3 +411,28 @@ async def test_recording_captures_the_places_and_the_context_that_replay(tmp_pat
         assert replayed["advice"]["cause"] == "A blowout"
         incident = (await c.get(f"{INC}/{incident_id}")).json()
         assert incident["location_label"] == "A2, Wola"
+
+
+# --- the damage report draft (ADR 0009, #59) ---------------------------------------------------
+
+
+async def test_a_damage_report_draft_is_replayed(client: httpx.AsyncClient) -> None:
+    incident_id = await make_incident(client, problem_type="pothole_damage")
+
+    r = await client.post(f"{INC}/{incident_id}/damage-report", json={"locale": "pl"})
+
+    assert r.status_code == 201, r.text
+    assert "głęboką wyrwę w jezdni" in r.json()["body"]
+    assert "Przecięta przednia prawa opona" in r.json()["body"]
+
+
+async def test_an_unrecorded_damage_report_is_a_labelled_fallback(
+    client: httpx.AsyncClient,
+) -> None:
+    incident_id = await make_incident(client, problem_type="pothole_damage")
+
+    r = await client.post(f"{INC}/{incident_id}/damage-report", json={"locale": "en"})
+
+    assert r.status_code == 503
+    assert r.json()["reason"] == "no_recording"
+    assert (await client.get(f"{INC}/{incident_id}/damage-report")).status_code == 404

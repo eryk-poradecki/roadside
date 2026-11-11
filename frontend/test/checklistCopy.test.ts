@@ -104,3 +104,24 @@ describe('safety checklist copy', () => {
     }
   })
 })
+
+describe('damage report addressee help line (ADR 0009)', () => {
+  /** The `> ` lines of the blockquote after `**EN**` or `**PL**`, without the marker. */
+  function quote(language: 'EN' | 'PL'): string[] {
+    const section = doc.slice(doc.indexOf('## Damage report: addressee help line'))
+    const from = section.indexOf(`**${language}**`)
+    if (from < 0) throw new Error(`No ${language} help line`)
+    const lines = section.slice(from).split('\n').slice(1)
+    const start = lines.findIndex((l) => l.startsWith('> '))
+    const end = lines.findIndex((l, i) => i > start && !l.startsWith('> '))
+    return lines.slice(start, end).map((l) => l.replace(/^> (- )?/, ''))
+  }
+
+  it.each([
+    ['EN', en],
+    ['PL', pl],
+  ] as const)('matches the %s copy word for word', (language, copy) => {
+    const { title, items, lookup } = copy.report.addressee
+    expect([title, ...items, lookup]).toEqual(quote(language))
+  })
+})

@@ -36,6 +36,16 @@ def ask_json(
     return json.dumps({"kind": "ask", "urgent": urgent, "ask": ask, "answer": None})
 
 
+def report_json(
+    description: str = (
+        "While driving at about 50 km/h I hit a deep pothole that I could not see in time."
+    ),
+    damage_summary: str = "The front right tyre is cut and the rim is bent.",
+) -> str:
+    """A valid damage report narrative as the model would send it."""
+    return json.dumps({"description": description, "damage_summary": damage_summary})
+
+
 class ScriptedProvider:
     """A provider fake that plays back scripted outputs and records every request.
 

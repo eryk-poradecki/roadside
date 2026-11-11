@@ -134,6 +134,68 @@ export type ConfigRead = {
 };
 
 /**
+ * DamageReportCreate
+ *
+ * Draft the report in `locale`, the letter's language: Polish unless the driver picks
+ * English, because the letter goes to a Polish road manager whatever the UI language.
+ * `replace: true` overwrites an existing report and sets it back to `draft`. The driver's
+ * own details are never sent: they fill the body's placeholders in the browser.
+ */
+export type DamageReportCreate = {
+    /**
+     * Locale
+     */
+    locale?: 'pl' | 'en';
+    /**
+     * Replace
+     */
+    replace?: boolean;
+};
+
+/**
+ * DamageReportPatch
+ *
+ * Send only the fields to change; neither can be null. Only the driver marks it sent.
+ */
+export type DamageReportPatch = {
+    /**
+     * Body
+     */
+    body?: string;
+    status?: DamageReportStatus;
+};
+
+/**
+ * DamageReportRead
+ *
+ * The letter as stored: its claimant and addressee placeholders are still in `body`.
+ */
+export type DamageReportRead = {
+    /**
+     * Body
+     */
+    body: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Locale
+     */
+    locale: 'pl' | 'en';
+    status: DamageReportStatus;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+};
+
+/**
+ * DamageReportStatus
+ */
+export type DamageReportStatus = 'draft' | 'sent';
+
+/**
  * FuelType
  */
 export type FuelType = 'petrol' | 'diesel' | 'lpg' | 'hybrid' | 'plug_in_hybrid' | 'electric';
@@ -234,6 +296,7 @@ export type IncidentRead = {
      * Created At
      */
     created_at: string;
+    damage_report_status: DamageReportStatus | null;
     /**
      * Id
      */
@@ -280,6 +343,7 @@ export type IncidentSummary = {
      * Created At
      */
     created_at: string;
+    damage_report_status: DamageReportStatus | null;
     /**
      * Id
      */
@@ -1085,6 +1149,130 @@ export type TakeAiTurnResponses = {
 };
 
 export type TakeAiTurnResponse = TakeAiTurnResponses[keyof TakeAiTurnResponses];
+
+export type DeleteDamageReportData = {
+    body?: never;
+    path: {
+        /**
+         * Incident Id
+         */
+        incident_id: number;
+    };
+    query?: never;
+    url: '/api/v1/incidents/{incident_id}/damage-report';
+};
+
+export type DeleteDamageReportErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteDamageReportError = DeleteDamageReportErrors[keyof DeleteDamageReportErrors];
+
+export type DeleteDamageReportResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteDamageReportResponse = DeleteDamageReportResponses[keyof DeleteDamageReportResponses];
+
+export type GetDamageReportData = {
+    body?: never;
+    path: {
+        /**
+         * Incident Id
+         */
+        incident_id: number;
+    };
+    query?: never;
+    url: '/api/v1/incidents/{incident_id}/damage-report';
+};
+
+export type GetDamageReportErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetDamageReportError = GetDamageReportErrors[keyof GetDamageReportErrors];
+
+export type GetDamageReportResponses = {
+    /**
+     * Successful Response
+     */
+    200: DamageReportRead;
+};
+
+export type GetDamageReportResponse = GetDamageReportResponses[keyof GetDamageReportResponses];
+
+export type UpdateDamageReportData = {
+    body: DamageReportPatch;
+    path: {
+        /**
+         * Incident Id
+         */
+        incident_id: number;
+    };
+    query?: never;
+    url: '/api/v1/incidents/{incident_id}/damage-report';
+};
+
+export type UpdateDamageReportErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateDamageReportError = UpdateDamageReportErrors[keyof UpdateDamageReportErrors];
+
+export type UpdateDamageReportResponses = {
+    /**
+     * Successful Response
+     */
+    200: DamageReportRead;
+};
+
+export type UpdateDamageReportResponse = UpdateDamageReportResponses[keyof UpdateDamageReportResponses];
+
+export type CreateDamageReportData = {
+    body: DamageReportCreate;
+    path: {
+        /**
+         * Incident Id
+         */
+        incident_id: number;
+    };
+    query?: never;
+    url: '/api/v1/incidents/{incident_id}/damage-report';
+};
+
+export type CreateDamageReportErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateDamageReportError = CreateDamageReportErrors[keyof CreateDamageReportErrors];
+
+export type CreateDamageReportResponses = {
+    /**
+     * `replace: true` overwrote it
+     */
+    200: DamageReportRead;
+    /**
+     * Successful Response
+     */
+    201: DamageReportRead;
+};
+
+export type CreateDamageReportResponse = CreateDamageReportResponses[keyof CreateDamageReportResponses];
 
 export type FindNearbyData = {
     body: NearbyRequest;

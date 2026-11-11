@@ -1,0 +1,13 @@
+{
+  "key": "{\"artifact\":\"damage_report\",\"dark\":false,\"fuel_type\":null,\"has_assistance\":false,\"locale\":\"pl\",\"problem_type\":\"pothole_damage\",\"replies\":[],\"road_class\":\"unknown\",\"sample_photo_ids\":[],\"situation\":\"on_road\",\"spare_wheel\":null,\"transmission\":null,\"vision\":false}",
+  "request": {
+    "schema_name": "damage_report",
+    "messages": [],
+    "note": "hand-made test fixture: pothole_pl_damage_report"
+  },
+  "raw_output": "{\"description\": \"Jechałem drogą lokalną i wjechałem w głęboką wyrwę w jezdni, której nie dało się ominąć.\", \"damage_summary\": \"Przecięta przednia prawa opona i wygięta felga.\"}",
+  "provider": "openai_compatible",
+  "model": "fixture-model",
+  "prompt_version": "v2",
+  "recorded_at": "2026-11-11T10:00:00.000Z"
+}

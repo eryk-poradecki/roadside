@@ -10,11 +10,13 @@ from app.integrations.nominatim import ReverseGeocoder
 from app.integrations.overpass import PlaceSource
 from app.integrations.place_recording import PlaceRecorder, PlaceRecording
 from app.repositories.ai_turns import SqliteAiTurnRepository
+from app.repositories.damage_reports import SqliteDamageReportRepository
 from app.repositories.incidents import SqliteIncidentRepository
 from app.repositories.nearby import SqliteNearbyRepository
 from app.repositories.photos import PhotoFiles, SqlitePhotoRepository
 from app.repositories.vehicles import SqliteVehicleRepository
 from app.services.assistant import AssistantService, TurnLocks
+from app.services.damage_reports import DamageReportService
 from app.services.incidents import IncidentService
 from app.services.location import LocationResolver
 from app.services.nearby import NearbyService
@@ -110,6 +112,7 @@ def get_incident_service(
         SqliteAiTurnRepository(conn),
         SqliteNearbyRepository(conn),
         SqlitePhotoRepository(conn),
+        SqliteDamageReportRepository(conn),
         files,
         location,
     )
@@ -166,6 +169,27 @@ def get_assistant_service(
         SqliteVehicleRepository(conn),
         SqliteAiTurnRepository(conn),
         SqlitePhotoRepository(conn),
+        provider,
+        locks,
+        settings.llm_turn_budget_s,
+        location,
+    )
+
+
+def get_damage_report_service(
+    conn: Connection,
+    settings: Annotated[Settings, Depends(get_settings)],
+    provider: Annotated[LLMProvider, Depends(get_llm_provider)],
+    locks: Annotated[TurnLocks, Depends(get_turn_locks)],
+    location: Annotated[LocationResolver, Depends(get_location_resolver)],
+) -> DamageReportService:
+    return DamageReportService(
+        conn,
+        SqliteIncidentRepository(conn),
+        SqliteVehicleRepository(conn),
+        SqliteAiTurnRepository(conn),
+        SqlitePhotoRepository(conn),
+        SqliteDamageReportRepository(conn),
         provider,
         locks,
         settings.llm_turn_budget_s,

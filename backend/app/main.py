@@ -13,7 +13,7 @@ from app.integrations.nominatim import NominatimGeocoder
 from app.integrations.overpass import OverpassClient
 from app.integrations.place_recording import PlaceRecorder, load_place_recordings, places_dir
 from app.middleware import BodyLimitMiddleware
-from app.routers import ai_turns, incidents, meta, nearby, photos, vehicles
+from app.routers import ai_turns, damage_reports, incidents, meta, nearby, photos, vehicles
 from app.services.assistant import TurnLocks
 from app.settings import Settings
 
@@ -104,6 +104,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     api.include_router(vehicles.router)
     api.include_router(incidents.router)
     api.include_router(ai_turns.router)
+    api.include_router(damage_reports.router)
     api.include_router(nearby.router)
     api.include_router(photos.router)
     app.include_router(api)

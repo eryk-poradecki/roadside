@@ -4,7 +4,7 @@ import json
 from dataclasses import replace
 
 from app.assist.prompt import TurnInputs, VehicleFactBlock
-from app.assist.replay_key import replay_key, scenario_key
+from app.assist.replay_key import damage_report_key, replay_key, scenario_key
 from app.domain.ai_turn import Reply
 
 VEHICLE = VehicleFactBlock(
@@ -167,3 +167,17 @@ def test_the_problem_situation_and_vehicle_change_the_scenario_key() -> None:
     assert scenario(replace(INPUTS, problem_type="out_of_fuel")) != scenario()
     assert scenario(replace(INPUTS, situation="parked")) != scenario()
     assert scenario(replace(INPUTS, vehicle=None)) != scenario()
+
+
+def test_a_damage_report_sits_under_the_turn_key_but_apart_from_it() -> None:
+    """ADR 0009: the draft is stored with its scenario's recordings, never as its turn."""
+    args: dict[str, object] = {
+        "locale": "pl",
+        "sample_photo_ids": ("pothole",),
+        "vision": False,
+        "replies": (Reply(skip=True),),
+    }
+    turn = json.loads(replay_key(INPUTS, **args))  # type: ignore[arg-type]
+    report = json.loads(damage_report_key(INPUTS, **args))  # type: ignore[arg-type]
+
+    assert report == {**turn, "artifact": "damage_report"}

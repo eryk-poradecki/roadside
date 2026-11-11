@@ -3,8 +3,8 @@
 import { type DefaultError, type InfiniteData, infiniteQueryOptions, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { addPhoto, createIncident, createVehicle, deleteIncident, deletePhoto, deleteVehicle, findNearby, getIncident, getPhoto, getSamplePhoto, getVehicle, health, listIncidents, listVehicles, type Options, readConfig, replaceVehicle, takeAiTurn, updateIncident } from '../sdk.gen';
-import type { AddPhotoData, AddPhotoError, AddPhotoResponse, CreateIncidentData, CreateIncidentError, CreateIncidentResponse, CreateVehicleData, CreateVehicleError, CreateVehicleResponse, DeleteIncidentData, DeleteIncidentError, DeleteIncidentResponse, DeletePhotoData, DeletePhotoError, DeletePhotoResponse, DeleteVehicleData, DeleteVehicleError, DeleteVehicleResponse, FindNearbyData, FindNearbyError, FindNearbyResponse, GetIncidentData, GetIncidentError, GetIncidentResponse, GetPhotoData, GetPhotoError, GetPhotoResponse, GetSamplePhotoData, GetSamplePhotoError, GetVehicleData, GetVehicleError, GetVehicleResponse, HealthData, HealthResponse, ListIncidentsData, ListIncidentsError, ListIncidentsResponse, ListVehiclesData, ListVehiclesResponse, ReadConfigData, ReadConfigResponse, ReplaceVehicleData, ReplaceVehicleError, ReplaceVehicleResponse, TakeAiTurnData, TakeAiTurnError, TakeAiTurnResponse, UpdateIncidentData, UpdateIncidentError, UpdateIncidentResponse } from '../types.gen';
+import { addPhoto, createDamageReport, createIncident, createVehicle, deleteDamageReport, deleteIncident, deletePhoto, deleteVehicle, findNearby, getDamageReport, getIncident, getPhoto, getSamplePhoto, getVehicle, health, listIncidents, listVehicles, type Options, readConfig, replaceVehicle, takeAiTurn, updateDamageReport, updateIncident } from '../sdk.gen';
+import type { AddPhotoData, AddPhotoError, AddPhotoResponse, CreateDamageReportData, CreateDamageReportError, CreateDamageReportResponse, CreateIncidentData, CreateIncidentError, CreateIncidentResponse, CreateVehicleData, CreateVehicleError, CreateVehicleResponse, DeleteDamageReportData, DeleteDamageReportError, DeleteDamageReportResponse, DeleteIncidentData, DeleteIncidentError, DeleteIncidentResponse, DeletePhotoData, DeletePhotoError, DeletePhotoResponse, DeleteVehicleData, DeleteVehicleError, DeleteVehicleResponse, FindNearbyData, FindNearbyError, FindNearbyResponse, GetDamageReportData, GetDamageReportError, GetDamageReportResponse, GetIncidentData, GetIncidentError, GetIncidentResponse, GetPhotoData, GetPhotoError, GetPhotoResponse, GetSamplePhotoData, GetSamplePhotoError, GetVehicleData, GetVehicleError, GetVehicleResponse, HealthData, HealthResponse, ListIncidentsData, ListIncidentsError, ListIncidentsResponse, ListVehiclesData, ListVehiclesResponse, ReadConfigData, ReadConfigResponse, ReplaceVehicleData, ReplaceVehicleError, ReplaceVehicleResponse, TakeAiTurnData, TakeAiTurnError, TakeAiTurnResponse, UpdateDamageReportData, UpdateDamageReportError, UpdateDamageReportResponse, UpdateIncidentData, UpdateIncidentError, UpdateIncidentResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -228,6 +228,87 @@ export const takeAiTurnMutation = (options?: Partial<Options<TakeAiTurnData>>): 
     const mutationOptions: UseMutationOptions<TakeAiTurnResponse, TakeAiTurnError, Options<TakeAiTurnData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await takeAiTurn({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Delete Damage Report
+ */
+export const deleteDamageReportMutation = (options?: Partial<Options<DeleteDamageReportData>>): UseMutationOptions<DeleteDamageReportResponse, DeleteDamageReportError, Options<DeleteDamageReportData>> => {
+    const mutationOptions: UseMutationOptions<DeleteDamageReportResponse, DeleteDamageReportError, Options<DeleteDamageReportData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await deleteDamageReport({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const getDamageReportQueryKey = (options: Options<GetDamageReportData>) => createQueryKey('getDamageReport', options);
+
+/**
+ * Get Damage Report
+ *
+ * The incident's damage report; 404 when the incident or the report doesn't exist.
+ */
+export const getDamageReportOptions = (options: Options<GetDamageReportData>) => queryOptions<GetDamageReportResponse, GetDamageReportError, GetDamageReportResponse, ReturnType<typeof getDamageReportQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getDamageReport({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getDamageReportQueryKey(options)
+});
+
+/**
+ * Update Damage Report
+ *
+ * Edit the body, or mark it `sent` (or back to `draft`).
+ */
+export const updateDamageReportMutation = (options?: Partial<Options<UpdateDamageReportData>>): UseMutationOptions<UpdateDamageReportResponse, UpdateDamageReportError, Options<UpdateDamageReportData>> => {
+    const mutationOptions: UseMutationOptions<UpdateDamageReportResponse, UpdateDamageReportError, Options<UpdateDamageReportData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await updateDamageReport({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Create Damage Report
+ *
+ * Draft the damage report with the assistant and wait for it (ADR 0009).
+ *
+ * Only for a pothole incident (422 `not_pothole_damage`); a later type change keeps it. One
+ * per incident (409 `damage_report_exists`) unless `replace: true`, which overwrites it,
+ * sets it back to `draft` and answers 200. It runs under the incident's turn lock (409
+ * `turn_in_progress`) and fails like an AI turn (502 `provider_error` / `invalid_output`,
+ * 504 `timeout`, 503 `no_recording` in demo mode), storing nothing.
+ */
+export const createDamageReportMutation = (options?: Partial<Options<CreateDamageReportData>>): UseMutationOptions<CreateDamageReportResponse, CreateDamageReportError, Options<CreateDamageReportData>> => {
+    const mutationOptions: UseMutationOptions<CreateDamageReportResponse, CreateDamageReportError, Options<CreateDamageReportData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await createDamageReport({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

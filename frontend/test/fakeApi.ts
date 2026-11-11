@@ -12,6 +12,7 @@ import type {
   IncidentRead,
   IncidentSummary,
 } from '../src/api/incidents'
+import type { DamageReportPatch, DamageReportRead } from '../src/api/damageReports'
 import type { NearbyRead, PlaceRead } from '../src/api/nearby'
 import type { PhotoRead, SamplePhoto } from '../src/api/photos'
 import type { VehicleCreate, VehicleRead } from '../src/api/vehicles'
@@ -86,6 +87,15 @@ export type PhotoScript = 'ok' | { status: number; reason: string }
 /** One scripted `POST /nearby` outcome: the places found, or a problem response. */
 export type NearbyScript = PlaceRead[] | { status: number; reason: string }
 
+/** The letter the fake assistant drafts, with the backend template's placeholders. */
+export const reportBody = (locale: 'pl' | 'en') =>
+  locale === 'pl'
+    ? '[Imię i nazwisko]\n[Adres]\nTel.: [Telefon]\n\n[Adresat: zarządca drogi]\n\nNr rej. WX 1234K. Wjechałem w głęboką wyrwę.\n\nRachunek: [Numer konta bankowego]\n\n[Imię i nazwisko]'
+    : '[Your name]\n[Your address]\nPhone: [Your phone]\n\n[Addressee: road manager]\n\nRegistration WX 1234K. I hit a deep pothole.\n\nBank account: [Your bank account]\n\n[Your name]'
+
+/** One scripted `POST /damage-report` outcome: drafted, or a problem response. */
+export type ReportScript = 'ok' | { status: number; reason: string }
+
 /** One scripted `POST /ai-turns` outcome: an advice, a question, or a problem response. */
 export type TurnScript =
   | { advice: AdviceRead; urgent?: boolean }
@@ -127,6 +137,16 @@ export class FakeApi {
   nearbyRequests: { incidentId: number; body: { radius_km: number } }[] = []
   /** What `GET /config` answers; tests switch demo mode off to upload files. */
   config = { demo_mode: true, vision_enabled: false }
+  /** Each incident's damage report, by incident id. */
+  reports = new Map<number, DamageReportRead>()
+  /** Outcomes of the next report drafts, in order; when empty, a draft is stored. */
+  reportScript: ReportScript[] = []
+  /** Every request to `/incidents/:id/damage-report`, with its body. */
+  reportRequests: { method: string; incidentId: number; body: unknown }[] = []
+  /** How many times the app read a damage report. */
+  reportGets = 0
+  /** While set, every report draft waits for it before answering. */
+  reportGate: Promise<void> | null = null
   /** Outcomes of the next photo uploads, in order; when empty, an upload is stored. */
   photoScript: PhotoScript[] = []
   /** While set, every photo upload waits for it before answering. */
@@ -156,6 +176,11 @@ export class FakeApi {
     this.config = { demo_mode: true, vision_enabled: false }
     this.photoScript = []
     this.photoGate = null
+    this.reports = new Map()
+    this.reportScript = []
+    this.reportRequests = []
+    this.reportGate = null
+    this.reportGets = 0
     this.photoRequests = []
     this.nextPhotoId = 1
     this.nextTurnId = 1
@@ -194,6 +219,7 @@ export class FakeApi {
       photos: [],
       ai_turns: [],
       nearby: null,
+      damage_report_status: null,
     }
     this.incidents.push(incident)
     return incident
@@ -379,6 +405,7 @@ export class FakeApi {
           location: i.location ? { lat: i.location.lat, lon: i.location.lon } : null,
           location_label: i.location_label,
           vehicle_id: i.vehicle_id,
+          damage_report_status: this.reports.get(i.id)?.status ?? null,
         }))
         return HttpResponse.json({ items, total: matching.length, limit, offset })
       }),
@@ -421,6 +448,7 @@ export class FakeApi {
       http.delete(`${API}/api/v1/incidents/:id`, ({ params }) => {
         const before = this.incidents.length
         this.incidents = this.incidents.filter((i) => i.id !== Number(params.id))
+        this.reports.delete(Number(params.id))
         return this.incidents.length === before
           ? problem(404, 'not_found', 'Incident not found')
           : new HttpResponse(null, { status: 204 })
@@ -456,6 +484,46 @@ export class FakeApi {
             ? this.questionTurn(next.ask, { ...extra, locale: body.locale })
             : this.adviceTurn(next.advice, body.locale, { ...extra, urgent: next.urgent ?? false })
         return HttpResponse.json(append(turn), { status: 201 })
+      }),
+      http.get(`${API}/api/v1/incidents/:id/damage-report`, ({ params }) => {
+        this.reportGets++
+        const report = this.reports.get(Number(params.id))
+        return report ? HttpResponse.json(report) : problem(404, 'not_found', 'No report')
+      }),
+      http.post(`${API}/api/v1/incidents/:id/damage-report`, async ({ params, request }) => {
+        const incidentId = Number(params.id)
+        const body = (await request.json()) as { locale?: 'pl' | 'en'; replace?: boolean }
+        this.reportRequests.push({ method: 'POST', incidentId, body })
+        if (this.reportGate) await this.reportGate
+        const incident = this.incidents.find((i) => i.id === incidentId)
+        if (!incident) return problem(404, 'not_found', 'Incident not found')
+        if (incident.problem_type !== 'pothole_damage')
+          return problem(422, 'not_pothole_damage', 'Not a pothole')
+        const existing = this.reports.get(incidentId)
+        if (existing && !body.replace) return problem(409, 'damage_report_exists', 'Exists')
+        const next = this.reportScript.shift() ?? 'ok'
+        // Like the server: a failed draft stores nothing.
+        if (next !== 'ok') return problem(next.status, next.reason, 'internal detail')
+        const locale = body.locale ?? 'pl'
+        const report: DamageReportRead = {
+          status: 'draft',
+          locale,
+          body: reportBody(locale),
+          created_at: existing?.created_at ?? '2026-11-10T10:05:00.000Z',
+          updated_at: `2026-11-10T10:05:0${String(this.reportRequests.length % 10)}.000Z`,
+        }
+        this.reports.set(incidentId, report)
+        return HttpResponse.json(report, { status: existing ? 200 : 201 })
+      }),
+      http.patch(`${API}/api/v1/incidents/:id/damage-report`, async ({ params, request }) => {
+        const incidentId = Number(params.id)
+        const body = (await request.json()) as DamageReportPatch
+        this.reportRequests.push({ method: 'PATCH', incidentId, body })
+        const current = this.reports.get(incidentId)
+        if (!current) return problem(404, 'not_found', 'No report')
+        const updated = { ...current, ...body, updated_at: '2026-11-10T11:00:00.000Z' }
+        this.reports.set(incidentId, updated)
+        return HttpResponse.json(updated)
       }),
       http.post(`${API}/api/v1/incidents/:id/nearby`, async ({ params, request }) => {
         const incidentId = Number(params.id)
@@ -529,7 +597,12 @@ export class FakeApi {
       }),
       http.get(`${API}/api/v1/incidents/:id`, ({ params }) => {
         const found = this.incidents.find((i) => i.id === Number(params.id))
-        return found ? HttpResponse.json(found) : problem(404, 'not_found', 'Incident not found')
+        return found
+          ? HttpResponse.json({
+              ...found,
+              damage_report_status: this.reports.get(found.id)?.status ?? null,
+            })
+          : problem(404, 'not_found', 'Incident not found')
       }),
       http.delete(`${API}/api/v1/vehicles/:id`, ({ params }) => {
         const before = this.vehicles.length

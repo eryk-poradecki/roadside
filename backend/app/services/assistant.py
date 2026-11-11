@@ -16,14 +16,12 @@ import time
 import weakref
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from dataclasses import replace
 from datetime import UTC, datetime
 from itertools import pairwise
 from typing import Any
 from zoneinfo import ZoneInfo
 
 import aiosqlite
-from pydantic import ValidationError
 
 from app.assist import prompt
 from app.assist.contract import TurnOutput, validate_output
@@ -41,15 +39,14 @@ from app.integrations.llm.base import (
     LLMRequest,
     LLMResult,
     ProviderError,
-    ProviderTimeoutError,
 )
-from app.integrations.llm.replay import NoRecordingError
 from app.repositories.ai_turns import AiTurnRepository
 from app.repositories.incidents import IncidentRepository
 from app.repositories.photos import PhotoRepository
 from app.repositories.vehicles import VehicleRepository
 from app.services.clock import utc_now
 from app.services.location import LocationResolver, refresh_location_context
+from app.services.model_call import InvalidOutputError, complete_validated, problem_for
 
 logger = logging.getLogger(__name__)
 
@@ -76,36 +73,6 @@ class TurnLocks:
             raise AppError(409, "turn_in_progress", "A turn for this incident is running")
         async with lock:
             yield
-
-
-class _InvalidOutputError(Exception):
-    pass
-
-
-def _problem_for(exc: BaseException) -> AppError:
-    if isinstance(exc, TimeoutError | ProviderTimeoutError):
-        return AppError(504, "timeout", "The assistant did not answer in time")
-    if isinstance(exc, NoRecordingError):
-        # Demo mode: a labelled fallback, never another scenario's answer (ADR 0004).
-        return AppError(503, "no_recording", "No recorded answer for this case in demo mode")
-    if isinstance(exc, _InvalidOutputError):
-        return AppError(502, "invalid_output", "The assistant's answer was not valid")
-    return AppError(502, "provider_error", "The assistant could not be reached")
-
-
-def _repair_message(error: Exception) -> str:
-    detail = (
-        "; ".join(
-            f"{'.'.join(str(p) for p in e['loc']) or 'output'}: {e['msg']}"
-            for e in error.errors(include_url=False)
-        )
-        if isinstance(error, ValidationError)
-        else str(error)
-    )
-    return (
-        f"Your previous output was invalid: {detail}. "
-        "Reply again with one corrected JSON object that follows the schema, and nothing else."
-    )
 
 
 class AssistantService:
@@ -154,8 +121,8 @@ class AssistantService:
                         exchanges=_exchanges(turns),
                         replay_key=key,
                     )
-            except (TimeoutError, ProviderError, _InvalidOutputError) as exc:
-                problem = _problem_for(exc)
+            except (TimeoutError, ProviderError, InvalidOutputError) as exc:
+                problem = problem_for(exc)
                 logger.info(
                     "ai turn failed: incident=%d provider=%s reason=%s latency_ms=%d",
                     incident_id,
@@ -196,7 +163,7 @@ class AssistantService:
         scenario = scenario_key(incident.problem_type.value, incident.situation.value, facts)
         incident = await self._with_location_context(incident, locale, scenario)
         sample_ids = [p.sample_id for p in photos if p.sample_id is not None]
-        return _inputs(incident, facts), turns, sample_ids
+        return turn_inputs(incident, facts, datetime.now(UTC)), turns, sample_ids
 
     async def _store_reply(self, incident_id: int, reply: Reply) -> list[AiTurn]:
         """Append the reply in its own transaction, so it stays if the model call fails."""
@@ -238,24 +205,9 @@ class AssistantService:
             messages=messages, schema=rendered.schema, schema_name="ai_turn", replay_key=replay_key
         )
 
-        result = await self._provider.complete(request)
-        try:
-            return validate_output(result.text, allow_ask=allow_ask), result
-        except ValueError as exc:
-            logger.info("ai output invalid, making the one repair call")
-            repair = replace(
-                request,
-                messages=(
-                    *messages,
-                    LLMMessage("assistant", result.text),
-                    LLMMessage("user", _repair_message(exc)),
-                ),
-            )
-        result = await self._provider.complete(repair)
-        try:
-            return validate_output(result.text, allow_ask=allow_ask), result
-        except ValueError as exc:
-            raise _InvalidOutputError from exc
+        return await complete_validated(
+            self._provider, request, lambda raw: validate_output(raw, allow_ask=allow_ask)
+        )
 
     async def _store(
         self,
@@ -338,8 +290,9 @@ def _exchanges(turns: list[AiTurn]) -> tuple[Exchange, ...]:
     )
 
 
-def _inputs(incident: Incident, vehicle: VehicleFactBlock | None) -> TurnInputs:
-    now = datetime.now(UTC)
+def turn_inputs(incident: Incident, vehicle: VehicleFactBlock | None, at: datetime) -> TurnInputs:
+    """The fact set the model is told, as of `at`: now for a turn, the incident's time for a
+    damage report."""
     lat, lon = (
         (incident.location.lat, incident.location.lon) if incident.location else POLAND_CENTRE
     )
@@ -351,8 +304,8 @@ def _inputs(incident: Incident, vehicle: VehicleFactBlock | None) -> TurnInputs:
         situation=incident.situation.value,
         problem_type=incident.problem_type.value,
         note=incident.note,
-        local_time=now.astimezone(LOCAL_TZ).isoformat(timespec="minutes"),
-        dark=is_dark(now, lat, lon),
+        local_time=at.astimezone(LOCAL_TZ).isoformat(timespec="minutes"),
+        dark=is_dark(at, lat, lon),
     )
 
 

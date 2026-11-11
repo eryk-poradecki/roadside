@@ -13,6 +13,7 @@ from string import Template
 from typing import Any
 
 from app.assist.contract import model_schema
+from app.assist.report_contract import report_schema
 from app.domain.ai_turn import Locale, Reply
 from app.domain.vehicle import VehicleFacts
 
@@ -198,6 +199,31 @@ def render(
         light="dark" if inputs.dark else "daylight",
         photos=photos,
         conversation=conversation,
+        language=language,
+    )
+    return RenderedPrompt(system=system, user=user, schema=schema)
+
+
+def render_report(
+    inputs: TurnInputs, locale: Locale, *, photo_count: int, cause: str | None
+) -> RenderedPrompt:
+    """The damage report prompt (ADR 0009): the same fact set as an AI turn, plus the cause
+    from the advice when there is one. The model is told how many photos there are; it never
+    sees the registration, the coordinates or the location label."""
+    schema = report_schema()
+    system = _template("report_system.md").substitute(schema=json.dumps(schema, indent=2))
+    language = _LANGUAGES[locale]
+    user = _template("report_user.md").substitute(
+        problem=inputs.problem_type,
+        note=inputs.note or "(none)",
+        vehicle=inputs.vehicle.render() if inputs.vehicle else "No vehicle details were given.",
+        situation=_SITUATIONS[inputs.situation],
+        road_class=inputs.road_class,
+        settlement=inputs.settlement,
+        local_time=inputs.local_time,
+        light="dark" if inputs.dark else "daylight",
+        photos=f"{photo_count} attached by the driver, not shown to you" if photo_count else "none",
+        cause=cause or "(none yet)",
         language=language,
     )
     return RenderedPrompt(system=system, user=user, schema=schema)

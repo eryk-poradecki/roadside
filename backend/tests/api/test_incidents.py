@@ -233,6 +233,7 @@ async def test_list_items_are_summaries(client: httpx.AsyncClient) -> None:
         "location",
         "location_label",
         "vehicle_id",
+        "damage_report_status",
     }
     assert item["location"] == {"lat": 52.0, "lon": 21.0}
     assert item["vehicle_id"] == vehicle_id

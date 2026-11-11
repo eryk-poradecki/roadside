@@ -43,7 +43,7 @@ export function useIncidents(status: IncidentStatus | null) {
 }
 
 /** Every History list, whatever its filter, is stale after any incident write. */
-function useInvalidateLists() {
+export function useInvalidateLists() {
   const queryClient = useQueryClient()
   // Partial key match: every list, whatever its filters or paging.
   return () => queryClient.invalidateQueries({ queryKey: [{ _id: 'listIncidents' }] })

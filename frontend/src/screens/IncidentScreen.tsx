@@ -24,6 +24,7 @@ import { useVehicles, type VehicleRead } from '../api/vehicles'
 import { findAdvice } from '../api/aiTurns'
 import { AiPanel } from '../components/AiPanel'
 import { DockAction, EmergencyFirst, useDockUrgent } from '../components/AppShell'
+import { DamageReportPanel, PotholeHint } from '../components/DamageReportPanel'
 import { ErrorNotice } from '../components/ErrorNotice'
 import { NearbyPanel } from '../components/NearbyPanel'
 import { PhotosPanel } from '../components/PhotosPanel'
@@ -192,6 +193,9 @@ function Result({
       <NearbyPanel incident={incident} fuelType={vehicle?.fuel_type} />
 
       <PhotosPanel incident={incident} />
+
+      {incident.problem_type === 'flat_tyre' && <PotholeHint incident={incident} />}
+      <DamageReportPanel incident={incident} />
 
       <Upkeep incident={incident} />
 
