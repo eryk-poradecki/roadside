@@ -144,6 +144,7 @@ Tools come back where the model makes a real choice, in the MCP server. The dama
   - that no field can carry a place;
   - replay key matching, including locale and vision mismatches.
 - **`scripts/eval_assist.py`** is run by hand against a live provider or CLIProvider, never in CI, and logs the provider and model of every run.
+  - *Built in #64:* `backend/scripts/eval_assist.py` (`make eval`, outside `make check`) runs the scenarios in `backend/scripts/evals/` through the service's own `generate_turn` (prompt, validation, one repair) with the same two-question cap. Next to the checks below it also checks the ADR 0010 lead-with-safety rule (skipped for a parked car), that a parked car doesn't lead with a roadside step and never hears of 19 111 (#93), that 19 111 comes up only on a motorway, and that only an LPG car hears about LPG (#90). The rule checks have unit tests in `backend/tests/evals/`.
   - About 10 scenarios, with scripted replies for the multi-turn ones.
   - Rule checks in code: the schema is valid, at most two questions, no push start for automatic/EV/hybrid, EVs get charging, "no spare" only for `none`, the output language matches the locale, smoke sets `urgent`, and the turn time stays under budget.
   - Results go into AI_USAGE per model. There is no LLM-as-judge in the MVP.

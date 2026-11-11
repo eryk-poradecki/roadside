@@ -6,7 +6,7 @@ FRONTEND := frontend
 
 .PHONY: help install dev-api dev-web migrate lint format typecheck test build openapi openapi-drift pre-commit requirements check-requirements check check-backend check-frontend \
 	lint-backend lint-frontend typecheck-backend typecheck-frontend test-backend test-frontend \
-	up down docker-smoke
+	up down docker-smoke eval
 
 help: ## List targets
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "%-20s %s\n", $$1, $$2}'
@@ -36,6 +36,11 @@ docker-smoke: ## Build and start the stack, check /health and demo mode through 
 	  || { echo "/api/v1/config is not in demo mode (a backend/.env with DEMO_MODE=false?)"; exit 1; }
 	docker compose down -v
 
+# Calls a real model (backend/.env with DEMO_MODE=false), so it is never part of `check` or CI.
+# Pass ARGS, e.g. `make eval ARGS="--scenario smoke_pl --out evals.md"`.
+eval: ## Run the AI evals against the configured live model and print a Markdown report
+	cd $(BACKEND) && uv run python -m scripts.eval_assist $(ARGS)
+
 migrate: ## Apply database migrations
 	cd $(BACKEND) && uv run python -m app.db migrate
 
@@ -54,7 +59,7 @@ format: ## ruff fix + format; eslint fix + prettier
 typecheck: typecheck-backend typecheck-frontend ## mypy strict; tsc
 
 typecheck-backend:
-	cd $(BACKEND) && uv run mypy app tests $(HOOKS)/format.py
+	cd $(BACKEND) && uv run mypy app scripts tests $(HOOKS)/format.py
 
 typecheck-frontend:
 	cd $(FRONTEND) && npm run typecheck
