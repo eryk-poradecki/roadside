@@ -24,6 +24,29 @@ class ModelProvenance:
 
 
 @dataclass(frozen=True, slots=True)
+class Reply:
+    """The driver's reply to a clarifying question: exactly one of the three is set."""
+
+    option: str | None = None
+    text: str | None = None
+    # "Just give me the steps": no more questions, the advice now.
+    skip: bool = False
+
+    def to_payload(self) -> dict[str, Any]:
+        if self.option is not None:
+            return {"option": self.option}
+        if self.text is not None:
+            return {"text": self.text}
+        return {"skip": True}
+
+    @classmethod
+    def from_payload(cls, payload: dict[str, Any]) -> "Reply":
+        return cls(
+            option=payload.get("option"), text=payload.get("text"), skip=bool(payload.get("skip"))
+        )
+
+
+@dataclass(frozen=True, slots=True)
 class NewAiTurn:
     kind: AiTurnKind
     payload: dict[str, Any]

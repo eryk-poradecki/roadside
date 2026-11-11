@@ -13,7 +13,7 @@ from string import Template
 from typing import Any
 
 from app.assist.contract import model_schema
-from app.domain.ai_turn import Locale
+from app.domain.ai_turn import Locale, Reply
 from app.domain.vehicle import VehicleFacts
 
 PROMPT_VERSION = "v1"
@@ -109,6 +109,24 @@ class TurnInputs:
 
 
 @dataclass(frozen=True, slots=True)
+class Exchange:
+    """A clarifying question already asked, and the driver's reply to it."""
+
+    question: str
+    reply: Reply
+
+    def render(self, n: int) -> str:
+        r = self.reply
+        if r.option is not None:
+            said = f"The driver tapped: {json.dumps(r.option, ensure_ascii=False)}"
+        elif r.text is not None:
+            said = f"The driver wrote: {json.dumps(r.text, ensure_ascii=False)}"
+        else:
+            said = "The driver skipped further questions and wants the steps now"
+        return f"{n}. You asked: {json.dumps(self.question, ensure_ascii=False)}\n   {said}."
+
+
+@dataclass(frozen=True, slots=True)
 class RenderedPrompt:
     system: str
     user: str
@@ -120,7 +138,13 @@ def _template(name: str) -> Template:
     return Template((_PROMPTS / PROMPT_VERSION / name).read_text(encoding="utf-8"))
 
 
-def render(inputs: TurnInputs, locale: Locale, *, allow_ask: bool) -> RenderedPrompt:
+def render(
+    inputs: TurnInputs,
+    locale: Locale,
+    *,
+    allow_ask: bool,
+    exchanges: tuple[Exchange, ...] = (),
+) -> RenderedPrompt:
     schema = model_schema(allow_ask=allow_ask)
     system = _template("system.md").substitute(
         questions=_template("ask_allowed.md" if allow_ask else "ask_forbidden.md").template,
@@ -131,6 +155,12 @@ def render(inputs: TurnInputs, locale: Locale, *, allow_ask: bool) -> RenderedPr
     if inputs.photos_not_sent:
         photos += f"; {inputs.photos_not_sent} more not sent to you"
     language = _LANGUAGES[locale]
+    conversation = (
+        "\n\nClarifying questions so far:\n"
+        + "\n".join(e.render(n) for n, e in enumerate(exchanges, start=1))
+        if exchanges
+        else ""
+    )
     user = _template("user.md").substitute(
         problem=inputs.problem_type,
         note=inputs.note or "(none)",
@@ -141,6 +171,7 @@ def render(inputs: TurnInputs, locale: Locale, *, allow_ask: bool) -> RenderedPr
         local_time=inputs.local_time,
         light="dark" if inputs.dark else "daylight",
         photos=photos,
+        conversation=conversation,
         language=language,
     )
     return RenderedPrompt(system=system, user=user, schema=schema)

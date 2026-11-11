@@ -1,9 +1,12 @@
 """The AI turn pipeline every provider goes through (ADR 0004).
 
-Read the incident → build the inputs snapshot → render the versioned prompt → one model call
-→ validate → at most one repair call → store the turn. The whole turn runs under one
-budget, and one turn at a time per incident. No transaction stays open across the model
-call; a failed turn stores nothing.
+Read the incident → store the driver's reply, if any → build the inputs snapshot → render the
+versioned prompt → one model call → validate → at most one repair call → store the turn. The
+whole turn runs under one budget, and one turn at a time per incident. No transaction stays
+open across the model call; a failed turn stores nothing, but a reply stored before it stays.
+
+The backend enforces the cap on clarifying questions: after two, or after "Just give me the
+steps", the schema allows only an answer.
 """
 
 import asyncio
@@ -15,6 +18,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import replace
 from datetime import UTC, datetime
+from itertools import pairwise
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -24,12 +28,12 @@ from pydantic import ValidationError
 from app.assist import prompt
 from app.assist.contract import TurnOutput, validate_output
 from app.assist.daylight import POLAND_CENTRE, is_dark
-from app.assist.prompt import TurnInputs, VehicleFactBlock
+from app.assist.prompt import Exchange, TurnInputs, VehicleFactBlock
 from app.db.connection import read_snapshot, transaction
-from app.domain.ai_turn import AiTurn, AiTurnKind, Locale, ModelProvenance, NewAiTurn
+from app.domain.ai_turn import AiTurn, AiTurnKind, Locale, ModelProvenance, NewAiTurn, Reply
 from app.domain.incident import Incident
 from app.domain.location_context import UNKNOWN_CONTEXT
-from app.errors import AppError, NotFoundError
+from app.errors import AppError, FieldValidationError, NotFoundError
 from app.integrations.llm.base import (
     LLMMessage,
     LLMProvider,
@@ -48,6 +52,9 @@ logger = logging.getLogger(__name__)
 
 # The region is fixed (Poland/EU): local time is Polish time.
 LOCAL_TZ = ZoneInfo("Europe/Warsaw")
+
+# At most this many clarifying questions per incident (ADR 0004).
+MAX_QUESTIONS = 2
 
 
 class TurnLocks:
@@ -116,13 +123,18 @@ class AssistantService:
         self._budget_s = turn_budget_s
         self._location = location
 
-    async def take_turn(self, incident_id: int, locale: Locale) -> AiTurn:
+    async def take_turn(
+        self, incident_id: int, locale: Locale, reply: Reply | None = None
+    ) -> AiTurn:
         async with self._locks.hold(incident_id):
-            inputs = await self._prepare(incident_id, locale)
+            inputs, turns = await self._prepare(incident_id, locale, reply)
+            allow_ask = _may_ask(turns)
             started = time.monotonic()
             try:
                 async with asyncio.timeout(self._budget_s):
-                    output, result = await self._generate(inputs, locale)
+                    output, result = await self._generate(
+                        inputs, locale, allow_ask=allow_ask, exchanges=_exchanges(turns)
+                    )
             except (TimeoutError, ProviderError, _InvalidOutputError) as exc:
                 problem = _problem_for(exc)
                 logger.info(
@@ -141,9 +153,11 @@ class AssistantService:
                 output.kind,
                 (time.monotonic() - started) * 1000,
             )
-            return await self._store(incident_id, inputs, locale, output, result)
+            return await self._store(incident_id, inputs, locale, output, result, len(turns))
 
-    async def _prepare(self, incident_id: int, locale: Locale) -> TurnInputs:
+    async def _prepare(
+        self, incident_id: int, locale: Locale, reply: Reply | None
+    ) -> tuple[TurnInputs, list[AiTurn]]:
         async with read_snapshot(self._conn):
             incident = await self._incidents.get(incident_id)
             if incident is None:
@@ -154,10 +168,23 @@ class AssistantService:
                 if incident.vehicle_id is not None
                 else None
             )
-        if any(t.kind is AiTurnKind.ADVICE for t in turns):
-            raise AppError(409, "advice_exists", "The AI answer is complete")
+        _check_can_take(turns, reply)
+        if reply is not None:
+            turns = await self._store_reply(incident_id, reply)
         incident = await self._with_location_context(incident, locale)
-        return _inputs(incident, VehicleFactBlock.from_facts(vehicle.facts) if vehicle else None)
+        facts = VehicleFactBlock.from_facts(vehicle.facts) if vehicle else None
+        return _inputs(incident, facts), turns
+
+    async def _store_reply(self, incident_id: int, reply: Reply) -> list[AiTurn]:
+        """Append the reply in its own transaction, so it stays if the model call fails."""
+        async with transaction(self._conn):
+            if await self._incidents.get(incident_id) is None:
+                raise NotFoundError("Incident")
+            # Checked again under the write lock: another worker may have replied first.
+            _check_can_take(await self._turns.list_for_incident(incident_id), reply)
+            new = NewAiTurn(kind=AiTurnKind.REPLY, payload=reply.to_payload(), provenance=None)
+            await self._turns.append(incident_id, new, utc_now())
+            return await self._turns.list_for_incident(incident_id)
 
     async def _with_location_context(self, incident: Incident, locale: Locale) -> Incident:
         """Look the context up once, lazily, and cache it with the label on the incident.
@@ -170,10 +197,15 @@ class AssistantService:
             self._conn, self._incidents, self._location, incident, locale
         )
 
-    async def _generate(self, inputs: TurnInputs, locale: Locale) -> tuple[TurnOutput, LLMResult]:
-        # Clarifying questions arrive with their own ticket; until then every turn answers.
-        allow_ask = False
-        rendered = prompt.render(inputs, locale, allow_ask=allow_ask)
+    async def _generate(
+        self,
+        inputs: TurnInputs,
+        locale: Locale,
+        *,
+        allow_ask: bool,
+        exchanges: tuple[Exchange, ...],
+    ) -> tuple[TurnOutput, LLMResult]:
+        rendered = prompt.render(inputs, locale, allow_ask=allow_ask, exchanges=exchanges)
         logger.debug("ai prompt:\n%s\n%s", rendered.system, rendered.user)
         messages = (LLMMessage("system", rendered.system), LLMMessage("user", rendered.user))
         request = LLMRequest(messages=messages, schema=rendered.schema, schema_name="ai_turn")
@@ -204,6 +236,7 @@ class AssistantService:
         locale: Locale,
         output: TurnOutput,
         result: LLMResult,
+        turns_seen: int,
     ) -> AiTurn:
         payload = _payload(output, inputs)
         new = NewAiTurn(
@@ -222,12 +255,50 @@ class AssistantService:
                 # The incident may have been deleted while the model was answering.
                 if await self._incidents.get(incident_id) is None:
                     raise NotFoundError("Incident")
+                # Only another worker can have appended since; the in-process lock covers
+                # this one. Storing anyway could put two questions in a row.
+                current = await self._turns.list_for_incident(incident_id)
+                if any(t.kind is AiTurnKind.ADVICE for t in current):
+                    raise AppError(409, "advice_exists", "The AI answer is complete")
+                if len(current) != turns_seen:
+                    raise AppError(409, "turn_in_progress", "A turn for this incident is running")
                 turn_id = await self._turns.append(incident_id, new, utc_now())
                 turns = await self._turns.list_for_incident(incident_id)
         except sqlite3.IntegrityError as exc:
             # Only another worker can get here first; the in-process lock covers this one.
             raise AppError(409, "advice_exists", "The AI answer is complete") from exc
         return next(t for t in turns if t.id == turn_id)
+
+
+def _check_can_take(turns: list[AiTurn], reply: Reply | None) -> None:
+    """The 409s of ADR 0005, and a reply's option must be one the question offered."""
+    if any(t.kind is AiTurnKind.ADVICE for t in turns):
+        raise AppError(409, "advice_exists", "The AI answer is complete")
+    open_question = turns[-1] if turns and turns[-1].kind is AiTurnKind.QUESTION else None
+    if open_question is None:
+        if reply is not None:
+            raise AppError(409, "no_open_question", "There is no question to reply to")
+        return
+    if reply is None:
+        raise AppError(409, "reply_required", "Reply to the open question first")
+    if reply.option is not None and reply.option not in open_question.payload["ask"]["options"]:
+        raise FieldValidationError("reply.option", "Not one of the question's options")
+
+
+def _may_ask(turns: list[AiTurn]) -> bool:
+    """The cap: no question after two, or after the driver skipped to the steps."""
+    questions = sum(t.kind is AiTurnKind.QUESTION for t in turns)
+    skipped = any(t.kind is AiTurnKind.REPLY and Reply.from_payload(t.payload).skip for t in turns)
+    return questions < MAX_QUESTIONS and not skipped
+
+
+def _exchanges(turns: list[AiTurn]) -> tuple[Exchange, ...]:
+    """Each question with the reply that follows it, in order."""
+    return tuple(
+        Exchange(question=q.payload["ask"]["question"], reply=Reply.from_payload(r.payload))
+        for q, r in pairwise(turns)
+        if q.kind is AiTurnKind.QUESTION and r.kind is AiTurnKind.REPLY
+    )
 
 
 def _inputs(incident: Incident, vehicle: VehicleFactBlock | None) -> TurnInputs:

@@ -24,6 +24,17 @@ def answer_json(**overrides: Any) -> str:
     return json.dumps({"kind": "answer", "urgent": urgent, "ask": None, "answer": answer})
 
 
+def ask_json(
+    question: str = "Is the car on the hard shoulder?",
+    options: tuple[str, ...] = ("Yes, on the hard shoulder", "No, off the road"),
+    now: str = "Get everyone behind the barrier",
+    urgent: bool = False,
+) -> str:
+    """A valid `ask` turn (a clarifying question) as the model would send it."""
+    ask = {"now": now, "question": question, "options": list(options)}
+    return json.dumps({"kind": "ask", "urgent": urgent, "ask": ask, "answer": None})
+
+
 class ScriptedProvider:
     """A provider fake that plays back scripted outputs and records every request.
 

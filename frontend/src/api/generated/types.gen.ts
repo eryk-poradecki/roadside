@@ -41,12 +41,16 @@ export type AdviceRead = {
  * AiTurnCreate
  *
  * Ask for the next turn. `locale` is the UI language, the only language of the answer.
+ *
+ * `reply` answers the open clarifying question and is required while one is open; it is
+ * stored as its own turn before the model is asked, and stays if that call fails.
  */
 export type AiTurnCreate = {
     /**
      * Locale
      */
     locale: 'pl' | 'en';
+    reply?: ReplyCreate | null;
 };
 
 /**
@@ -85,6 +89,8 @@ export type AiTurnRead = {
      * Provider
      */
     provider: string | null;
+    question: QuestionRead | null;
+    reply: ReplyRead | null;
     /**
      * Seq
      */
@@ -341,6 +347,68 @@ export type NearbyCategory = 'tyres' | 'fuel' | 'charging' | 'repair';
  * ProblemType
  */
 export type ProblemType = 'flat_tyre' | 'flat_battery' | 'out_of_fuel' | 'pothole_damage' | 'other';
+
+/**
+ * QuestionRead
+ *
+ * A clarifying question: one immediate safety step, then two to four options.
+ */
+export type QuestionRead = {
+    /**
+     * Now
+     */
+    now: string;
+    /**
+     * Options
+     */
+    options: Array<string>;
+    /**
+     * Question
+     */
+    question: string;
+};
+
+/**
+ * ReplyCreate
+ *
+ * The driver's reply to the open clarifying question. Exactly one field is set: one of
+ * the question's `option`s, a short free `text` ("Other"), or `skip` ("Just give me the
+ * steps", which asks for the advice at once).
+ */
+export type ReplyCreate = {
+    /**
+     * Option
+     */
+    option?: string | null;
+    /**
+     * Skip
+     */
+    skip?: true | null;
+    /**
+     * Text
+     */
+    text?: string | null;
+};
+
+/**
+ * ReplyRead
+ *
+ * The driver's reply: an option, a short text, or `skip` ("Just give me the steps").
+ */
+export type ReplyRead = {
+    /**
+     * Option
+     */
+    option: string | null;
+    /**
+     * Skip
+     */
+    skip: boolean;
+    /**
+     * Text
+     */
+    text: string | null;
+};
 
 /**
  * SamplePhoto
