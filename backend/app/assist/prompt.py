@@ -90,6 +90,13 @@ class VehicleFactBlock:
         return "\n".join(f"- {label}: {value}" for label, value in lines)
 
 
+# What the driver chose in the help sheet (#93), keyed by the `Situation` values.
+_SITUATIONS = {
+    "on_road": "on the road (stopped on or beside a road with traffic)",
+    "parked": "parked off the road (a parking lot or a driveway), away from moving traffic",
+}
+
+
 @dataclass(frozen=True, slots=True)
 class TurnInputs:
     """The inputs snapshot: everything a turn was produced from, stored with it (ADR 0004)."""
@@ -101,6 +108,7 @@ class TurnInputs:
     dark: bool
     road_class: str = "unknown"
     settlement: str = "unknown"
+    situation: str = "on_road"
     photo_ids_seen: tuple[int, ...] = field(default=())
     photos_not_sent: int = 0
 
@@ -167,7 +175,11 @@ def render(
         vehicle=inputs.vehicle.render() if inputs.vehicle else "No vehicle details were given.",
         road_class=inputs.road_class,
         settlement=inputs.settlement,
-        road_help=_ROAD_HELP if inputs.road_class == "motorway_expressway" else "",
+        situation=_SITUATIONS[inputs.situation],
+        # A parked car near a motorway (a service area) still reads as motorway: no road help.
+        road_help=_ROAD_HELP
+        if inputs.road_class == "motorway_expressway" and inputs.situation != "parked"
+        else "",
         local_time=inputs.local_time,
         light="dark" if inputs.dark else "daylight",
         photos=photos,

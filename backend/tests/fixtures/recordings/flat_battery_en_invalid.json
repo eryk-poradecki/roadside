@@ -1,5 +1,5 @@
 {
-  "key": "{\"dark\":false,\"fuel_type\":null,\"has_assistance\":false,\"locale\":\"en\",\"problem_type\":\"flat_battery\",\"replies\":[],\"road_class\":\"unknown\",\"sample_photo_ids\":[],\"spare_wheel\":null,\"transmission\":null,\"vision\":false}",
+  "key": "{\"dark\":false,\"fuel_type\":null,\"has_assistance\":false,\"locale\":\"en\",\"problem_type\":\"flat_battery\",\"replies\":[],\"road_class\":\"unknown\",\"sample_photo_ids\":[],\"situation\":\"on_road\",\"spare_wheel\":null,\"transmission\":null,\"vision\":false}",
   "request": {
     "schema_name": "ai_turn",
     "messages": [],

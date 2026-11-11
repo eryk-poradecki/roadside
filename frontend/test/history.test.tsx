@@ -169,6 +169,19 @@ describe('incident upkeep', () => {
     })
   })
 
+  it('changes where the car is, which switches the checklist', async () => {
+    const incident = fakeApi.seedIncident({ problem_type: 'flat_battery' })
+    const { user } = renderApp(`/incidents/${String(incident.id)}/edit`)
+
+    const where = await screen.findByRole('group', { name: 'Where is the car?' })
+    expect(within(where).getByRole('radio', { name: 'On the road' })).toBeChecked()
+    await user.click(within(where).getByRole('radio', { name: 'Parked (parking lot, driveway)' }))
+    await user.click(screen.getByRole('button', { name: 'Save changes' }))
+
+    expect(await screen.findByText(en.checklist.parkedLists.battery.first)).toBeInTheDocument()
+    expect(fakeApi.requests).toContainEqual({ method: 'PATCH', body: { situation: 'parked' } })
+  })
+
   it('removes and replaces the location', async () => {
     Object.defineProperty(navigator, 'geolocation', {
       configurable: true,

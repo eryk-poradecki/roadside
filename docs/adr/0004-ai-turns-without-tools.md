@@ -89,7 +89,8 @@ Tools come back where the model makes a real choice, in the MCP server. The dama
 - **`ReplayProvider`:** the key is **semantic**, built by the service, not a hash of the prompt. It contains:
   - problem type, fuel type, transmission, the spare-wheel and assistance flags;
   - sample photo ids, whether vision was used, the locale, the replies so far;
-  - `road_class` and `dark`.
+  - `road_class` and `dark`;
+  - the `situation` the driver chose, `on_road` or `parked` (added by #93, see the ADR 0010 amendment).
 
   Settlement is left out of the key, because it rarely changes the first steps and including it multiplies the recordings needed. Demo mode makes no Nominatim or Overpass calls: its location context and nearby results come with the scenario.
   - **Stored together:** the recorded nearby results, the location context and (for pothole scenarios) the damage report draft (ADR 0009) sit alongside the AI recordings, under the same semantic key.

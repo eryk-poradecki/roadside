@@ -173,6 +173,7 @@ export const en = {
     disclaimer: 'AI can be wrong. It is not an emergency service.',
     answeredFor: 'Answered for {{vehicle}} · {{problem}}',
     answeredForNoVehicle: 'Answered for {{problem}} with no vehicle, so the steps are general.',
+    problemParked: '{{problem}} (parked)',
     urgentTitle: 'This could be an emergency',
     urgentBody: 'Call 112 first, then follow the steps below.',
     thinking: 'Thinking about your answer…',
@@ -259,6 +260,54 @@ export const en = {
         items: [getOut, triangle, call112],
       },
     },
+    // The car is parked off the road, away from traffic: no roadside steps (#93).
+    parkedLists: {
+      tyre: {
+        first:
+          "Don't drive on a flat tyre. It can damage the wheel and make the car hard to steer.",
+        items: [
+          'Change the wheel only on firm, level ground, with the parking brake on and nobody in the car.',
+          'Never put any part of your body under a car held up only by the jack.',
+          call112,
+        ],
+      },
+      battery: {
+        first: 'Turn off the lights, radio, air con and anything else drawing power.',
+        items: ["Don't jump-start a battery that is cracked, leaking or swollen.", call112],
+      },
+      fuel: {
+        first: 'Turn the engine off and stop trying to start it. That only drains the battery.',
+        items: [
+          'No smoking or open flame near the car while you pour in fuel from a canister.',
+          call112,
+        ],
+      },
+      charge: {
+        first:
+          "Switch off what you don't need, like the heating or air con, to save the charge that's left.",
+        items: [
+          "Ask for a flatbed truck. Many electric cars can't be towed on their wheels.",
+          call112,
+        ],
+      },
+      pothole: {
+        first: "Don't drive on if a tyre, a wheel or the steering feels wrong.",
+        items: [
+          'Take photos of the hole and the damage, and note the exact place. They help with a claim later.',
+          call112,
+        ],
+      },
+      other: {
+        first: "Parking brake on. Switch the engine off if it's safe to.",
+        items: [call112],
+      },
+    },
+  },
+  situation: {
+    label: 'Where is the car?',
+    on_road: 'On the road',
+    parked: 'Parked (parking lot, driveway)',
+    parkedShort: 'Parked',
   },
   vehicles: {
     heading: 'Vehicles',

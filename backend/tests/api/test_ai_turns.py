@@ -466,6 +466,23 @@ async def test_the_prompt_carries_the_safety_rules(
     assert "Never name a business" in text
     assert "Nearby panel" in text
     assert "Ask only when the driver's reply would change the first steps" in text
+    assert "When the situation is parked" in text
+
+
+async def test_the_situation_is_in_the_fact_block_and_on_the_road_by_default(
+    client: httpx.AsyncClient, install: Install
+) -> None:
+    fake = install(answer_json(), answer_json())
+    on_road = await make_incident(client)
+    parked = await make_incident(client, situation="parked")
+
+    first = (await turn(client, on_road)).json()
+    second = (await turn(client, parked)).json()
+
+    assert "Situation: on the road" in fake.requests[0].messages[1].text
+    assert "Situation: parked off the road" in fake.requests[1].messages[1].text
+    assert first["inputs"]["situation"] == "on_road"
+    assert second["inputs"]["situation"] == "parked"
 
 
 # --- the inputs snapshot -------------------------------------------------------------------
@@ -490,6 +507,7 @@ async def test_the_inputs_snapshot_is_stored_and_survives_later_edits(
     assert inputs["vehicle"]["assistance_insurer"] == "PZU"
     assert inputs["road_class"] == "unknown"
     assert inputs["settlement"] == "unknown"
+    assert inputs["situation"] == "on_road"
     assert inputs["photo_ids_seen"] == []
     assert inputs["photos_not_sent"] == 0
     assert isinstance(inputs["dark"], bool)

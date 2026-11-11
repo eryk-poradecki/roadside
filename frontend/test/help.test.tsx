@@ -52,7 +52,37 @@ describe('help request: Start → Get help now → Result', () => {
       vehicle_id: golf.id,
       note: 'Rear left, hissing',
       location: null,
+      situation: 'on_road',
     })
+  })
+
+  it('asks where the car is, on the road by default', async () => {
+    const { user } = renderApp('/')
+
+    await user.click(await screen.findByRole('button', { name: 'Flat tyre' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Flat tyre' })
+    const where = within(sheet).getByRole('group', { name: 'Where is the car?' })
+    expect(within(where).getByRole('radio', { name: 'On the road' })).toBeChecked()
+    expect(
+      within(where).getByRole('radio', { name: 'Parked (parking lot, driveway)' }),
+    ).not.toBeChecked()
+  })
+
+  it('shows the short parked checklist when the driver says the car is parked', async () => {
+    const { user } = renderApp('/')
+
+    await user.click(await screen.findByRole('button', { name: 'Flat tyre' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Flat tyre' })
+    await user.click(within(sheet).getByRole('radio', { name: 'Parked (parking lot, driveway)' }))
+    await user.click(within(sheet).getByRole('button', { name: 'Get help now' }))
+
+    await screen.findByRole('heading', { level: 1, name: 'Flat tyre' })
+    const list = en.checklist.parkedLists.tyre
+    expect(within(checklist()).getByText(list.first)).toBeInTheDocument()
+    for (const item of list.items) expect(within(checklist()).getByText(item)).toBeInTheDocument()
+    expect(within(checklist()).queryByText(en.checklist.lists.tyre.first)).not.toBeInTheDocument()
+    expect(screen.getByText('Parked')).toBeInTheDocument()
+    expect(fakeApi.incidentRequests[0]?.body).toMatchObject({ situation: 'parked' })
   })
 
   it('sends the detected location', async () => {
@@ -300,6 +330,18 @@ describe('Result screen', () => {
     renderApp(`/incidents/${String(incident.id)}`)
 
     expect(await screen.findByText(en.checklist.lists.charge.first)).toBeInTheDocument()
+  })
+
+  it('uses the parked charge checklist for a parked electric car', async () => {
+    const leaf = fakeApi.seed({ name: 'Leaf', fuel_type: 'electric' })
+    const incident = fakeApi.seedIncident({
+      problem_type: 'out_of_fuel',
+      vehicle_id: leaf.id,
+      situation: 'parked',
+    })
+    renderApp(`/incidents/${String(incident.id)}`)
+
+    expect(await screen.findByText(en.checklist.parkedLists.charge.first)).toBeInTheDocument()
   })
 
   it('offers "Call <insurer>" with the policy number next to a compact 112', async () => {

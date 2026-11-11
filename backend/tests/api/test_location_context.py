@@ -188,3 +188,15 @@ async def test_clearing_the_location_clears_the_label(
     assert r.status_code == 200
     assert r.json()["location_label"] is None
     assert len(geocoder.calls) == 1
+
+
+async def test_a_parked_car_by_a_motorway_gets_no_road_help(
+    app: FastAPI, client: httpx.AsyncClient, provider: ScriptedProvider
+) -> None:
+    # A service area or car park next to a motorway reads as motorway_expressway (#93).
+    use_geocoder(app, FakeGeocoder(nominatim_result("motorway")))
+    incident_id = await make_incident(client, location=LOCATION, situation="parked")
+
+    assert (await turn(client, incident_id)).status_code == 201
+
+    assert "19 111" not in provider.prompt_text()

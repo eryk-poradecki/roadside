@@ -2,6 +2,7 @@ import { ChevronDown } from 'lucide-react'
 import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ProblemKey } from '../lib/problemType'
+import type { Situation } from './SituationPick'
 
 /**
  * The static, non-AI safety checklist (ADR 0010): "Do this first", then the rest, the
@@ -9,14 +10,17 @@ import type { ProblemKey } from '../lib/problemType'
  * Once the AI has answered (`answered`), the items after the first step fold under a
  * visible "N more safety steps" toggle; the first step never hides while the incident is
  * open. Once the incident is resolved, the whole list, first step included, folds into
- * one "Safety steps" disclosure; reopening restores the open layout.
+ * one "Safety steps" disclosure; reopening restores the open layout. A parked car gets the
+ * short variant without the roadside steps (#93); anything else gets the full list.
  */
 export function SafetyChecklist({
   problem,
+  situation,
   resolved = false,
   answered = false,
 }: {
   problem: ProblemKey
+  situation: Situation
   resolved?: boolean
   answered?: boolean
 }) {
@@ -31,24 +35,29 @@ export function SafetyChecklist({
           <ChevronDown className="fold-icon" size={20} aria-hidden="true" />
         </summary>
         <div className="fold-body">
-          <Steps problem={problem} titleId={titleId} folds={false} />
+          <Steps list={listPath(problem, situation)} titleId={titleId} folds={false} />
         </div>
       </details>
     )
   }
   return (
     <section className="panel" aria-labelledby={titleId}>
-      <Steps problem={problem} titleId={titleId} folds={answered} />
+      <Steps list={listPath(problem, situation)} titleId={titleId} folds={answered} />
     </section>
   )
 }
 
+type ListPath = `checklist.${'lists' | 'parkedLists'}.${ProblemKey}`
+
+const listPath = (problem: ProblemKey, situation: Situation): ListPath =>
+  situation === 'parked' ? `checklist.parkedLists.${problem}` : `checklist.lists.${problem}`
+
 function Steps({
-  problem,
+  list,
   titleId,
   folds,
 }: {
-  problem: ProblemKey
+  list: ListPath
   titleId: string
   /** The rest sits under a toggle, closed until the driver opens it. */
   folds: boolean
@@ -56,7 +65,7 @@ function Steps({
   const { t } = useTranslation()
   const listId = useId()
   const [open, setOpen] = useState(false)
-  const items = t(`checklist.lists.${problem}.items`, { returnObjects: true })
+  const items = t(`${list}.items`, { returnObjects: true })
   const shown = !folds || open
   return (
     <>
@@ -68,7 +77,7 @@ function Steps({
         <span className="check check-first" aria-hidden="true">
           1
         </span>
-        <span>{t(`checklist.lists.${problem}.first`)}</span>
+        <span>{t(`${list}.first`)}</span>
       </p>
       {folds ? (
         <button

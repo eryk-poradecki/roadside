@@ -59,6 +59,7 @@ def test_the_key_holds_the_semantic_parts() -> None:
         "replies": [{"option": "Yes"}],
         "road_class": "motorway_expressway",
         "dark": False,
+        "situation": "on_road",
     }
 
 
@@ -105,6 +106,10 @@ def test_each_reply_so_far_is_part_of_the_key_in_order() -> None:
 def test_road_class_and_darkness_are_part_of_the_key() -> None:
     assert key(replace(INPUTS, road_class="local_street")) != key()
     assert key(replace(INPUTS, dark=True)) != key()
+
+
+def test_the_situation_is_part_of_the_key() -> None:
+    assert key(replace(INPUTS, situation="parked")) != key()
 
 
 def test_each_vehicle_fact_in_the_key_changes_it() -> None:

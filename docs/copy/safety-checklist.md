@@ -91,6 +91,62 @@ The pothole list has no `triangle`, because the driver often drives on. If the c
 | 2 | `triangle` | | |
 | 3 | `call112` | | |
 
+## Parked variant (`parked`)
+
+Shown instead of the lists above when the driver says the car is parked off the road (a parking lot, a driveway), [#93](https://github.com/eryk-poradecki/roadside/issues/93). The car is away from moving traffic, so these lists have no hazard-light, vest, barrier or triangle steps. The shared `call112` line stays last. On the road is the default, and the app never assumes parked. Same shape: one first step, at most 4 more items.
+
+**Status: draft, waiting for project owner approval.** Every line is general safety advice that makes no legal claim, except the flatbed line, which reuses the sources of the `charge` list.
+
+### Flat tyre, parked (`parked.tyre`)
+
+| | EN | PL | Sources |
+| --- | --- | --- | --- |
+| first | Don't drive on a flat tyre. It can damage the wheel and make the car hard to steer. | Nie jedź na płaskiej oponie. Możesz uszkodzić koło, a auto trudniej prowadzić. | General safety advice, no legal claim |
+| 1 | Change the wheel only on firm, level ground, with the parking brake on and nobody in the car. | Zmieniaj koło tylko na twardym, równym podłożu, z zaciągniętym hamulcem ręcznym i gdy nikt nie siedzi w aucie. | General safety advice, no legal claim |
+| 2 | Never put any part of your body under a car held up only by the jack. | Nigdy nie wkładaj żadnej części ciała pod auto podparte tylko podnośnikiem. | General safety advice, no legal claim |
+| 3 | `call112` | | |
+
+### Flat battery, parked (`parked.battery`)
+
+| | EN | PL | Sources |
+| --- | --- | --- | --- |
+| first | Turn off the lights, radio, air con and anything else drawing power. | Wyłącz światła, radio, klimatyzację i wszystko, co pobiera prąd. | General safety advice, no legal claim |
+| 1 | Don't jump-start a battery that is cracked, leaking or swollen. | Nie odpalaj „na kable” akumulatora, który jest pęknięty, cieknie lub jest spuchnięty. | General safety advice, no legal claim |
+| 2 | `call112` | | |
+
+Off the road the lights can go off too: unlike on the road, nobody needs them to see the car.
+
+### Out of fuel, parked (`parked.fuel`)
+
+| | EN | PL | Sources |
+| --- | --- | --- | --- |
+| first | Turn the engine off and stop trying to start it. That only drains the battery. | Wyłącz silnik i przestań próbować go uruchomić. To tylko rozładowuje akumulator. | General safety advice, no legal claim |
+| 1 | No smoking or open flame near the car while you pour in fuel from a canister. | Nie pal i nie używaj otwartego ognia przy aucie, gdy wlewasz paliwo z kanistra. | General safety advice, no legal claim |
+| 2 | `call112` | | |
+
+### Out of charge, parked (`parked.charge`)
+
+| | EN | PL | Sources |
+| --- | --- | --- | --- |
+| first | Switch off what you don't need, like the heating or air con, to save the charge that's left. | Wyłącz to, czego nie potrzebujesz, np. ogrzewanie lub klimatyzację, żeby oszczędzić resztę energii. | General safety advice, no legal claim |
+| 1 | Ask for a flatbed truck. Many electric cars can't be towed on their wheels. | Poproś o lawetę. Wiele aut elektrycznych nie może być holowanych na kołach. | Manufacturer, not government (accepted for this item only): [NISSAN], [VW] |
+| 2 | `call112` | | |
+
+### Pothole damage, parked (`parked.pothole`)
+
+| | EN | PL | Sources |
+| --- | --- | --- | --- |
+| first | Don't drive on if a tyre, a wheel or the steering feels wrong. | Nie jedź dalej, jeśli opona, koło lub kierownica zachowują się dziwnie. | General safety advice, no legal claim |
+| 1 | Take photos of the hole and the damage, and note the exact place. They help with a claim later. | Zrób zdjęcia dziury i uszkodzeń i zapisz dokładne miejsce. Przydadzą się przy zgłoszeniu szkody. | [RF] |
+| 2 | `call112` | | |
+
+### Something else, parked (`parked.other`)
+
+| | EN | PL | Sources |
+| --- | --- | --- | --- |
+| first | Parking brake on. Switch the engine off if it's safe to. | Zaciągnij hamulec ręczny. Wyłącz silnik, jeśli to bezpieczne. | General safety advice, no legal claim |
+| 1 | `call112` | | |
+
 ## Damage report: addressee help line
 
 Replaces the line in ADR 0009, which missed toll motorways and cities with county rights.

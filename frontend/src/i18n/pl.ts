@@ -185,6 +185,7 @@ export const pl: Localised<Translation> & {
     disclaimer: 'AI może się mylić. To nie są służby ratunkowe.',
     answeredFor: 'Odpowiedź dla: {{vehicle}} · {{problem}}',
     answeredForNoVehicle: 'Odpowiedź dla: {{problem}}, bez pojazdu, więc kroki są ogólne.',
+    problemParked: '{{problem}} (zaparkowane)',
     urgentTitle: 'To może być nagły wypadek',
     urgentBody: 'Najpierw zadzwoń pod 112, potem wykonaj kroki poniżej.',
     thinking: 'Analizujemy Twoją odpowiedź…',
@@ -273,6 +274,55 @@ export const pl: Localised<Translation> & {
         items: [getOut, triangle, call112],
       },
     },
+    parkedLists: {
+      tyre: {
+        first: 'Nie jedź na płaskiej oponie. Możesz uszkodzić koło, a auto trudniej prowadzić.',
+        items: [
+          'Zmieniaj koło tylko na twardym, równym podłożu, z zaciągniętym hamulcem ręcznym i gdy nikt nie siedzi w aucie.',
+          'Nigdy nie wkładaj żadnej części ciała pod auto podparte tylko podnośnikiem.',
+          call112,
+        ],
+      },
+      battery: {
+        first: 'Wyłącz światła, radio, klimatyzację i wszystko, co pobiera prąd.',
+        items: [
+          'Nie odpalaj „na kable” akumulatora, który jest pęknięty, cieknie lub jest spuchnięty.',
+          call112,
+        ],
+      },
+      fuel: {
+        first: 'Wyłącz silnik i przestań próbować go uruchomić. To tylko rozładowuje akumulator.',
+        items: [
+          'Nie pal i nie używaj otwartego ognia przy aucie, gdy wlewasz paliwo z kanistra.',
+          call112,
+        ],
+      },
+      charge: {
+        first:
+          'Wyłącz to, czego nie potrzebujesz, np. ogrzewanie lub klimatyzację, żeby oszczędzić resztę energii.',
+        items: [
+          'Poproś o lawetę. Wiele aut elektrycznych nie może być holowanych na kołach.',
+          call112,
+        ],
+      },
+      pothole: {
+        first: 'Nie jedź dalej, jeśli opona, koło lub kierownica zachowują się dziwnie.',
+        items: [
+          'Zrób zdjęcia dziury i uszkodzeń i zapisz dokładne miejsce. Przydadzą się przy zgłoszeniu szkody.',
+          call112,
+        ],
+      },
+      other: {
+        first: 'Zaciągnij hamulec ręczny. Wyłącz silnik, jeśli to bezpieczne.',
+        items: [call112],
+      },
+    },
+  },
+  situation: {
+    label: 'Gdzie stoi auto?',
+    on_road: 'Na drodze',
+    parked: 'Zaparkowane (parking, podjazd)',
+    parkedShort: 'Zaparkowane',
   },
   vehicles: {
     heading: 'Pojazdy',

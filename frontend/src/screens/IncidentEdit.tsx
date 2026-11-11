@@ -12,6 +12,7 @@ import {
 import { useVehicles, type VehicleRead } from '../api/vehicles'
 import { ErrorNotice } from '../components/ErrorNotice'
 import { NOTE_MAX } from '../components/HelpSheet'
+import { SituationPick, type Situation } from '../components/SituationPick'
 import { locateOnce, type GeoState } from '../lib/geolocation'
 import { formatCoords } from '../lib/place'
 import { PROBLEM_TYPES, problemKey, type ProblemType } from '../lib/problemType'
@@ -76,10 +77,17 @@ const samePlace = (a: Place, b: Place) =>
 /** Only the fields the driver changed, so PATCH never rewrites what they left alone. */
 function changes(
   incident: IncidentRead,
-  draft: { problemType: ProblemType; note: string; vehicleId: number | null; place: Place },
+  draft: {
+    problemType: ProblemType
+    situation: Situation
+    note: string
+    vehicleId: number | null
+    place: Place
+  },
 ): IncidentPatch {
   const patch: IncidentPatch = {}
   if (draft.problemType !== incident.problem_type) patch.problem_type = draft.problemType
+  if (draft.situation !== incident.situation) patch.situation = draft.situation
   const note = draft.note.trim() || null
   if (note !== incident.note) patch.note = note
   if (draft.vehicleId !== incident.vehicle_id) patch.vehicle_id = draft.vehicleId
@@ -96,6 +104,7 @@ function EditForm({ incident, vehicles }: { incident: IncidentRead; vehicles: Ve
   // untouched field look edited and PATCH it back.
   const [base] = useState(incident)
   const [problemType, setProblemType] = useState(incident.problem_type)
+  const [situation, setSituation] = useState(incident.situation)
   const [note, setNote] = useState(incident.note ?? '')
   const [vehicleId, setVehicleId] = useState(incident.vehicle_id)
   const [place, setPlace] = useState<Place>(toPlace(incident.location))
@@ -125,7 +134,7 @@ function EditForm({ incident, vehicles }: { incident: IncidentRead; vehicles: Ve
 
   const onSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault()
-    const patch = changes(base, { problemType, note, vehicleId, place })
+    const patch = changes(base, { problemType, situation, note, vehicleId, place })
     if (Object.keys(patch).length === 0) {
       leave()
       return
@@ -156,6 +165,8 @@ function EditForm({ incident, vehicles }: { incident: IncidentRead; vehicles: Ve
           </label>
         ))}
       </fieldset>
+
+      <SituationPick value={situation} onChange={setSituation} />
 
       <div className="vform-field">
         <label htmlFor={noteId}>{t('incidentForm.note')}</label>
