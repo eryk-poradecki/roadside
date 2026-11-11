@@ -101,7 +101,8 @@ export function PlacesMap({
       boxZoom: false,
       keyboard: false,
     })
-    m.attributionControl.setPrefix(false)
+    // Leaflet leaves `attributionControl` undefined when it is turned off (the full map).
+    if (showAttribution) m.attributionControl.setPrefix(false)
     L.tileLayer(tileUrl(), {
       maxZoom: 19,
       attribution: `<a href="${OSM_COPYRIGHT_URL}" target="_blank" rel="noopener">${escapeHtml(attribution)}</a>`,
