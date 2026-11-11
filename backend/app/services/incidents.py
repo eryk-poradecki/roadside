@@ -9,6 +9,7 @@ from app.errors import FieldValidationError, NotFoundError
 from app.repositories.ai_turns import AiTurnRepository
 from app.repositories.incidents import IncidentRepository
 from app.repositories.nearby import NearbyRepository
+from app.repositories.photos import PhotoFiles, PhotoRepository
 from app.repositories.vehicles import VehicleRepository
 from app.schemas.incident import IncidentPatch
 from app.services.clock import utc_now
@@ -25,6 +26,8 @@ class IncidentService:
         vehicles: VehicleRepository,
         ai_turns: AiTurnRepository,
         nearby: NearbyRepository,
+        photos: PhotoRepository,
+        files: PhotoFiles,
         location: LocationResolver,
     ) -> None:
         self._conn = conn
@@ -32,6 +35,8 @@ class IncidentService:
         self._vehicles = vehicles
         self._ai_turns = ai_turns
         self._nearby = nearby
+        self._photos = photos
+        self._files = files
         self._location = location
 
     async def get(self, incident_id: int) -> Incident:
@@ -45,7 +50,8 @@ class IncidentService:
             incident = await self.get(incident_id)
             turns = await self._ai_turns.list_for_incident(incident_id)
             nearby = await self._nearby.get(incident_id)
-        return IncidentDetail(incident, tuple(turns), nearby)
+            photos = await self._photos.list_for_incident(incident_id)
+        return IncidentDetail(incident, tuple(turns), nearby, tuple(photos))
 
     async def create(
         self, data: NewIncident, idempotency_key: str | None = None
@@ -115,6 +121,10 @@ class IncidentService:
         return await self.detail(incident_id)
 
     async def delete(self, incident_id: int) -> None:
+        """The cascade removes the photo rows; their files go once the delete is committed."""
         async with transaction(self._conn):
+            photos = await self._photos.list_for_incident(incident_id)
             if not await self._incidents.delete(incident_id):
                 raise NotFoundError("Incident")
+        for photo in photos:
+            await self._files.remove(photo.stored_name)

@@ -23,7 +23,7 @@ async def test_config_defaults_to_demo_mode(client: httpx.AsyncClient) -> None:
     assert body["vision_enabled"] is False
     assert body["max_photos"] == 5
     assert body["max_photo_bytes"] == 10 * 1024 * 1024
-    assert body["sample_photos"] == []
+    assert [s["id"] for s in body["sample_photos"]] == ["flat_tyre", "screw_in_tread", "pothole"]
 
 
 async def test_unknown_route_is_problem_json(client: httpx.AsyncClient) -> None:

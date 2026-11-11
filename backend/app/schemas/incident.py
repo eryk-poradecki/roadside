@@ -15,6 +15,7 @@ from app.domain.incident import (
 )
 from app.schemas.ai_turn import AiTurnRead
 from app.schemas.nearby import NearbyRead
+from app.schemas.photo import PhotoRead
 
 Note = Annotated[str, StringConstraints(strip_whitespace=True, max_length=NOTE_MAX_LENGTH)]
 DbId = Annotated[int, Field(ge=1, le=2**63 - 1)]
@@ -134,6 +135,8 @@ class IncidentRead(BaseModel):
     location_label: str | None
     created_at: str
     updated_at: str
+    # At most five, in upload order (ADR 0002).
+    photos: list[PhotoRead]
     # The AI answer in sequence order: append-only, the advice last (ADR 0004).
     ai_turns: list[AiTurnRead]
     # Null until the first successful lookup, and again after a location change.
@@ -155,6 +158,7 @@ class IncidentRead(BaseModel):
             location_label=i.location_label,
             created_at=i.created_at,
             updated_at=i.updated_at,
+            photos=[PhotoRead.from_domain(p) for p in detail.photos],
             ai_turns=[AiTurnRead.from_domain(t) for t in detail.ai_turns],
             nearby=NearbyRead.from_domain(detail.nearby) if detail.nearby else None,
         )

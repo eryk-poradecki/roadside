@@ -64,6 +64,8 @@ packaging==26.3
     #   virtualenv
 pathspec==1.1.1
     # via mypy
+pillow==13.0.0
+    # via roadside-backend
 platformdirs==4.14.5
     # via virtualenv
 pluggy==1.7.0
@@ -89,6 +91,8 @@ python-discovery==1.9.5
     # via virtualenv
 python-dotenv==1.2.4
     # via pydantic-settings
+python-multipart==0.0.33
+    # via roadside-backend
 pyyaml==6.0.3
     # via pre-commit
 respx==0.23.1
