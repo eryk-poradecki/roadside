@@ -5,7 +5,8 @@ HOOKS := ../.claude/hooks
 FRONTEND := frontend
 
 .PHONY: help install dev-api dev-web migrate lint format typecheck test build openapi openapi-drift pre-commit requirements check-requirements check check-backend check-frontend \
-	lint-backend lint-frontend typecheck-backend typecheck-frontend test-backend test-frontend
+	lint-backend lint-frontend typecheck-backend typecheck-frontend test-backend test-frontend \
+	up down docker-smoke
 
 help: ## List targets
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "%-20s %s\n", $$1, $$2}'
@@ -20,6 +21,20 @@ dev-api: ## Run the API with reload on :8000
 
 dev-web: ## Run the frontend on :5173 (calls the API on :8000)
 	cd $(FRONTEND) && npm run dev
+
+up: ## Build and run the compose stack on http://localhost:8080 (demo mode, no .env needed)
+	docker compose up --build
+
+down: ## Stop the compose stack (the data volume is kept; add -v by hand to drop it)
+	docker compose down
+
+# On a failed check the stack is left running, for `docker compose logs`.
+docker-smoke: ## Build and start the stack, check /health and demo mode through nginx, stop it
+	docker compose up --build --detach --wait
+	curl -fsS http://localhost:8080/health
+	curl -fsS http://localhost:8080/api/v1/config | grep -q '"demo_mode":true' \
+	  || { echo "/api/v1/config is not in demo mode (a backend/.env with DEMO_MODE=false?)"; exit 1; }
+	docker compose down -v
 
 migrate: ## Apply database migrations
 	cd $(BACKEND) && uv run python -m app.db migrate
@@ -81,4 +96,5 @@ check-requirements: ## Fail if the requirements files drift from uv.lock
 check-backend: lint-backend typecheck-backend test-backend check-requirements
 check-frontend: lint-frontend typecheck-frontend test-frontend build
 
-check: check-backend check-frontend openapi-drift ## Everything CI runs
+# CI also runs docker-smoke, left out here because it needs Docker.
+check: check-backend check-frontend openapi-drift ## Everything CI runs except docker-smoke

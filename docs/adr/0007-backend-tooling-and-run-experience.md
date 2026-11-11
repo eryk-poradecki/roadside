@@ -67,7 +67,7 @@ backend/
   - **backend:** `uv sync --locked`, ruff check, ruff format `--check`, mypy, pytest with `pytest-cov` (report only), the requirements drift check;
   - **frontend:** `npm ci`, lint, typecheck, test, build;
   - **openapi-drift:** export `openapi.json`, regenerate the TS types and fail on a diff, which is the guarantee ADR 0005 relies on;
-  - **docker:** `docker compose build`, on `main` and on PRs that touch Docker files;
+  - **docker:** `make docker-smoke`: `docker compose up --build --wait` on a clean checkout, then `/health` and demo mode in `/api/v1/config` through nginx. It runs on every PR, since a dependency or code change can break the image without touching a Docker file;
   - **e2e:** the Playwright smoke test (below), once it exists.
 - **Follow-up (ready-for-human, part of the CI ticket):** once `ci.yml` exists, make its `backend` and `frontend` jobs required status checks in the `main` branch ruleset. The ruleset already requires a PR and blocks force pushes and deletions.
 
@@ -104,5 +104,5 @@ backend/
   - `backend`: multi-stage image (uv builder → slim runtime), non-root user, `uvicorn --factory app.main:create_app --workers 1 --proxy-headers`, `HEALTHCHECK` on `GET /health`, one named volume for `DATABASE_PATH` and `UPLOAD_DIR`;
   - `web`: nginx serving the Vite build and proxying `/api` on the same origin, `depends_on` the backend being healthy.
 - **Local dev:** two processes, `uv run uvicorn … --reload` (or `make dev-api`) and `npm run dev` (or `make dev-web`). The frontend calls `http://localhost:8000` across origins, so the real CORS path is used.
-- **Makefile:** `help` (default), `install` (uv sync + npm ci + pre-commit install), `dev-api`, `dev-web`, `lint`, `format`, `typecheck`, `test`, `e2e`, `openapi`, `migrate`, `up`/`down`, `check`. `make check` runs everything CI runs. `AGENTS.md` names it as the gate before opening a PR, and lists the commands in a "Commands" section.
+- **Makefile:** `help` (default), `install` (uv sync + npm ci + pre-commit install), `dev-api`, `dev-web`, `lint`, `format`, `typecheck`, `test`, `e2e`, `openapi`, `migrate`, `up`/`down`, `check`. `make check` runs everything CI runs except `docker-smoke`, which needs Docker. `AGENTS.md` names it as the gate before opening a PR, and lists the commands in a "Commands" section.
 - What the Pi + Cloudflare Tunnel deploy adds on top is in ADR 0011: a `compose.pi.yaml` override with the demo-mode guard, an in-memory data dir and the tunnel's Docker network.

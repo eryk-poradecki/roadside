@@ -145,3 +145,11 @@ async def test_demo_mode_off_builds_the_overpass_client() -> None:
     assert isinstance(app.state.place_source, OverpassClient)
     assert create_app(Settings()).state.place_source is None
     await app.state.place_source.aclose()
+
+
+def test_empty_frontend_origins_allows_no_cross_origin_caller(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # The compose stack is same-origin behind nginx (ADR 0007, 0011), so it sets this empty.
+    monkeypatch.setenv("FRONTEND_ORIGINS", "")
+    assert Settings().frontend_origins == []
