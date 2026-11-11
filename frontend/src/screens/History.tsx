@@ -143,6 +143,11 @@ function IncidentRow({
               {resolved ? t('incident.resolved') : t('incident.open')}
             </span>
           </span>
+          {incident.damage_report_status && (
+            <span className="badge incident-report">
+              {t(`history.reportChip.${incident.damage_report_status}`)}
+            </span>
+          )}
           <time className="muted" dateTime={incident.created_at}>
             {when}
           </time>

@@ -281,6 +281,90 @@
         "title": "ConfigRead",
         "type": "object"
       },
+      "DamageReportCreate": {
+        "additionalProperties": false,
+        "description": "Draft the report in `locale`, the letter's language: Polish unless the driver picks\nEnglish, because the letter goes to a Polish road manager whatever the UI language.\n`replace: true` overwrites an existing report and sets it back to `draft`. The driver's\nown details are never sent: they fill the body's placeholders in the browser.",
+        "properties": {
+          "locale": {
+            "default": "pl",
+            "enum": [
+              "pl",
+              "en"
+            ],
+            "title": "Locale",
+            "type": "string"
+          },
+          "replace": {
+            "default": false,
+            "title": "Replace",
+            "type": "boolean"
+          }
+        },
+        "title": "DamageReportCreate",
+        "type": "object"
+      },
+      "DamageReportPatch": {
+        "additionalProperties": false,
+        "description": "Send only the fields to change; neither can be null. Only the driver marks it sent.",
+        "properties": {
+          "body": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "title": "Body",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DamageReportStatus"
+          }
+        },
+        "title": "DamageReportPatch",
+        "type": "object"
+      },
+      "DamageReportRead": {
+        "description": "The letter as stored: its claimant and addressee placeholders are still in `body`.",
+        "properties": {
+          "body": {
+            "title": "Body",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "locale": {
+            "enum": [
+              "pl",
+              "en"
+            ],
+            "title": "Locale",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DamageReportStatus"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "locale",
+          "body",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "DamageReportRead",
+        "type": "object"
+      },
+      "DamageReportStatus": {
+        "enum": [
+          "draft",
+          "sent"
+        ],
+        "title": "DamageReportStatus",
+        "type": "string"
+      },
       "FuelType": {
         "enum": [
           "petrol",
@@ -468,6 +552,16 @@
             "title": "Created At",
             "type": "string"
           },
+          "damage_report_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DamageReportStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "id": {
             "title": "Id",
             "type": "integer"
@@ -559,7 +653,8 @@
           "updated_at",
           "photos",
           "ai_turns",
-          "nearby"
+          "nearby",
+          "damage_report_status"
         ],
         "title": "IncidentRead",
         "type": "object"
@@ -578,6 +673,16 @@
           "created_at": {
             "title": "Created At",
             "type": "string"
+          },
+          "damage_report_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DamageReportStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "id": {
             "title": "Id",
@@ -629,7 +734,8 @@
           "created_at",
           "location",
           "location_label",
-          "vehicle_id"
+          "vehicle_id",
+          "damage_report_status"
         ],
         "title": "IncidentSummary",
         "type": "object"
@@ -2199,6 +2305,202 @@
         "summary": "Take Ai Turn",
         "tags": [
           "ai"
+        ]
+      }
+    },
+    "/api/v1/incidents/{incident_id}/damage-report": {
+      "delete": {
+        "operationId": "delete_damage_report",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "maximum": 9223372036854775807,
+              "minimum": 1,
+              "title": "Incident Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Damage Report",
+        "tags": [
+          "damage-report"
+        ]
+      },
+      "get": {
+        "description": "The incident's damage report; 404 when the incident or the report doesn't exist.",
+        "operationId": "get_damage_report",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "maximum": 9223372036854775807,
+              "minimum": 1,
+              "title": "Incident Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DamageReportRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Damage Report",
+        "tags": [
+          "damage-report"
+        ]
+      },
+      "patch": {
+        "description": "Edit the body, or mark it `sent` (or back to `draft`).",
+        "operationId": "update_damage_report",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "maximum": 9223372036854775807,
+              "minimum": 1,
+              "title": "Incident Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DamageReportPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DamageReportRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Damage Report",
+        "tags": [
+          "damage-report"
+        ]
+      },
+      "post": {
+        "description": "Draft the damage report with the assistant and wait for it (ADR 0009).\n\nOnly for a pothole incident (422 `not_pothole_damage`); a later type change keeps it. One\nper incident (409 `damage_report_exists`) unless `replace: true`, which overwrites it,\nsets it back to `draft` and answers 200. It runs under the incident's turn lock (409\n`turn_in_progress`) and fails like an AI turn (502 `provider_error` / `invalid_output`,\n504 `timeout`, 503 `no_recording` in demo mode), storing nothing.",
+        "operationId": "create_damage_report",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "maximum": 9223372036854775807,
+              "minimum": 1,
+              "title": "Incident Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DamageReportCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DamageReportRead"
+                }
+              }
+            },
+            "description": "`replace: true` overwrote it"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DamageReportRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Damage Report",
+        "tags": [
+          "damage-report"
         ]
       }
     },

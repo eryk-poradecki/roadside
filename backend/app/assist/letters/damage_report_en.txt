@@ -1,0 +1,23 @@
+[Your name]
+[Your address]
+Phone: [Your phone]
+
+[Addressee: road manager]
+
+Report of vehicle damage caused by a pothole
+
+Date and time: $when
+Place: $place
+Vehicle: $vehicle, registration $registration
+
+What happened:
+$description
+
+Damage:
+$damage_summary
+
+Photos attached: $photos
+
+I ask for the damage to be compensated. Please pay the compensation to this bank account: [Your bank account].
+
+[Your name]

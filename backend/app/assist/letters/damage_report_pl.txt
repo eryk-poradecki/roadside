@@ -1,0 +1,23 @@
+[Imię i nazwisko]
+[Adres]
+Tel.: [Telefon]
+
+[Adresat: zarządca drogi]
+
+Zgłoszenie szkody w pojeździe spowodowanej przez wyrwę w jezdni
+
+Data i godzina: $when
+Miejsce: $place
+Pojazd: $vehicle, nr rej. $registration
+
+Przebieg zdarzenia:
+$description
+
+Uszkodzenia:
+$damage_summary
+
+Liczba zdjęć w załączeniu: $photos
+
+Proszę o naprawienie szkody. Odszkodowanie proszę przelać na rachunek bankowy: [Numer konta bankowego].
+
+[Imię i nazwisko]

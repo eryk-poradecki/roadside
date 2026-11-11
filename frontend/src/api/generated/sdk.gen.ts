@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AddPhotoData, AddPhotoErrors, AddPhotoResponses, CreateIncidentData, CreateIncidentErrors, CreateIncidentResponses, CreateVehicleData, CreateVehicleErrors, CreateVehicleResponses, DeleteIncidentData, DeleteIncidentErrors, DeleteIncidentResponses, DeletePhotoData, DeletePhotoErrors, DeletePhotoResponses, DeleteVehicleData, DeleteVehicleErrors, DeleteVehicleResponses, FindNearbyData, FindNearbyErrors, FindNearbyResponses, GetIncidentData, GetIncidentErrors, GetIncidentResponses, GetPhotoData, GetPhotoErrors, GetPhotoResponses, GetSamplePhotoData, GetSamplePhotoErrors, GetSamplePhotoResponses, GetVehicleData, GetVehicleErrors, GetVehicleResponses, HealthData, HealthResponses, ListIncidentsData, ListIncidentsErrors, ListIncidentsResponses, ListVehiclesData, ListVehiclesResponses, ReadConfigData, ReadConfigResponses, ReplaceVehicleData, ReplaceVehicleErrors, ReplaceVehicleResponses, TakeAiTurnData, TakeAiTurnErrors, TakeAiTurnResponses, UpdateIncidentData, UpdateIncidentErrors, UpdateIncidentResponses } from './types.gen';
+import type { AddPhotoData, AddPhotoErrors, AddPhotoResponses, CreateDamageReportData, CreateDamageReportErrors, CreateDamageReportResponses, CreateIncidentData, CreateIncidentErrors, CreateIncidentResponses, CreateVehicleData, CreateVehicleErrors, CreateVehicleResponses, DeleteDamageReportData, DeleteDamageReportErrors, DeleteDamageReportResponses, DeleteIncidentData, DeleteIncidentErrors, DeleteIncidentResponses, DeletePhotoData, DeletePhotoErrors, DeletePhotoResponses, DeleteVehicleData, DeleteVehicleErrors, DeleteVehicleResponses, FindNearbyData, FindNearbyErrors, FindNearbyResponses, GetDamageReportData, GetDamageReportErrors, GetDamageReportResponses, GetIncidentData, GetIncidentErrors, GetIncidentResponses, GetPhotoData, GetPhotoErrors, GetPhotoResponses, GetSamplePhotoData, GetSamplePhotoErrors, GetSamplePhotoResponses, GetVehicleData, GetVehicleErrors, GetVehicleResponses, HealthData, HealthResponses, ListIncidentsData, ListIncidentsErrors, ListIncidentsResponses, ListVehiclesData, ListVehiclesResponses, ReadConfigData, ReadConfigResponses, ReplaceVehicleData, ReplaceVehicleErrors, ReplaceVehicleResponses, TakeAiTurnData, TakeAiTurnErrors, TakeAiTurnResponses, UpdateDamageReportData, UpdateDamageReportErrors, UpdateDamageReportResponses, UpdateIncidentData, UpdateIncidentErrors, UpdateIncidentResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -83,6 +83,52 @@ export const updateIncident = <ThrowOnError extends boolean = false>(options: Op
  */
 export const takeAiTurn = <ThrowOnError extends boolean = false>(options: Options<TakeAiTurnData, ThrowOnError>): RequestResult<TakeAiTurnResponses, TakeAiTurnErrors, ThrowOnError> => (options.client ?? client).post<TakeAiTurnResponses, TakeAiTurnErrors, ThrowOnError>({
     url: '/api/v1/incidents/{incident_id}/ai-turns',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete Damage Report
+ */
+export const deleteDamageReport = <ThrowOnError extends boolean = false>(options: Options<DeleteDamageReportData, ThrowOnError>): RequestResult<DeleteDamageReportResponses, DeleteDamageReportErrors, ThrowOnError> => (options.client ?? client).delete<DeleteDamageReportResponses, DeleteDamageReportErrors, ThrowOnError>({ url: '/api/v1/incidents/{incident_id}/damage-report', ...options });
+
+/**
+ * Get Damage Report
+ *
+ * The incident's damage report; 404 when the incident or the report doesn't exist.
+ */
+export const getDamageReport = <ThrowOnError extends boolean = false>(options: Options<GetDamageReportData, ThrowOnError>): RequestResult<GetDamageReportResponses, GetDamageReportErrors, ThrowOnError> => (options.client ?? client).get<GetDamageReportResponses, GetDamageReportErrors, ThrowOnError>({ url: '/api/v1/incidents/{incident_id}/damage-report', ...options });
+
+/**
+ * Update Damage Report
+ *
+ * Edit the body, or mark it `sent` (or back to `draft`).
+ */
+export const updateDamageReport = <ThrowOnError extends boolean = false>(options: Options<UpdateDamageReportData, ThrowOnError>): RequestResult<UpdateDamageReportResponses, UpdateDamageReportErrors, ThrowOnError> => (options.client ?? client).patch<UpdateDamageReportResponses, UpdateDamageReportErrors, ThrowOnError>({
+    url: '/api/v1/incidents/{incident_id}/damage-report',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Create Damage Report
+ *
+ * Draft the damage report with the assistant and wait for it (ADR 0009).
+ *
+ * Only for a pothole incident (422 `not_pothole_damage`); a later type change keeps it. One
+ * per incident (409 `damage_report_exists`) unless `replace: true`, which overwrites it,
+ * sets it back to `draft` and answers 200. It runs under the incident's turn lock (409
+ * `turn_in_progress`) and fails like an AI turn (502 `provider_error` / `invalid_output`,
+ * 504 `timeout`, 503 `no_recording` in demo mode), storing nothing.
+ */
+export const createDamageReport = <ThrowOnError extends boolean = false>(options: Options<CreateDamageReportData, ThrowOnError>): RequestResult<CreateDamageReportResponses, CreateDamageReportErrors, ThrowOnError> => (options.client ?? client).post<CreateDamageReportResponses, CreateDamageReportErrors, ThrowOnError>({
+    url: '/api/v1/incidents/{incident_id}/damage-report',
     ...options,
     headers: {
         'Content-Type': 'application/json',

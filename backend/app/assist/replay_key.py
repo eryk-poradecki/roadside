@@ -41,6 +41,25 @@ def scenario_key(problem_type: str, situation: str, vehicle: VehicleFactBlock | 
     return _canonical(_scenario_parts(problem_type, situation, vehicle))
 
 
+def _replay_parts(
+    inputs: TurnInputs,
+    *,
+    locale: Locale,
+    sample_photo_ids: Sequence[str],
+    vision: bool,
+    replies: Sequence[Reply],
+) -> dict[str, Any]:
+    return {
+        **_scenario_parts(inputs.problem_type, inputs.situation, inputs.vehicle),
+        "sample_photo_ids": sorted(set(sample_photo_ids)),
+        "vision": vision,
+        "locale": locale,
+        "replies": [r.to_payload() for r in replies],
+        "road_class": inputs.road_class,
+        "dark": inputs.dark,
+    }
+
+
 def replay_key(
     inputs: TurnInputs,
     *,
@@ -50,13 +69,36 @@ def replay_key(
     replies: Sequence[Reply],
 ) -> str:
     """`vision` is whether the photos were shown to the model, not just attached."""
-    parts = {
-        **_scenario_parts(inputs.problem_type, inputs.situation, inputs.vehicle),
-        "sample_photo_ids": sorted(set(sample_photo_ids)),
-        "vision": vision,
-        "locale": locale,
-        "replies": [r.to_payload() for r in replies],
-        "road_class": inputs.road_class,
-        "dark": inputs.dark,
-    }
-    return _canonical(parts)
+    return _canonical(
+        _replay_parts(
+            inputs,
+            locale=locale,
+            sample_photo_ids=sample_photo_ids,
+            vision=vision,
+            replies=replies,
+        )
+    )
+
+
+def damage_report_key(
+    inputs: TurnInputs,
+    *,
+    locale: Locale,
+    sample_photo_ids: Sequence[str],
+    vision: bool,
+    replies: Sequence[Reply],
+) -> str:
+    """The key a demo-mode damage report draft replays from (ADR 0009).
+
+    The same semantic key as the incident's AI turns, so the draft sits beside its scenario's
+    recordings; `artifact` keeps it apart from the turn under that key. `locale` is the
+    letter's language, which the driver picks and which may differ from the advice's.
+    """
+    parts = _replay_parts(
+        inputs,
+        locale=locale,
+        sample_photo_ids=sample_photo_ids,
+        vision=vision,
+        replies=replies,
+    )
+    return _canonical({**parts, "artifact": "damage_report"})

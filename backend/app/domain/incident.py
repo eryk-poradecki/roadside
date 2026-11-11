@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from app.domain.ai_turn import AiTurn
 
 if TYPE_CHECKING:
+    from app.domain.damage_report import DamageReportStatus
     from app.domain.location_context import LocationContext
     from app.domain.nearby import NearbySnapshot
     from app.domain.photo import Photo
@@ -78,3 +79,5 @@ class IncidentDetail:
     nearby: "NearbySnapshot | None" = None
     # In upload order.
     photos: "tuple[Photo, ...]" = ()
+    # None when the incident has no damage report (ADR 0009).
+    damage_report_status: "DamageReportStatus | None" = None

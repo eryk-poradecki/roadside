@@ -106,3 +106,7 @@
   align-self: center;
   color: var(--muted);
 }
+/* "Report: draft / sent" (ADR 0009). */
+.incident-report {
+  align-self: flex-start;
+}

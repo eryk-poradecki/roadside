@@ -83,7 +83,7 @@ class TurnOutput(_Strict):
 
 def validate_output(raw: str, *, allow_ask: bool) -> TurnOutput:
     """Parse the model's raw text. Raises ValueError (pydantic's included) when invalid."""
-    output = TurnOutput.model_validate_json(_strip_fence(raw))
+    output = TurnOutput.model_validate_json(strip_fence(raw))
     if output.kind == "ask" and not allow_ask:
         raise ValueError('kind must be "answer" now; no more questions')
     return output
@@ -92,7 +92,7 @@ def validate_output(raw: str, *, allow_ask: bool) -> TurnOutput:
 _FENCE = re.compile(r"```[a-zA-Z]*\s*(.*?)\s*```", re.DOTALL)
 
 
-def _strip_fence(raw: str) -> str:
+def strip_fence(raw: str) -> str:
     """Some models wrap JSON in a ```json fence despite the schema."""
     match = _FENCE.fullmatch(raw.strip())
     return match.group(1) if match else raw

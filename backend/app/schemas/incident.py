@@ -4,6 +4,7 @@ from typing import Annotated, Any
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
+from app.domain.damage_report import DamageReportStatus
 from app.domain.incident import (
     NOTE_MAX_LENGTH,
     Incident,
@@ -70,7 +71,7 @@ class IncidentCreate(BaseModel):
 _REQUIRED_VALUE = ("status", "problem_type", "situation")
 
 
-def _non_nullable(fields: tuple[str, ...]) -> Callable[[dict[str, Any]], None]:
+def non_nullable(fields: tuple[str, ...]) -> Callable[[dict[str, Any]], None]:
     """Drop the null branch from these optional properties in the JSON schema."""
 
     def edit(schema: dict[str, Any]) -> None:
@@ -89,7 +90,7 @@ class IncidentPatch(BaseModel):
     (ADR 0001).
     """
 
-    model_config = ConfigDict(extra="forbid", json_schema_extra=_non_nullable(_REQUIRED_VALUE))
+    model_config = ConfigDict(extra="forbid", json_schema_extra=non_nullable(_REQUIRED_VALUE))
 
     # Optional but not nullable: omitted means unchanged (defaults aren't validated), an
     # explicit null is refused below, and the schema doesn't advertise null.
@@ -152,6 +153,8 @@ class IncidentRead(BaseModel):
     ai_turns: list[AiTurnRead]
     # Null until the first successful lookup, and again after a location change.
     nearby: NearbyRead | None
+    # Null when the incident has no damage report; its body is at `/damage-report` (ADR 0009).
+    damage_report_status: DamageReportStatus | None
 
     @classmethod
     def from_domain(cls, detail: IncidentDetail) -> "IncidentRead":
@@ -173,6 +176,7 @@ class IncidentRead(BaseModel):
             photos=[PhotoRead.from_domain(p) for p in detail.photos],
             ai_turns=[AiTurnRead.from_domain(t) for t in detail.ai_turns],
             nearby=NearbyRead.from_domain(detail.nearby) if detail.nearby else None,
+            damage_report_status=detail.damage_report_status,
         )
 
 
@@ -191,9 +195,13 @@ class IncidentSummary(BaseModel):
     location: LocationPoint | None
     location_label: str | None
     vehicle_id: int | None
+    # The "Report: draft/sent" chip; null when the incident has no damage report (ADR 0009).
+    damage_report_status: DamageReportStatus | None
 
     @classmethod
-    def from_domain(cls, i: Incident) -> "IncidentSummary":
+    def from_domain(
+        cls, i: Incident, damage_report_status: DamageReportStatus | None = None
+    ) -> "IncidentSummary":
         loc = i.location
         return cls(
             id=i.id,
@@ -203,6 +211,7 @@ class IncidentSummary(BaseModel):
             location=LocationPoint(lat=loc.lat, lon=loc.lon) if loc else None,
             location_label=i.location_label,
             vehicle_id=i.vehicle_id,
+            damage_report_status=damage_report_status,
         )
 
 

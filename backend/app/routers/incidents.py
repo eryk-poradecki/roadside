@@ -37,9 +37,9 @@ async def list_incidents(
     offset: Annotated[int, Query(ge=0, le=2**63 - 1)] = 0,
 ) -> IncidentPage:
     """Newest first, filtered by status and/or vehicle."""
-    items, total = await service.list(status, vehicle_id, limit, offset)
+    items, total, reports = await service.list(status, vehicle_id, limit, offset)
     return IncidentPage(
-        items=[IncidentSummary.from_domain(i) for i in items],
+        items=[IncidentSummary.from_domain(i, reports.get(i.id)) for i in items],
         total=total,
         limit=limit,
         offset=offset,

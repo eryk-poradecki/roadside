@@ -5,9 +5,11 @@ import aiosqlite
 
 from app.db.connection import read_snapshot, transaction
 from app.domain.ai_turn import Locale
+from app.domain.damage_report import DamageReportStatus
 from app.domain.incident import Incident, IncidentDetail, IncidentStatus, NewIncident
 from app.errors import FieldValidationError, NotFoundError
 from app.repositories.ai_turns import AiTurnRepository
+from app.repositories.damage_reports import DamageReportRepository
 from app.repositories.incidents import IncidentRepository
 from app.repositories.nearby import NearbyRepository
 from app.repositories.photos import PhotoFiles, PhotoRepository
@@ -32,6 +34,7 @@ class IncidentService:
         ai_turns: AiTurnRepository,
         nearby: NearbyRepository,
         photos: PhotoRepository,
+        reports: DamageReportRepository,
         files: PhotoFiles,
         location: LocationResolver,
     ) -> None:
@@ -41,6 +44,7 @@ class IncidentService:
         self._ai_turns = ai_turns
         self._nearby = nearby
         self._photos = photos
+        self._reports = reports
         self._files = files
         self._location = location
 
@@ -56,7 +60,14 @@ class IncidentService:
             turns = await self._ai_turns.list_for_incident(incident_id)
             nearby = await self._nearby.get(incident_id)
             photos = await self._photos.list_for_incident(incident_id)
-        return IncidentDetail(incident, tuple(turns), nearby, tuple(photos))
+            report = await self._reports.get(incident_id)
+        return IncidentDetail(
+            incident,
+            tuple(turns),
+            nearby,
+            tuple(photos),
+            report.status if report else None,
+        )
 
     async def create(
         self, data: NewIncident, idempotency_key: str | None = None
@@ -94,9 +105,12 @@ class IncidentService:
 
     async def list(
         self, status: IncidentStatus | None, vehicle_id: int | None, limit: int, offset: int
-    ) -> tuple[list[Incident], int]:
+    ) -> tuple[list[Incident], int, dict[int, DamageReportStatus]]:
+        """One page, the filtered total, and the damage report status of each that has one."""
         async with read_snapshot(self._conn):
-            return await self._incidents.list_page(status, vehicle_id, limit, offset)
+            items, total = await self._incidents.list_page(status, vehicle_id, limit, offset)
+            reports = await self._reports.statuses([i.id for i in items])
+        return items, total, reports
 
     async def update(self, incident_id: int, patch: IncidentPatch) -> IncidentDetail:
         """Apply a partial update. A patch that changes nothing writes nothing.
