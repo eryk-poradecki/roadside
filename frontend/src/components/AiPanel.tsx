@@ -2,18 +2,18 @@ import { ArrowRight, Camera, Loader, RotateCw, Send, Sparkles, WifiOff } from 'l
 import { useEffect, useId, useRef, useState, type SyntheticEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-  answeredQuestions,
   autoStartClaimed,
   claimAutoStart,
   findAdvice,
   openQuestion,
+  questionsWithReplies,
   useTakeAiTurn,
   useTurnInFlight,
   type AdviceRead,
   type Confidence,
-  type Exchange,
   type Locale,
   type QuestionRead,
+  type QuestionWithReply,
   type ReplyCreate,
   type TurnInputsRead,
 } from '../api/aiTurns'
@@ -27,7 +27,7 @@ import './AiPanel.css'
 /**
  * The AI answer on the Result screen, labelled as AI. Right after "Get help now"
  * (`autoStart`) it asks at once; the assistant may first ask up to two clarifying questions,
- * each answered with a tap, a short text or "Just give me the steps". A failed turn shows
+ * each replied to with a tap, a short text or "Just give me the steps". A failed turn shows
  * why and "Try again", while the safety checklist above stays as it is.
  */
 export function AiPanel({ incident, autoStart }: { incident: IncidentRead; autoStart: boolean }) {
@@ -37,7 +37,7 @@ export function AiPanel({ incident, autoStart }: { incident: IncidentRead; autoS
   const message = useErrorMessage()
   const adviceTurn = findAdvice(incident)
   const question = openQuestion(incident)
-  const answered = answeredQuestions(incident)
+  const replied = questionsWithReplies(incident)
   const started = incident.ai_turns.length > 0
   // About to ask on its own: show the waiting state from the first paint, not "not answered".
   const starting = autoStart && !started && turn.isIdle && !autoStartClaimed(incident.id)
@@ -67,7 +67,7 @@ export function AiPanel({ incident, autoStart }: { incident: IncidentRead; autoS
         </span>
       </div>
 
-      {answered.length > 0 && <Answered exchanges={answered} />}
+      {replied.length > 0 && <Replies items={replied} />}
 
       <div className="ai-body" aria-live="polite">
         {adviceTurn?.advice ? (
@@ -134,12 +134,12 @@ export function AiPanel({ incident, autoStart }: { incident: IncidentRead; autoS
   )
 }
 
-/** The questions already answered, each with the driver's reply, above what came next. */
-function Answered({ exchanges }: { exchanges: Exchange[] }) {
+/** The questions already asked, each with the driver's reply, above what came next. */
+function Replies({ items }: { items: QuestionWithReply[] }) {
   const { t } = useTranslation()
   return (
-    <ul className="turns" aria-label={t('ai.yourAnswers')}>
-      {exchanges.map(({ id, question, reply }) => (
+    <ul className="turns" aria-label={t('ai.yourReplies')}>
+      {items.map(({ id, question, reply }) => (
         <li key={id} className="turn-done">
           <span>{question}</span>
           <strong>{reply.option ?? reply.text ?? t('ai.skipped')}</strong>

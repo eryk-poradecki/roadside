@@ -7,6 +7,6 @@ A question has:
 
 - `now`: one immediate safety action the driver can do while they read the question, following the rules above.
 - `question`: one short question, answerable with one tap.
-- `options`: two to four short, distinct options. The app also lets the driver type their own short answer or skip to the steps, so do not add "Other" or "I don't know".
+- `options`: two to four short, distinct options. The app also lets the driver type their own short reply or skip to the steps, so do not add "Other" or "I don't know".
 
 An urgent turn never asks.

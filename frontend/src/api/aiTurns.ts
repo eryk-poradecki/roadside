@@ -60,9 +60,9 @@ export const openQuestion = (incident: IncidentRead): AiTurnRead | undefined => 
 }
 
 /** A clarifying question already asked, with the driver's reply to it. */
-export type Exchange = { id: number; question: string; reply: ReplyRead }
+export type QuestionWithReply = { id: number; question: string; reply: ReplyRead }
 
-export const answeredQuestions = (incident: IncidentRead): Exchange[] =>
+export const questionsWithReplies = (incident: IncidentRead): QuestionWithReply[] =>
   incident.ai_turns.flatMap((turn, i) => {
     const next = incident.ai_turns[i + 1]
     return turn.question && next?.reply
@@ -73,7 +73,7 @@ export const answeredQuestions = (incident: IncidentRead): Exchange[] =>
 /**
  * Resolves once react-query has delivered the updates already queued for its observers. The
  * screen then shows the refetched incident before the mutation settles, never the question
- * the reply answered next to the reply's own error or result.
+ * the reply was for next to the reply's own error or result.
  */
 const afterQueuedUpdates = () =>
   new Promise<void>((resolve) => {
@@ -92,7 +92,7 @@ const modelTurnSince = (incident: IncidentRead | undefined, seen: number) => {
  * and stored it or failed. Never retried on its own: a failed turn stores nothing and the
  * driver taps "Try again", which posts `{locale}` only. A reply is stored before the turn and
  * stays when it fails, so after a request with a reply the incident is read again before the
- * mutation settles: the panel then shows the stored reply, not the question it answered.
+ * mutation settles: the panel then shows the stored reply, not the question it replied to.
  */
 export function useTakeAiTurn(incidentId: number) {
   const queryClient = useQueryClient()

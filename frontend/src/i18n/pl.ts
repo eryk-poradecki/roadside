@@ -132,7 +132,7 @@ export const pl: Localised<Translation> & {
     otherPlaceholder: 'Na przykład: na bocznej drodze',
     send: 'Wyślij odpowiedź',
     skip: 'Po prostu podaj kroki',
-    yourAnswers: 'Twoje odpowiedzi',
+    yourReplies: 'Twoje odpowiedzi',
     skipped: 'Pominięto, od razu kroki',
   },
   incidentForm: {

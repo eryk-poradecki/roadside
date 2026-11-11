@@ -35,8 +35,9 @@ class ReplyCreate(BaseModel):
 class AiTurnCreate(BaseModel):
     """Ask for the next turn. `locale` is the UI language, the only language of the answer.
 
-    `reply` answers the open clarifying question and is required while one is open; it is
-    stored as its own turn before the model is asked, and stays if that call fails.
+    `reply` is the driver's reply to the open clarifying question, required while one is
+    open. It is stored as its own turn before the model is asked, and stays if that call
+    fails.
     """
 
     model_config = ConfigDict(extra="forbid")

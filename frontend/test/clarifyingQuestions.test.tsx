@@ -36,11 +36,11 @@ describe('clarifying questions', () => {
         .getAllByRole('button')
         .map((b) => b.textContent),
     ).toEqual(QUESTION.options)
-    expect(within(panel).getByRole('textbox', { name: 'Or type a short answer' })).toHaveAttribute(
+    expect(within(panel).getByRole('textbox', { name: 'Or type a short reply' })).toHaveAttribute(
       'maxlength',
       '280',
     )
-    expect(within(panel).getByRole('button', { name: 'Send answer' })).toBeDisabled()
+    expect(within(panel).getByRole('button', { name: 'Send reply' })).toBeDisabled()
     expect(within(panel).getByRole('button', { name: 'Just give me the steps' })).toBeEnabled()
     // Still no advice: the checklist stays unfolded.
     expect(screen.queryByRole('button', { name: /more safety steps/ })).not.toBeInTheDocument()
@@ -57,7 +57,7 @@ describe('clarifying questions', () => {
       { locale: 'en' },
       { locale: 'en', reply: { option: 'No, off the road' } },
     ])
-    const answered = within(aiPanel()).getByRole('list', { name: 'Your answers' })
+    const answered = within(aiPanel()).getByRole('list', { name: 'Your replies' })
     expect(within(answered).getByRole('listitem')).toHaveTextContent(
       `${QUESTION.question}No, off the road`,
     )
@@ -69,7 +69,7 @@ describe('clarifying questions', () => {
     const { user } = await getHelp()
     await findQuestion()
 
-    const other = within(aiPanel()).getByRole('textbox', { name: 'Or type a short answer' })
+    const other = within(aiPanel()).getByRole('textbox', { name: 'Or type a short reply' })
     await user.type(other, '  In a car park  {Enter}')
 
     expect(await within(aiPanel()).findByText(ADVICE.cause)).toBeInTheDocument()
@@ -88,7 +88,7 @@ describe('clarifying questions', () => {
 
     expect(await within(aiPanel()).findByText(ADVICE.cause)).toBeInTheDocument()
     expect(fakeApi.turnRequests[1]?.body).toEqual({ locale: 'en', reply: { skip: true } })
-    const answered = within(aiPanel()).getByRole('list', { name: 'Your answers' })
+    const answered = within(aiPanel()).getByRole('list', { name: 'Your replies' })
     expect(answered).toHaveTextContent('Skipped to the steps')
   })
 
@@ -103,7 +103,7 @@ describe('clarifying questions', () => {
     )
 
     expect(await within(aiPanel()).findByText(ADVICE.cause)).toBeInTheDocument()
-    const answered = within(aiPanel()).getByRole('list', { name: 'Your answers' })
+    const answered = within(aiPanel()).getByRole('list', { name: 'Your replies' })
     expect(within(answered).getAllByRole('listitem')).toHaveLength(2)
   })
 
@@ -132,7 +132,7 @@ describe('clarifying questions', () => {
     await user.click(within(await findQuestion()).getByRole('button', { name: 'No, off the road' }))
 
     const alert = await within(aiPanel()).findByRole('alert')
-    const answered = await within(aiPanel()).findByRole('list', { name: 'Your answers' })
+    const answered = await within(aiPanel()).findByRole('list', { name: 'Your replies' })
     expect(answered).toHaveTextContent('No, off the road')
     expect(within(aiPanel()).queryByRole('group')).not.toBeInTheDocument()
 

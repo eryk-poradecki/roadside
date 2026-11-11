@@ -258,8 +258,7 @@ class AssistantService:
                 # Only another worker can have appended since; the in-process lock covers
                 # this one. Storing anyway could put two questions in a row.
                 current = await self._turns.list_for_incident(incident_id)
-                if any(t.kind is AiTurnKind.ADVICE for t in current):
-                    raise AppError(409, "advice_exists", "The AI answer is complete")
+                _check_no_advice(current)
                 if len(current) != turns_seen:
                     raise AppError(409, "turn_in_progress", "A turn for this incident is running")
                 turn_id = await self._turns.append(incident_id, new, utc_now())
@@ -270,10 +269,15 @@ class AssistantService:
         return next(t for t in turns if t.id == turn_id)
 
 
-def _check_can_take(turns: list[AiTurn], reply: Reply | None) -> None:
-    """The 409s of ADR 0005, and a reply's option must be one the question offered."""
+def _check_no_advice(turns: list[AiTurn]) -> None:
+    """The advice closes the AI answer."""
     if any(t.kind is AiTurnKind.ADVICE for t in turns):
         raise AppError(409, "advice_exists", "The AI answer is complete")
+
+
+def _check_can_take(turns: list[AiTurn], reply: Reply | None) -> None:
+    """The 409s of ADR 0005, and a reply's option must be one the question offered."""
+    _check_no_advice(turns)
     open_question = turns[-1] if turns and turns[-1].kind is AiTurnKind.QUESTION else None
     if open_question is None:
         if reply is not None:

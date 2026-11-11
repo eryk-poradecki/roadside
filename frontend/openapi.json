@@ -65,7 +65,7 @@
       },
       "AiTurnCreate": {
         "additionalProperties": false,
-        "description": "Ask for the next turn. `locale` is the UI language, the only language of the answer.\n\n`reply` answers the open clarifying question and is required while one is open; it is\nstored as its own turn before the model is asked, and stays if that call fails.",
+        "description": "Ask for the next turn. `locale` is the UI language, the only language of the answer.\n\n`reply` is the driver's reply to the open clarifying question, required while one is\nopen. It is stored as its own turn before the model is asked, and stays if that call\nfails.",
         "properties": {
           "locale": {
             "enum": [
