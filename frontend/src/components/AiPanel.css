@@ -142,6 +142,9 @@
   margin-top: 2px;
   color: var(--muted);
 }
+.photo-line-unseen {
+  color: var(--muted);
+}
 
 .steps-block {
   display: flex;

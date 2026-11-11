@@ -1,4 +1,14 @@
-import { ArrowRight, Camera, Info, Loader, RotateCw, Send, Sparkles, WifiOff } from 'lucide-react'
+import {
+  ArrowRight,
+  Camera,
+  CameraOff,
+  Info,
+  Loader,
+  RotateCw,
+  Send,
+  Sparkles,
+  WifiOff,
+} from 'lucide-react'
 import { useEffect, useId, useRef, useState, type SyntheticEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -21,6 +31,7 @@ import type { FuelType } from '../api/generated/types.gen'
 import { isApiError } from '../api/client'
 import type { IncidentRead } from '../api/incidents'
 import { usePhotosUploading } from '../api/photos'
+import { photosSeen } from '../lib/photosSeen'
 import { isProblemType, problemKey } from '../lib/problemType'
 import { useErrorMessage } from './ErrorNotice'
 import { NOTE_MAX } from './HelpSheet'
@@ -312,6 +323,23 @@ function AnsweredFor({ inputs }: { inputs: TurnInputsRead }) {
   )
 }
 
+/** Says when the advice was given without some or all of the photos (ADR 0002). */
+function PhotosNotSeen({ inputs }: { inputs: TurnInputsRead }) {
+  const { t } = useTranslation()
+  const seen = photosSeen(inputs)
+  if (!seen) return null
+  return (
+    <p className="photo-line photo-line-unseen">
+      <CameraOff size={18} aria-hidden="true" />
+      <span>
+        {seen.kind === 'none'
+          ? t('ai.photosNotSeen', { count: seen.total })
+          : t('ai.photosPartlySeen', { seen: seen.seen, total: seen.total })}
+      </span>
+    </p>
+  )
+}
+
 function Advice({ advice, inputs }: { advice: AdviceRead; inputs: TurnInputsRead | null }) {
   const { t } = useTranslation()
   return (
@@ -342,6 +370,7 @@ function Advice({ advice, inputs }: { advice: AdviceRead; inputs: TurnInputsRead
           </span>
         </p>
       )}
+      {inputs && <PhotosNotSeen inputs={inputs} />}
 
       <div className="steps-block">
         <h3>{t('ai.stepsTitle')}</h3>

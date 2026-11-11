@@ -13,7 +13,11 @@ def build_provider(settings: Settings) -> LLMProvider:
     never a silent fallback from a live model to replay.
     """
     if settings.demo_mode:
-        return ReplayProvider.from_dir(settings.llm_recordings_dir)
+        return ReplayProvider.from_dir(
+            settings.llm_recordings_dir,
+            vision=settings.llm_vision,
+            max_images=settings.llm_max_images,
+        )
     if not (settings.llm_base_url and settings.llm_api_key and settings.llm_model):
         raise RuntimeError("LLM settings are missing")
     live = OpenAICompatibleProvider(
