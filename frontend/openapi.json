@@ -2204,7 +2204,7 @@
     },
     "/api/v1/incidents/{incident_id}/nearby": {
       "post": {
-        "description": "Look up real places around the incident's location and store them as its snapshot.\n\nReplaces the snapshot only on success: 503 `nearby_unavailable` keeps the previous one.\n409 `no_location` when the incident has none.",
+        "description": "Look up real places around the incident's location and store them as its snapshot.\n\nReplaces the snapshot only on success: 503 `nearby_unavailable` keeps the previous one.\n409 `no_location` when the incident has none. In demo mode the places recorded for the\nscenario at that radius; 503 `nearby_not_recorded` when there are none.",
         "operationId": "find_nearby",
         "parameters": [
           {

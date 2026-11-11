@@ -16,6 +16,7 @@ async def find_nearby(incident_id: IncidentId, body: NearbyRequest, service: Ser
     """Look up real places around the incident's location and store them as its snapshot.
 
     Replaces the snapshot only on success: 503 `nearby_unavailable` keeps the previous one.
-    409 `no_location` when the incident has none.
+    409 `no_location` when the incident has none. In demo mode the places recorded for the
+    scenario at that radius; 503 `nearby_not_recorded` when there are none.
     """
     return NearbyRead.from_domain(await service.lookup(incident_id, body.radius_km))

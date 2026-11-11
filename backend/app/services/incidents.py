@@ -1,4 +1,5 @@
 import sqlite3
+from dataclasses import replace
 
 import aiosqlite
 
@@ -13,7 +14,11 @@ from app.repositories.photos import PhotoFiles, PhotoRepository
 from app.repositories.vehicles import VehicleRepository
 from app.schemas.incident import IncidentPatch
 from app.services.clock import utc_now
-from app.services.location import LocationResolver, refresh_location_context
+from app.services.location import (
+    LocationResolver,
+    load_scenario_key,
+    refresh_location_context,
+)
 
 DEFAULT_LOCALE: Locale = "en"
 
@@ -99,10 +104,13 @@ class IncidentService:
         A new location recomputes the location context and label inline (ADR 0005), in the
         locale of the latest AI turn. A failed lookup leaves them empty for the next turn.
         It also clears the nearby snapshot, whose places were found around the old point.
+        In demo mode and recording runs, a new scenario (problem type, situation or vehicle)
+        does the same: the recorded context and places belong to the scenario (#58).
         """
         async with transaction(self._conn):
             current = await self.get(incident_id)
             new = patch.apply(current)
+            moved = False
             if new != current:
                 if (
                     new.vehicle_id is not None
@@ -110,14 +118,24 @@ class IncidentService:
                     and await self._vehicles.get(new.vehicle_id) is None
                 ):
                     raise FieldValidationError("vehicle_id", "Unknown vehicle")
+                moved = new.location != current.location or (
+                    self._location.keyed_by_scenario
+                    and await load_scenario_key(new, self._vehicles)
+                    != await load_scenario_key(current, self._vehicles)
+                )
+                if moved:
+                    new = replace(new, location_context=None, location_label=None)
                 await self._incidents.update(new, utc_now())
-                if new.location != current.location:
+                if moved:
                     await self._nearby.delete(incident_id)
-        if new.location is not None and new.location != current.location:
+        if new.location is not None and moved:
             turns = await self._ai_turns.list_for_incident(incident_id)
             locales = [t.provenance.locale for t in turns if t.provenance is not None]
             locale = locales[-1] if locales else DEFAULT_LOCALE
-            await refresh_location_context(self._conn, self._incidents, self._location, new, locale)
+            scenario = await load_scenario_key(new, self._vehicles)
+            await refresh_location_context(
+                self._conn, self._incidents, self._location, new, locale, scenario
+            )
         return await self.detail(incident_id)
 
     async def delete(self, incident_id: int) -> None:

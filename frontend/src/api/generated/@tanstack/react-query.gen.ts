@@ -244,7 +244,8 @@ export const takeAiTurnMutation = (options?: Partial<Options<TakeAiTurnData>>): 
  * Look up real places around the incident's location and store them as its snapshot.
  *
  * Replaces the snapshot only on success: 503 `nearby_unavailable` keeps the previous one.
- * 409 `no_location` when the incident has none.
+ * 409 `no_location` when the incident has none. In demo mode the places recorded for the
+ * scenario at that radius; 503 `nearby_not_recorded` when there are none.
  */
 export const findNearbyMutation = (options?: Partial<Options<FindNearbyData>>): UseMutationOptions<FindNearbyResponse, FindNearbyError, Options<FindNearbyData>> => {
     const mutationOptions: UseMutationOptions<FindNearbyResponse, FindNearbyError, Options<FindNearbyData>> = {

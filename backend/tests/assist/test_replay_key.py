@@ -4,7 +4,7 @@ import json
 from dataclasses import replace
 
 from app.assist.prompt import TurnInputs, VehicleFactBlock
-from app.assist.replay_key import replay_key
+from app.assist.replay_key import replay_key, scenario_key
 from app.domain.ai_turn import Reply
 
 VEHICLE = VehicleFactBlock(
@@ -130,3 +130,40 @@ def test_no_vehicle_leaves_the_vehicle_parts_unknown() -> None:
     assert parts["transmission"] is None
     assert parts["spare_wheel"] is None
     assert parts["has_assistance"] is False
+
+
+# --- the scenario key: recorded places and location context (#58) ---------------------------
+
+
+def scenario(inputs: TurnInputs = INPUTS) -> str:
+    return scenario_key(inputs.problem_type, inputs.situation, inputs.vehicle)
+
+
+def test_the_scenario_key_holds_what_is_known_before_the_first_turn() -> None:
+    assert json.loads(scenario()) == {
+        "problem_type": "flat_tyre",
+        "fuel_type": "diesel",
+        "transmission": "manual",
+        "spare_wheel": "space_saver",
+        "has_assistance": True,
+        "situation": "on_road",
+    }
+
+
+def test_every_replay_key_holds_its_scenario_key() -> None:
+    """The recorded places sit under the same semantic key as the AI turns, projected."""
+    scenario_parts = json.loads(scenario())
+    replay_parts = json.loads(key(replies=(Reply(option="Yes"),)))
+    assert {k: replay_parts[k] for k in scenario_parts} == scenario_parts
+
+
+def test_the_location_photos_and_replies_do_not_change_the_scenario_key() -> None:
+    # They are not known yet when the places are looked up, or they come from the recording.
+    other = replace(INPUTS, road_class="unknown", dark=True, settlement="city", note="x")
+    assert scenario(other) == scenario()
+
+
+def test_the_problem_situation_and_vehicle_change_the_scenario_key() -> None:
+    assert scenario(replace(INPUTS, problem_type="out_of_fuel")) != scenario()
+    assert scenario(replace(INPUTS, situation="parked")) != scenario()
+    assert scenario(replace(INPUTS, vehicle=None)) != scenario()

@@ -1,0 +1,17 @@
+{
+  "key": "{\"fuel_type\":null,\"has_assistance\":false,\"problem_type\":\"out_of_fuel\",\"situation\":\"on_road\",\"spare_wheel\":null,\"transmission\":null}",
+  "location": {
+    "road_class": "local_street",
+    "settlement": "city",
+    "label": null
+  },
+  "nearby": [
+    {
+      "radius_km": 5,
+      "places": [],
+      "fetched_at": "2026-11-11T10:00:00.000Z",
+      "source": "https://overpass.test/api/interpreter"
+    }
+  ],
+  "recorded_at": "2026-11-11T10:00:00.000Z"
+}

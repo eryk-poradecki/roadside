@@ -90,14 +90,17 @@ def _request_json(request: LLMRequest) -> dict[str, Any]:
     }
 
 
-def _write(directory: Path, rec: Recording) -> None:
-    directory.mkdir(parents=True, exist_ok=True)
-    path = directory / file_name(rec.key)
+def write_json(path: Path, data: object) -> None:
+    """Write readable JSON atomically, creating the directory."""
+    path.parent.mkdir(parents=True, exist_ok=True)
     # Unique, so two turns recording the same key at once can't trip over one temp file.
     tmp = path.with_name(f"{path.stem}.{uuid.uuid4().hex}.tmp")
-    text = json.dumps(rec.to_json(), ensure_ascii=False, indent=2) + "\n"
-    tmp.write_text(text, encoding="utf-8")
+    tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     os.replace(tmp, path)
+
+
+def _write(directory: Path, rec: Recording) -> None:
+    write_json(directory / file_name(rec.key), rec.to_json())
 
 
 class RecordingProvider:

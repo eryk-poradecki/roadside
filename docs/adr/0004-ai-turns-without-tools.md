@@ -2,6 +2,8 @@
 
 > **Amended by the spec #43:** a replay key miss gives a labelled fallback, never a silent nearest match; the recorded nearby results, location context and damage report drafts are stored with the AI recordings; the nearby cap is 20 (ADR 0005).
 
+> **Amended by #58:** the recorded location context and nearby places sit under the **scenario key**, the part of the replay key known when the incident is created: problem type, the four vehicle facts and `situation`. They can't sit under the whole key, because `road_class` in it comes from the recorded context itself, and the places are looked up before the first turn. Every replay key holds its scenario key. They live in `recordings/places/`, one file per scenario: the context with its label (never the recorded point) and one snapshot per radius. A recording run with `LLM_RECORD=true` merges each successful live lookup into its file. A file holds one point's lookups: a lookup from another point, or the first one of a run, starts it afresh (the point is held in memory only). In demo mode and recording runs, a PATCH that changes the scenario (problem type, situation or vehicle) clears the context, label and places like a location change does. In demo mode the recorded places are shown as recorded, around the recorded point, not moved to the visitor's. A radius with no recording answers 503 `nearby_not_recorded`, never a made-up `none`; a scenario with no recorded context gets `unknown`, as when a live lookup fails.
+
 > **Amended by [ADR 0005](0005-rest-conventions-and-endpoints.md):**
 > - All paths live under `/api/v1`.
 > - The ai-turns body is `{locale, reply?}`, so "Try again" posts `{locale}`.
