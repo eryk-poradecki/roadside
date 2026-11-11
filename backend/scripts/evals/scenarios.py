@@ -179,6 +179,18 @@ SCENARIOS: tuple[Scenario, ...] = (
             Reply(text="I've pulled into a lay-by"),
         ),
     ),
+    # Pothole damage at night on a main road: the tyre is damaged, so the spare and safety rules
+    # apply as for a flat; the damage report is a separate call the evals don't cover.
+    scenario(
+        "pothole_main_road_night_pl",
+        "pl",
+        "pothole_damage",
+        vehicle=car(spare_wheel="space_saver"),
+        note="Wpadłem w głęboką dziurę, opona ma bąbel, a felga jest wygięta",
+        road_class="main_road",
+        settlement="village",
+        night=True,
+    ),
     # Smoke: urgent, 112 first, then a safety action.
     scenario(
         "smoke_pl",
