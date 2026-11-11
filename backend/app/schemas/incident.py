@@ -5,6 +5,7 @@ from typing import Annotated, Any
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
 from app.domain.incident import (
+    NOTE_MAX_LENGTH,
     Incident,
     IncidentDetail,
     IncidentStatus,
@@ -14,7 +15,6 @@ from app.domain.incident import (
 )
 from app.schemas.ai_turn import AiTurnRead
 
-NOTE_MAX_LENGTH = 280
 Note = Annotated[str, StringConstraints(strip_whitespace=True, max_length=NOTE_MAX_LENGTH)]
 DbId = Annotated[int, Field(ge=1, le=2**63 - 1)]
 

@@ -42,6 +42,12 @@ class Ask(_Strict):
     question: Line
     options: Annotated[list[Short], Field(min_length=2, max_length=4)]
 
+    @model_validator(mode="after")
+    def _distinct_options(self) -> Self:
+        if len(set(self.options)) != len(self.options):
+            raise ValueError("options must not repeat")
+        return self
+
 
 class Answer(_Strict):
     cause: Line

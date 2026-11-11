@@ -65,7 +65,7 @@
       },
       "AiTurnCreate": {
         "additionalProperties": false,
-        "description": "Ask for the next turn. `locale` is the UI language, the only language of the answer.",
+        "description": "Ask for the next turn. `locale` is the UI language, the only language of the answer.\n\n`reply` is the driver's reply to the open clarifying question, required while one is\nopen. It is stored as its own turn before the model is asked, and stays if that call\nfails.",
         "properties": {
           "locale": {
             "enum": [
@@ -74,6 +74,16 @@
             ],
             "title": "Locale",
             "type": "string"
+          },
+          "reply": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReplyCreate"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -172,6 +182,26 @@
             ],
             "title": "Provider"
           },
+          "question": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuestionRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reply": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReplyRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "seq": {
             "title": "Seq",
             "type": "integer"
@@ -194,7 +224,9 @@
           "kind",
           "created_at",
           "urgent",
+          "question",
           "advice",
+          "reply",
           "inputs",
           "locale",
           "prompt_version",
@@ -676,6 +708,115 @@
         ],
         "title": "ProblemType",
         "type": "string"
+      },
+      "QuestionRead": {
+        "description": "A clarifying question: one immediate safety step, then two to four options.",
+        "properties": {
+          "now": {
+            "title": "Now",
+            "type": "string"
+          },
+          "options": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Options",
+            "type": "array"
+          },
+          "question": {
+            "title": "Question",
+            "type": "string"
+          }
+        },
+        "required": [
+          "now",
+          "question",
+          "options"
+        ],
+        "title": "QuestionRead",
+        "type": "object"
+      },
+      "ReplyCreate": {
+        "additionalProperties": false,
+        "description": "The driver's reply to the open clarifying question. Exactly one field is set: one of\nthe question's `option`s, a short free `text` (\"Other\"), or `skip` (\"Just give me the\nsteps\", which asks for the advice at once).",
+        "properties": {
+          "option": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Option"
+          },
+          "skip": {
+            "anyOf": [
+              {
+                "const": true,
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skip"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "maxLength": 280,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          }
+        },
+        "title": "ReplyCreate",
+        "type": "object"
+      },
+      "ReplyRead": {
+        "description": "The driver's reply: an option, a short text, or `skip` (\"Just give me the steps\").",
+        "properties": {
+          "option": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Option"
+          },
+          "skip": {
+            "title": "Skip",
+            "type": "boolean"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          }
+        },
+        "required": [
+          "option",
+          "text",
+          "skip"
+        ],
+        "title": "ReplyRead",
+        "type": "object"
       },
       "SamplePhoto": {
         "properties": {
@@ -1791,7 +1932,7 @@
     },
     "/api/v1/incidents/{incident_id}/ai-turns": {
       "post": {
-        "description": "Ask the assistant for the next turn of the AI answer and wait for it.\n\nSynchronous: the request holds until the turn is validated and stored, or has failed\n(nothing is stored then). One turn at a time per incident (409 `turn_in_progress`); the\nadvice closes the AI answer (409 `advice_exists`). Failures: 502 `provider_error` or\n`invalid_output`, 504 `timeout`. \"Try again\" repeats the same request.",
+        "description": "Ask the assistant for the next turn of the AI answer and wait for it.\n\nSynchronous: the request holds until the turn is validated and stored, or has failed\n(nothing is stored then). The turn is a clarifying `question` or the `advice`; at most two\nquestions are asked, and none after a `skip` reply or in an urgent turn.\n\nWhile a question is open, `reply` is required (409 `reply_required`); without one it is\nrefused (409 `no_open_question`). The reply is stored first and stays if the turn then\nfails, so \"Try again\" posts `{locale}` only. One turn at a time per incident (409\n`turn_in_progress`); the advice closes the AI answer (409 `advice_exists`). Failures: 502\n`provider_error` or `invalid_output`, 504 `timeout`.",
         "operationId": "take_ai_turn",
         "parameters": [
           {

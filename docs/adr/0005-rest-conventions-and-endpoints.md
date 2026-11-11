@@ -7,6 +7,8 @@
 > - `NearbyRead` has a fixed place shape, capped at 20.
 > - The desktop History map needs no extra query parameters.
 
+> **Amended by #53:** `AiTurnRead` carries `question` (`QuestionRead` `{now, question, options}`) on a question turn and `reply` (`ReplyRead` `{option, text, skip}`) on a reply turn; the reply body is `ReplyCreate`. A `reply.option` that is not one of the open question's options is 422 (`errors[].field` = `reply.option`).
+
 The API is plain resource-oriented REST under `/api/v1`, with one error format (RFC 9457 problem details carrying a machine-readable `reason`) and Pydantic DTOs kept separate from database rows. The reviewers grade API design directly, so the conventions follow the standards a reviewer expects instead of FastAPI's defaults. The few places that are not plain CRUD (AI turns, the nearby lookup) are modelled as sub-resources, not RPC verbs. The endpoint table below is the spec input for the build.
 
 ## Considered Options

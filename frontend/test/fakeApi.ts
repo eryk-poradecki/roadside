@@ -1,5 +1,11 @@
 import { http, HttpResponse, type HttpHandler } from 'msw'
-import type { AdviceRead, AiTurnRead, TurnInputsRead } from '../src/api/aiTurns'
+import type {
+  AdviceRead,
+  AiTurnRead,
+  QuestionRead,
+  ReplyCreate,
+  TurnInputsRead,
+} from '../src/api/aiTurns'
 import type {
   IncidentCreate,
   IncidentPatch,
@@ -21,9 +27,18 @@ export const ADVICE: AdviceRead = {
   extra_categories: ['tyres'],
 }
 
-/** One scripted `POST /ai-turns` outcome: an advice, or a problem response. */
+/** The clarifying question the fake assistant asks when a test scripts `{ ask: QUESTION }`. */
+export const QUESTION: QuestionRead = {
+  now: 'Get everyone behind the barrier',
+  question: 'Is the car on the hard shoulder?',
+  options: ['Yes, on the hard shoulder', 'No, off the road'],
+}
+
+/** One scripted `POST /ai-turns` outcome: an advice, a question, or a problem response. */
 export type TurnScript =
-  { advice: AdviceRead; urgent?: boolean } | { status: number; reason: string }
+  | { advice: AdviceRead; urgent?: boolean }
+  | { ask: QuestionRead }
+  | { status: number; reason: string }
 
 const NULLABLE_FIELDS = [
   'make_model',
@@ -117,12 +132,39 @@ export class FakeApi {
       kind: 'advice',
       created_at: '2026-11-10T10:00:30.000Z',
       urgent: false,
+      question: null,
       advice,
+      reply: null,
       inputs: null,
       locale,
       prompt_version: 'v1',
       provider: 'fake',
       model: 'fake-model',
+      ...extra,
+    }
+  }
+
+  /** A stored clarifying question. */
+  questionTurn(question: QuestionRead = QUESTION, extra: Partial<AiTurnRead> = {}): AiTurnRead {
+    return { ...this.adviceTurn(), kind: 'question', question, advice: null, ...extra }
+  }
+
+  /** A stored reply: the driver's, so it carries no model fields. */
+  replyTurn(reply: ReplyCreate, extra: Partial<AiTurnRead> = {}): AiTurnRead {
+    return {
+      id: this.nextTurnId++,
+      seq: 1,
+      kind: 'reply',
+      created_at: '2026-11-10T10:00:40.000Z',
+      urgent: null,
+      question: null,
+      advice: null,
+      reply: { option: reply.option ?? null, text: reply.text ?? null, skip: reply.skip === true },
+      inputs: null,
+      locale: null,
+      prompt_version: null,
+      provider: null,
+      model: null,
       ...extra,
     }
   }
@@ -303,22 +345,35 @@ export class FakeApi {
       }),
       http.post(`${API}/api/v1/incidents/:id/ai-turns`, async ({ params, request }) => {
         const incidentId = Number(params.id)
-        const body = (await request.json()) as { locale: 'pl' | 'en' }
+        const body = (await request.json()) as { locale: 'pl' | 'en'; reply?: ReplyCreate }
         this.turnRequests.push({ incidentId, body })
-        const incident = this.incidents.find((i) => i.id === incidentId)
+        let incident = this.incidents.find((i) => i.id === incidentId)
         if (!incident) return problem(404, 'not_found', 'Incident not found')
         if (incident.ai_turns.some((t) => t.kind === 'advice'))
           return problem(409, 'advice_exists', 'The AI answer is complete')
+        const open = incident.ai_turns.at(-1)?.kind === 'question'
+        if (open && !body.reply) return problem(409, 'reply_required', 'Reply first')
+        if (!open && body.reply) return problem(409, 'no_open_question', 'Nothing to reply to')
+        const append = (turn: AiTurnRead) => {
+          const current = incident as IncidentRead
+          const updated = {
+            ...current,
+            ai_turns: [...current.ai_turns, { ...turn, seq: current.ai_turns.length + 1 }],
+          }
+          this.incidents = this.incidents.map((i) => (i.id === incidentId ? updated : i))
+          incident = updated
+          return updated.ai_turns.at(-1) as AiTurnRead
+        }
+        // Like the server: the reply is stored first and stays if the turn then fails.
+        if (body.reply) append(this.replyTurn(body.reply))
         const next = this.turnScript.shift() ?? { advice: ADVICE }
         if ('reason' in next) return problem(next.status, next.reason, 'internal detail')
-        const turn = this.adviceTurn(next.advice, body.locale, {
-          seq: incident.ai_turns.length + 1,
-          urgent: next.urgent ?? false,
-          inputs: this.inputsFor(incident),
-        })
-        const updated = { ...incident, ai_turns: [...incident.ai_turns, turn] }
-        this.incidents = this.incidents.map((i) => (i.id === incidentId ? updated : i))
-        return HttpResponse.json(turn, { status: 201 })
+        const extra = { inputs: this.inputsFor(incident) }
+        const turn =
+          'ask' in next
+            ? this.questionTurn(next.ask, { ...extra, locale: body.locale })
+            : this.adviceTurn(next.advice, body.locale, { ...extra, urgent: next.urgent ?? false })
+        return HttpResponse.json(append(turn), { status: 201 })
       }),
       http.get(`${API}/api/v1/incidents/:id`, ({ params }) => {
         const found = this.incidents.find((i) => i.id === Number(params.id))

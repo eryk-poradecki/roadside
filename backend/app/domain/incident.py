@@ -8,6 +8,10 @@ if TYPE_CHECKING:
     from app.domain.location_context import LocationContext
 
 
+# The driver's note, and a free-text reply to a clarifying question, are at most this long.
+NOTE_MAX_LENGTH = 280
+
+
 class ProblemType(StrEnum):
     FLAT_TYRE = "flat_tyre"
     FLAT_BATTERY = "flat_battery"

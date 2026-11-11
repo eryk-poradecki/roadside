@@ -126,6 +126,14 @@ export const pl: Localised<Translation> & {
     answeredForNoVehicle: 'Odpowiedź dla: {{problem}}, bez pojazdu, więc kroki są ogólne.',
     urgentTitle: 'To może być nagły wypadek',
     urgentBody: 'Najpierw zadzwoń pod 112, potem wykonaj kroki poniżej.',
+    thinking: 'Analizujemy Twoją odpowiedź…',
+    rightNow: 'Teraz',
+    otherLabel: 'Albo wpisz krótką odpowiedź',
+    otherPlaceholder: 'Na przykład: na bocznej drodze',
+    send: 'Wyślij odpowiedź',
+    skip: 'Po prostu podaj kroki',
+    yourReplies: 'Twoje odpowiedzi',
+    skipped: 'Pominięto, od razu kroki',
   },
   incidentForm: {
     heading: 'Edytuj zdarzenie',
@@ -294,5 +302,7 @@ export const pl: Localised<Translation> & {
     invalid_output: 'Odpowiedź asystenta przyszła uszkodzona.',
     turn_in_progress: 'Asystent wciąż nad tym pracuje. Spróbuj za chwilę.',
     advice_exists: 'Asystent już odpowiedział.',
+    no_open_question: 'Na to pytanie już odpowiedziano.',
+    reply_required: 'Najpierw odpowiedz na pytanie powyżej.',
   },
 }

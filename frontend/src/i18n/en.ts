@@ -113,6 +113,14 @@ export const en = {
     answeredForNoVehicle: 'Answered for {{problem}} with no vehicle, so the steps are general.',
     urgentTitle: 'This could be an emergency',
     urgentBody: 'Call 112 first, then follow the steps below.',
+    thinking: 'Thinking about your answer…',
+    rightNow: 'Right now',
+    otherLabel: 'Or type a short reply',
+    otherPlaceholder: 'For example: on a side road',
+    send: 'Send reply',
+    skip: 'Just give me the steps',
+    yourReplies: 'Your replies',
+    skipped: 'Skipped to the steps',
   },
   incidentForm: {
     heading: 'Edit incident',
@@ -277,6 +285,8 @@ export const en = {
     invalid_output: 'The answer came back garbled.',
     turn_in_progress: 'The assistant is still working on this. Try again in a moment.',
     advice_exists: 'The assistant has already answered.',
+    no_open_question: 'That question has already been answered.',
+    reply_required: 'Answer the question above first.',
   },
 }
 

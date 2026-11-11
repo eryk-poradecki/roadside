@@ -86,16 +86,15 @@ async def test_a_turn_returns_the_advice_and_stores_it(
     assert len(fake.requests) == 1
 
 
-async def test_the_schema_sent_is_flat_and_narrowed_to_answer(
-    client: httpx.AsyncClient, install: Install
-) -> None:
+async def test_the_schema_sent_is_flat(client: httpx.AsyncClient, install: Install) -> None:
     fake = install(answer_json())
     incident_id = await make_incident(client)
 
     await turn(client, incident_id)
 
     schema = fake.requests[0].schema
-    assert schema["properties"]["kind"]["enum"] == ["answer"]
+    assert schema["properties"]["kind"]["enum"] == ["ask", "answer"]
+    assert schema["properties"]["ask"]["type"] == ["object", "null"]
     text = json.dumps(schema)
     for keyword in ("oneOf", "anyOf", "minItems", "maxItems", "maxLength", "minLength"):
         assert keyword not in text
@@ -177,14 +176,6 @@ INVALID_OUTPUTS = {
     "a place field": json.dumps({**json.loads(answer_json()), "places": [{"name": "Jan's Tyres"}]}),
     "a place inside the answer": answer_json(nearest_shop="Jan's Tyres, ul. Polna 1"),
     "urgent without 112 first": answer_json(urgent=True),
-    "a question while narrowed": json.dumps(
-        {
-            "kind": "ask",
-            "urgent": False,
-            "ask": {"now": "Hazard lights on", "question": "Which tyre?", "options": ["a", "b"]},
-            "answer": None,
-        }
-    ),
     "both blocks": json.dumps(
         {
             **json.loads(answer_json()),
@@ -474,7 +465,7 @@ async def test_the_prompt_carries_the_safety_rules(
     assert "112" in text
     assert "Never name a business" in text
     assert "Nearby panel" in text
-    assert "Do not ask a clarifying question." in text
+    assert "Ask only when the driver's reply would change the first steps" in text
 
 
 # --- the inputs snapshot -------------------------------------------------------------------

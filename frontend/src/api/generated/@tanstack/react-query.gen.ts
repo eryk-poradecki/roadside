@@ -213,9 +213,14 @@ export const updateIncidentMutation = (options?: Partial<Options<UpdateIncidentD
  * Ask the assistant for the next turn of the AI answer and wait for it.
  *
  * Synchronous: the request holds until the turn is validated and stored, or has failed
- * (nothing is stored then). One turn at a time per incident (409 `turn_in_progress`); the
- * advice closes the AI answer (409 `advice_exists`). Failures: 502 `provider_error` or
- * `invalid_output`, 504 `timeout`. "Try again" repeats the same request.
+ * (nothing is stored then). The turn is a clarifying `question` or the `advice`; at most two
+ * questions are asked, and none after a `skip` reply or in an urgent turn.
+ *
+ * While a question is open, `reply` is required (409 `reply_required`); without one it is
+ * refused (409 `no_open_question`). The reply is stored first and stays if the turn then
+ * fails, so "Try again" posts `{locale}` only. One turn at a time per incident (409
+ * `turn_in_progress`); the advice closes the AI answer (409 `advice_exists`). Failures: 502
+ * `provider_error` or `invalid_output`, 504 `timeout`.
  */
 export const takeAiTurnMutation = (options?: Partial<Options<TakeAiTurnData>>): UseMutationOptions<TakeAiTurnResponse, TakeAiTurnError, Options<TakeAiTurnData>> => {
     const mutationOptions: UseMutationOptions<TakeAiTurnResponse, TakeAiTurnError, Options<TakeAiTurnData>> = {
