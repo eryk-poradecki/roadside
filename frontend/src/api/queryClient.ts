@@ -13,11 +13,16 @@ export function shouldRetry(failureCount: number, error: unknown): boolean {
   return error.problem.status === 0 || error.problem.status >= 500
 }
 
+/**
+ * `networkMode: 'always'`: never pause while the browser says it's offline. A request runs,
+ * fails without a response, and the driver sees the offline message and banner instead of a
+ * spinner, and a write never waits to be replayed later (no queued writes, ADR 0008).
+ */
 export function createQueryClient(): QueryClient {
   return new QueryClient({
     defaultOptions: {
-      queries: { retry: shouldRetry, refetchOnWindowFocus: false },
-      mutations: { retry: false },
+      queries: { retry: shouldRetry, refetchOnWindowFocus: false, networkMode: 'always' },
+      mutations: { retry: false, networkMode: 'always' },
     },
   })
 }

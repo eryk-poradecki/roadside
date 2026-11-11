@@ -61,7 +61,6 @@ export function useAddPhoto() {
   return useMutation({
     mutationKey: addKey,
     mutationFn: upload,
-    networkMode: 'always',
     // One at a time: five phone photos decoded to canvases at once can exhaust a phone's
     // memory, and they share one weak connection anyway. Queued ones count as uploading.
     scope: { id: 'photo-upload' },
@@ -144,7 +143,6 @@ export function useDeletePhoto(incidentId: number) {
     mutationFn: async (photoId: number) => {
       await deletePhoto({ path: { photo_id: photoId }, throwOnError: true })
     },
-    networkMode: 'always',
     onSuccess: (_, photoId) => {
       queryClient.setQueryData<IncidentRead>(incidentKey, (incident) =>
         incident

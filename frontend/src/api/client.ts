@@ -1,4 +1,5 @@
 import { client } from './generated/client.gen'
+import { requestAnswered, requestFailed, requestSent } from './offline'
 
 /** The RFC 9457 problem the API sends for every error (ADR 0005). */
 export interface Problem {
@@ -65,8 +66,29 @@ export function configureApiClient(baseUrl: string = defaultBaseUrl()): void {
   client.setConfig({ baseUrl })
   if (configured) return
   configured = true
-  client.interceptors.error.use((error, response) => toApiError(error, response))
+  // Each request's sequence number, so the offline flag follows the newest outcome.
+  const sequence = new WeakMap<Request, number>()
+  client.interceptors.request.use((request) => {
+    sequence.set(request, requestSent())
+    return request
+  })
+  client.interceptors.response.use((response, request) => {
+    requestAnswered(sequence.get(request) ?? 0)
+    return response
+  })
+  client.interceptors.error.use((error, response, request) => {
+    const apiError = toApiError(error, response)
+    // Only a request that went out and got nothing back counts: not one that failed before
+    // it was sent, nor one we cancelled ourselves (a query unmounting).
+    const seq = request ? sequence.get(request) : undefined
+    if (apiError.reason === 'offline' && seq !== undefined && !isAbort(error)) requestFailed(seq)
+    return apiError
+  })
 }
+
+/** By name, not `instanceof DOMException`: fetch may reject with another realm's error. */
+const isAbort = (error: unknown) =>
+  typeof error === 'object' && error !== null && 'name' in error && error.name === 'AbortError'
 
 export function isApiError(error: unknown): error is ApiError {
   return error instanceof ApiError

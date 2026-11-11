@@ -12,9 +12,9 @@ export function renderApp(
   { strict = false }: { strict?: boolean } = {},
 ) {
   const queryClient = createQueryClient()
-  queryClient.setDefaultOptions({
-    queries: { ...queryClient.getDefaultOptions().queries, retry: false },
-  })
+  // setDefaultOptions replaces every default, so carry the mutation defaults over.
+  const defaults = queryClient.getDefaultOptions()
+  queryClient.setDefaultOptions({ ...defaults, queries: { ...defaults.queries, retry: false } })
   const user = userEvent.setup()
   const app = (
     <MemoryRouter initialEntries={[route]}>

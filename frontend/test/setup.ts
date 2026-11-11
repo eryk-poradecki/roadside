@@ -5,6 +5,7 @@ import { createElement } from 'react'
 import { afterAll, afterEach, beforeAll, beforeEach, vi } from 'vitest'
 import { configureApiClient } from '../src/api/client'
 import { client } from '../src/api/generated/client.gen'
+import { requestAnswered, requestSent } from '../src/api/offline'
 import { i18n, initI18n } from '../src/i18n'
 import { API, fakeApi } from './fakeApi'
 
@@ -65,6 +66,8 @@ beforeEach(async () => {
 })
 afterEach(() => {
   cleanup()
+  // The offline flag is module state: one test's lost network must not leak into the next.
+  requestAnswered(requestSent())
   server.resetHandlers()
   fakeApi.reset()
 })

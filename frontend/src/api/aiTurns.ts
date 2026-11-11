@@ -112,7 +112,6 @@ export function useTakeAiTurn(incidentId: number) {
   const mutation = useMutation({
     ...takeAiTurnMutation(),
     mutationKey: turnKey(incidentId),
-    networkMode: 'always',
     onSuccess: (turn, variables) => {
       queryClient.setQueryData<IncidentRead>(incidentKey, (incident) =>
         incident && !incident.ai_turns.some((t) => t.id === turn.id)

@@ -1,9 +1,10 @@
-import { Phone } from 'lucide-react'
+import { Phone, WifiOff } from 'lucide-react'
 import {
   createContext,
   useCallback,
   useContext,
   useEffect,
+  useId,
   useMemo,
   useState,
   type ReactNode,
@@ -11,6 +12,7 @@ import {
 import { createPortal } from 'react-dom'
 import { Outlet } from 'react-router'
 import { useTranslation } from 'react-i18next'
+import { useOffline } from '../api/offline'
 import { LanguageSwitch } from './LanguageSwitch'
 import { RoadMark } from './icons'
 import './AppShell.css'
@@ -33,6 +35,28 @@ export function EmergencyBar({ urgent = false }: { urgent?: boolean }) {
       <Phone size={22} strokeWidth={2.25} aria-hidden="true" />
       <span>{t('callEmergency')}</span>
     </EmergencyLink>
+  )
+}
+
+/**
+ * Shown while the app is cut off (ADR 0008), so a failed load reads as "no signal" rather
+ * than a broken app. The live region stays mounted so the change is announced.
+ */
+export function OfflineBanner() {
+  const { t } = useTranslation()
+  const offline = useOffline()
+  const labelId = useId()
+  return (
+    <div className="offline" role="status" aria-labelledby={offline ? labelId : undefined}>
+      {offline && (
+        <>
+          <WifiOff size={20} aria-hidden="true" />
+          <p>
+            <strong id={labelId}>{t('offline.label')}</strong> <span>{t('offline.body')}</span>
+          </p>
+        </>
+      )}
+    </div>
   )
 }
 
@@ -100,6 +124,7 @@ export function AppShell({ dock }: { dock?: ReactNode }) {
           </p>
           <LanguageSwitch />
         </header>
+        <OfflineBanner />
         <main className="shell-body">
           <Outlet />
         </main>

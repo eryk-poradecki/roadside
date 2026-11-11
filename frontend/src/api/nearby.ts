@@ -61,7 +61,6 @@ export function useFindNearby(incidentId: number) {
   const mutation = useMutation({
     ...findNearbyMutation(),
     mutationKey: nearbyKey(incidentId),
-    networkMode: 'always',
     onSuccess: (nearby) => {
       queryClient.setQueryData<IncidentRead>(incidentKey, (incident) =>
         incident ? { ...incident, nearby } : incident,

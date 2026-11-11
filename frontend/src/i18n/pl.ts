@@ -452,6 +452,10 @@ export const pl: Localised<Translation> & {
       yearRange: 'Podaj rok od 1900 do 2100.',
     },
   },
+  offline: {
+    label: 'Offline',
+    body: 'Brak połączenia. Kroki bezpieczeństwa i 112 nadal działają.',
+  },
   errors: {
     generic: 'Coś poszło nie tak. Spróbuj ponownie.',
     offline: 'Brak połączenia albo serwer jest nieosiągalny. Sprawdź internet i spróbuj ponownie.',

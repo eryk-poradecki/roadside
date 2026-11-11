@@ -59,9 +59,6 @@ export function useCreateIncident() {
   const mutation = useMutation({
     ...createIncidentMutation(),
     retry: shouldRetry,
-    // Never pause while the browser says it's offline: fail, show the offline message, and
-    // let the driver tap again.
-    networkMode: 'always',
     onSuccess: (incident) => {
       queryClient.setQueryData(
         getIncidentQueryKey({ path: { incident_id: incident.id } }),

@@ -57,7 +57,6 @@ export function useCreateDamageReport(incidentId: number) {
   const refreshIncident = useRefreshAfterReportWrite(incidentId)
   const mutation = useMutation({
     ...createDamageReportMutation(),
-    networkMode: 'always',
     onSuccess: (report) => {
       queryClient.setQueryData(reportKey(incidentId), report)
       refreshIncident()
