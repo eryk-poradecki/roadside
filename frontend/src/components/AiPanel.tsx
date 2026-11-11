@@ -1,27 +1,34 @@
-import { Camera, Loader, RotateCw, Sparkles, WifiOff } from 'lucide-react'
-import { useEffect } from 'react'
+import { ArrowRight, Camera, Loader, RotateCw, Send, Sparkles, WifiOff } from 'lucide-react'
+import { useEffect, useId, useRef, useState, type SyntheticEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
+  answeredQuestions,
   autoStartClaimed,
   claimAutoStart,
   findAdvice,
+  openQuestion,
   useTakeAiTurn,
   useTurnInFlight,
   type AdviceRead,
   type Confidence,
+  type Exchange,
   type Locale,
+  type QuestionRead,
+  type ReplyCreate,
   type TurnInputsRead,
 } from '../api/aiTurns'
 import type { FuelType } from '../api/generated/types.gen'
 import type { IncidentRead } from '../api/incidents'
 import { isProblemType, problemKey } from '../lib/problemType'
 import { useErrorMessage } from './ErrorNotice'
+import { NOTE_MAX } from './HelpSheet'
 import './AiPanel.css'
 
 /**
  * The AI answer on the Result screen, labelled as AI. Right after "Get help now"
- * (`autoStart`) it asks for the advice at once; a failed turn shows why and "Try again",
- * while the safety checklist above stays as it is.
+ * (`autoStart`) it asks at once; the assistant may first ask up to two clarifying questions,
+ * each answered with a tap, a short text or "Just give me the steps". A failed turn shows
+ * why and "Try again", while the safety checklist above stays as it is.
  */
 export function AiPanel({ incident, autoStart }: { incident: IncidentRead; autoStart: boolean }) {
   const { t, i18n } = useTranslation()
@@ -29,21 +36,24 @@ export function AiPanel({ incident, autoStart }: { incident: IncidentRead; autoS
   const inFlight = useTurnInFlight(incident.id)
   const message = useErrorMessage()
   const adviceTurn = findAdvice(incident)
+  const question = openQuestion(incident)
+  const answered = answeredQuestions(incident)
+  const started = incident.ai_turns.length > 0
   // About to ask on its own: show the waiting state from the first paint, not "not answered".
-  const starting = autoStart && !adviceTurn && turn.isIdle && !autoStartClaimed(incident.id)
+  const starting = autoStart && !started && turn.isIdle && !autoStartClaimed(incident.id)
   // The answer is in the UI language only, never the note's (ADR 0004).
   const locale: Locale = i18n.resolvedLanguage === 'pl' ? 'pl' : 'en'
 
-  const ask = () => {
-    turn.take(locale).catch(() => {
+  const ask = (reply?: ReplyCreate) => {
+    turn.take(locale, reply).catch(() => {
       // Shown below from `turn.error`.
     })
   }
 
   // At most once per incident and session: not again after a remount, a reload or
-  // StrictMode's second effect run, and never while a turn is in flight or answered.
+  // StrictMode's second effect run, and never once the AI answer has begun.
   useEffect(() => {
-    if (!autoStart || adviceTurn || inFlight || !claimAutoStart(incident.id)) return
+    if (!autoStart || started || inFlight || !claimAutoStart(incident.id)) return
     ask()
   })
 
@@ -57,6 +67,8 @@ export function AiPanel({ incident, autoStart }: { incident: IncidentRead; autoS
         </span>
       </div>
 
+      {answered.length > 0 && <Answered exchanges={answered} />}
+
       <div className="ai-body" aria-live="polite">
         {adviceTurn?.advice ? (
           <Advice advice={adviceTurn.advice} inputs={adviceTurn.inputs} />
@@ -64,7 +76,7 @@ export function AiPanel({ incident, autoStart }: { incident: IncidentRead; autoS
           <div className="ai-loading">
             <p className="ai-line">
               <Loader size={20} className="spin" aria-hidden="true" />
-              {t('ai.loading')}
+              {started ? t('ai.thinking') : t('ai.loading')}
             </p>
             <p className="muted">{t('ai.loadingSub')}</p>
             <div className="skeleton" aria-hidden="true">
@@ -73,6 +85,14 @@ export function AiPanel({ incident, autoStart }: { incident: IncidentRead; autoS
               <i />
             </div>
           </div>
+        ) : question?.question ? (
+          <Ask
+            key={question.id}
+            question={question.question}
+            // Only a failed reply to this question belongs here, e.g. no signal on the way.
+            error={turn.isError && turn.variables.body.reply ? message(turn.error) : null}
+            onReply={ask}
+          />
         ) : turn.isError ? (
           <div className="ai-error" role="alert">
             <p className="ai-line">
@@ -82,7 +102,13 @@ export function AiPanel({ incident, autoStart }: { incident: IncidentRead; autoS
             <p className="muted">
               {message(turn.error)} {t('ai.errorBody')}
             </p>
-            <button type="button" className="btn btn-quiet" onClick={ask}>
+            <button
+              type="button"
+              className="btn btn-quiet"
+              onClick={() => {
+                ask()
+              }}
+            >
               <RotateCw size={20} aria-hidden="true" />
               {t('ai.retry')}
             </button>
@@ -91,7 +117,13 @@ export function AiPanel({ incident, autoStart }: { incident: IncidentRead; autoS
           // Opened later with no advice (it failed, or the driver left mid-turn): finish it.
           <div className="ai-idle">
             <p className="muted">{t('ai.notAnswered')}</p>
-            <button type="button" className="btn btn-quiet" onClick={ask}>
+            <button
+              type="button"
+              className="btn btn-quiet"
+              onClick={() => {
+                ask()
+              }}
+            >
               <Sparkles size={20} aria-hidden="true" />
               {t('ai.ask')}
             </button>
@@ -99,6 +131,118 @@ export function AiPanel({ incident, autoStart }: { incident: IncidentRead; autoS
         )}
       </div>
     </section>
+  )
+}
+
+/** The questions already answered, each with the driver's reply, above what came next. */
+function Answered({ exchanges }: { exchanges: Exchange[] }) {
+  const { t } = useTranslation()
+  return (
+    <ul className="turns" aria-label={t('ai.yourAnswers')}>
+      {exchanges.map(({ id, question, reply }) => (
+        <li key={id} className="turn-done">
+          <span>{question}</span>
+          <strong>{reply.option ?? reply.text ?? t('ai.skipped')}</strong>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+/**
+ * A clarifying question: its "Right now" safety step first, then the question with two to
+ * four options to tap, a short answer of the driver's own, or "Just give me the steps".
+ */
+function Ask({
+  question,
+  error,
+  onReply,
+}: {
+  question: QuestionRead
+  error: string | null
+  onReply: (reply: ReplyCreate) => void
+}) {
+  const { t } = useTranslation()
+  const id = useId()
+  const [other, setOther] = useState('')
+  const heading = useRef<HTMLHeadingElement>(null)
+  // A new question moves focus to itself, for screen readers, without scrolling the
+  // safety steps above out of view.
+  useEffect(() => {
+    heading.current?.focus({ preventScroll: true })
+  }, [])
+
+  const submit = (e: SyntheticEvent) => {
+    e.preventDefault()
+    const text = other.trim()
+    if (text) onReply({ text })
+  }
+
+  return (
+    <div className="ask">
+      <p className="ai-now">
+        <strong>{t('ai.rightNow')}</strong>
+        <span>{question.now}</span>
+      </p>
+      <h3 className="ask-q" ref={heading} tabIndex={-1} id={`${id}-q`}>
+        {question.question}
+      </h3>
+      {error && (
+        <p className="notice notice-error" role="alert">
+          {error}
+        </p>
+      )}
+      <div className="ask-options" role="group" aria-labelledby={`${id}-q`}>
+        {question.options.map((option) => (
+          <button
+            key={option}
+            type="button"
+            className="chip chip-lg"
+            onClick={() => {
+              onReply({ option })
+            }}
+          >
+            {option}
+          </button>
+        ))}
+      </div>
+      <form className="ask-other" onSubmit={submit}>
+        <label htmlFor={`${id}-other`} className="note-label">
+          {t('ai.otherLabel')}
+        </label>
+        <div className="ask-other-row">
+          <input
+            id={`${id}-other`}
+            className="field"
+            value={other}
+            maxLength={NOTE_MAX}
+            placeholder={t('ai.otherPlaceholder')}
+            enterKeyHint="send"
+            onChange={(e) => {
+              setOther(e.target.value)
+            }}
+          />
+          <button
+            type="submit"
+            className="icon-btn icon-btn-lg"
+            disabled={!other.trim()}
+            aria-label={t('ai.send')}
+          >
+            <Send size={20} aria-hidden="true" />
+          </button>
+        </div>
+      </form>
+      <button
+        type="button"
+        className="btn btn-quiet ask-skip"
+        onClick={() => {
+          onReply({ skip: true })
+        }}
+      >
+        {t('ai.skip')}
+        <ArrowRight size={20} aria-hidden="true" />
+      </button>
+    </div>
   )
 }
 

@@ -229,3 +229,111 @@
   flex-direction: column;
   gap: 12px;
 }
+
+/* Clarifying questions, as in the #8 prototype: answered ones above, the open one below. */
+.turns {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.turn-done {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  padding: 8px 12px;
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  font-size: 0.9375rem;
+}
+.turn-done span {
+  color: var(--muted);
+}
+.turn-done strong {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.ask {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.ai-now {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.ai-now strong {
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+.ask-q {
+  font-size: 1.25rem;
+  line-height: 1.25;
+  padding-top: 6px;
+  text-wrap: balance;
+}
+.ask-q:focus {
+  outline: none;
+}
+.ask-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip-lg {
+  display: inline-flex;
+  align-items: center;
+  min-height: 52px;
+  padding: 8px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 160ms var(--ease),
+    border-color 160ms var(--ease);
+}
+.chip-lg:active {
+  border-color: var(--amber);
+  background: var(--surface-2);
+}
+.ask-other {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ask-other-row {
+  display: flex;
+  gap: 8px;
+}
+.ask-other-row .field {
+  flex: 1;
+  min-width: 0;
+}
+.icon-btn-lg {
+  width: 48px;
+  height: 48px;
+  flex: none;
+  border-radius: var(--r-sm);
+}
+.icon-btn:disabled {
+  color: var(--muted);
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.ask-skip {
+  align-self: flex-start;
+}
