@@ -1,3 +1,5 @@
+import asyncio
+import time
 from collections.abc import AsyncIterator
 
 import httpx
@@ -73,3 +75,18 @@ async def test_results_are_cached_by_rounded_coordinates(geocoder: NominatimGeoc
     await geocoder.reverse(52.000002, 21.000002, "en")
 
     assert route.call_count == 1
+
+
+@respx.mock
+async def test_the_timeout_bounds_the_whole_request(geocoder: NominatimGeocoder) -> None:
+    """httpx times each phase separately; the ADR's 3 s is for the whole lookup."""
+
+    async def trickle(request: httpx.Request) -> httpx.Response:
+        await asyncio.sleep(5)
+        return httpx.Response(200, json=RESULT)
+
+    respx.get(URL).mock(side_effect=trickle)
+    started = time.monotonic()
+
+    assert await geocoder.reverse(52.0, 21.0, "en") is None
+    assert time.monotonic() - started < 1.5

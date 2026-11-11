@@ -34,6 +34,7 @@ class NominatimGeocoder:
         self._url = base_url.rstrip("/") + "/reverse"
         self._headers = {"User-Agent": user_agent}
         self._timeout = httpx.Timeout(timeout_s)
+        self._timeout_s = timeout_s
         self._min_interval_s = min_interval_s
         # The public server's policy is at most 1 request/s.
         self._lock = asyncio.Lock()
@@ -75,7 +76,12 @@ class NominatimGeocoder:
                 self._last_request = time.monotonic()
                 if self._client is None:
                     self._client = httpx.AsyncClient(timeout=self._timeout, headers=self._headers)
-                response = await self._client.get(self._url, params=params)
+                # httpx times each phase separately; this bounds the whole request.
+                async with asyncio.timeout(self._timeout_s):
+                    response = await self._client.get(self._url, params=params)
+        except TimeoutError:
+            logger.info("nominatim timed out")
+            return None
         except httpx.HTTPError as exc:
             logger.info("nominatim unavailable (%s)", type(exc).__name__)
             return None
