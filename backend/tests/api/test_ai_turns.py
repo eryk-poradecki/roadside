@@ -78,7 +78,7 @@ async def test_a_turn_returns_the_advice_and_stores_it(
         "photo_observation": None,
         "extra_categories": ["repair"],
     }
-    assert body["prompt_version"] == "v1"
+    assert body["prompt_version"] == "v2"
     assert body["provider"] == "fake"
     assert body["model"] == "fake-model-1"
     assert body["created_at"].endswith("Z")
@@ -586,3 +586,39 @@ async def test_another_worker_storing_the_advice_first_is_409(settings: Settings
     finally:
         for c in clients:
             await c.aclose()
+
+
+@pytest.mark.parametrize(
+    ("fuel_type", "problem_type", "mentions_lpg"),
+    [
+        ("lpg", "out_of_fuel", True),
+        ("lpg", "other", True),
+        ("lpg", "flat_tyre", False),
+        ("petrol", "out_of_fuel", False),
+        (None, "other", False),
+    ],
+)
+async def test_lpg_switching_is_mentioned_only_for_an_lpg_car_that_ran_dry_or_wont_start(
+    client: httpx.AsyncClient,
+    install: Install,
+    fuel_type: str | None,
+    problem_type: str,
+    mentions_lpg: bool,
+) -> None:
+    """#90: null fuel type is unknown, so it never gets the LPG line (ADR 0003)."""
+    fake = install(answer_json())
+    vehicle = (await client.post(V, json={"name": "Golf", "fuel_type": fuel_type})).json()
+    incident_id = await make_incident(client, vehicle_id=vehicle["id"], problem_type=problem_type)
+
+    await turn(client, incident_id)
+
+    assert ("LPG" in fake.prompt_text()) is mentions_lpg
+
+
+async def test_no_vehicle_never_mentions_lpg(client: httpx.AsyncClient, install: Install) -> None:
+    fake = install(answer_json())
+    incident_id = await make_incident(client, problem_type="out_of_fuel")
+
+    await turn(client, incident_id)
+
+    assert "LPG" not in fake.prompt_text()
