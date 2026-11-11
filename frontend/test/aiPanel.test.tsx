@@ -151,6 +151,29 @@ describe('AI answer on the Result screen', () => {
     expect(fakeApi.turnRequests).toHaveLength(1)
   })
 
+  it('still asks on its own when a reused incident id was asked for before in this tab', async () => {
+    // An earlier incident 1, deleted (or its database wiped) while the tab stayed open:
+    // SQLite gives the next incident the same id.
+    const earlier = fakeApi.seedIncident(
+      { problem_type: 'flat_tyre' },
+      { created_at: '2026-11-09T08:00:00.000Z' },
+    )
+    renderApp({ pathname: '/incidents/1', state: { fromHelp: true } })
+    expect(
+      await within(await screen.findByRole('region', { name: 'Personalised steps' })).findByText(
+        ADVICE.cause,
+      ),
+    ).toBeInTheDocument()
+    cleanup()
+    fakeApi.reset()
+    expect(earlier.id).toBe(1)
+
+    await getHelp()
+
+    expect(await within(aiPanel()).findByText(ADVICE.cause)).toBeInTheDocument()
+    expect(fakeApi.turnRequests).toEqual([{ incidentId: 1, body: { locale: 'en' } }])
+  })
+
   it('a turn still running elsewhere (409) shows its advice once it is stored', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
     try {

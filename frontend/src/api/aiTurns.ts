@@ -21,14 +21,22 @@ const OTHER_TURN_MAX_MS = 100_000
 const OTHER_TURN_POLL_MS = 5_000
 
 /** Fallback when session storage is blocked: covers remounts, not reloads. */
-const autoStarted = new Set<number>()
+const autoStarted = new Set<string>()
+
+/**
+ * The incident as this tab remembers it. SQLite reuses the id of a deleted newest incident,
+ * and a wiped database starts again at 1, so the id alone could match an earlier incident.
+ */
+const autoStartKey = (incident: IncidentRead) =>
+  `ai-autostart-${String(incident.id)}-${incident.created_at}`
 
 /** Whether `claimAutoStart` was already used for this incident, without claiming it. */
-export function autoStartClaimed(incidentId: number): boolean {
+export function autoStartClaimed(incident: IncidentRead): boolean {
+  const key = autoStartKey(incident)
   try {
-    return sessionStorage.getItem(`ai-autostart-${String(incidentId)}`) !== null
+    return sessionStorage.getItem(key) !== null
   } catch {
-    return autoStarted.has(incidentId)
+    return autoStarted.has(key)
   }
 }
 
@@ -36,15 +44,15 @@ export function autoStartClaimed(incidentId: number): boolean {
  * True the first time it is called for an incident in this browser session, also across
  * remounts and reloads, so a failed turn is repeated only when the driver taps "Try again".
  */
-export function claimAutoStart(incidentId: number): boolean {
-  const key = `ai-autostart-${String(incidentId)}`
+export function claimAutoStart(incident: IncidentRead): boolean {
+  const key = autoStartKey(incident)
   try {
     if (sessionStorage.getItem(key) !== null) return false
     sessionStorage.setItem(key, '1')
     return true
   } catch {
-    if (autoStarted.has(incidentId)) return false
-    autoStarted.add(incidentId)
+    if (autoStarted.has(key)) return false
+    autoStarted.add(key)
     return true
   }
 }

@@ -40,7 +40,7 @@ export function AiPanel({ incident, autoStart }: { incident: IncidentRead; autoS
   const replied = questionsWithReplies(incident)
   const started = incident.ai_turns.length > 0
   // About to ask on its own: show the waiting state from the first paint, not "not answered".
-  const starting = autoStart && !started && turn.isIdle && !autoStartClaimed(incident.id)
+  const starting = autoStart && !started && turn.isIdle && !autoStartClaimed(incident)
   // The answer is in the UI language only, never the note's (ADR 0004).
   const locale: Locale = i18n.resolvedLanguage === 'pl' ? 'pl' : 'en'
 
@@ -53,7 +53,7 @@ export function AiPanel({ incident, autoStart }: { incident: IncidentRead; autoS
   // At most once per incident and session: not again after a remount, a reload or
   // StrictMode's second effect run, and never once the AI answer has begun.
   useEffect(() => {
-    if (!autoStart || started || inFlight || !claimAutoStart(incident.id)) return
+    if (!autoStart || started || inFlight || !claimAutoStart(incident)) return
     ask()
   })
 
