@@ -13,6 +13,7 @@ import type {
   IncidentSummary,
 } from '../src/api/incidents'
 import type { NearbyRead, PlaceRead } from '../src/api/nearby'
+import type { PhotoRead, SamplePhoto } from '../src/api/photos'
 import type { VehicleCreate, VehicleRead } from '../src/api/vehicles'
 
 export const API = 'http://api.test'
@@ -63,6 +64,25 @@ export const PLACES: PlaceRead[] = [
   place(6, 'charging', { name: 'GreenWay' }),
 ]
 
+/** The sample photos the fake server bundles. */
+export const SAMPLES: SamplePhoto[] = [
+  {
+    id: 'flat_tyre',
+    url: '/api/v1/sample-photos/flat_tyre',
+    title: 'Flat front tyre',
+    credit: 'Someone, CC0',
+  },
+  {
+    id: 'pothole',
+    url: '/api/v1/sample-photos/pothole',
+    title: 'Deep pothole in the road',
+    credit: 'Someone else, CC0',
+  },
+]
+
+/** One scripted `POST /photos` outcome: stored, or a problem response. */
+export type PhotoScript = 'ok' | { status: number; reason: string }
+
 /** One scripted `POST /nearby` outcome: the places found, or a problem response. */
 export type NearbyScript = PlaceRead[] | { status: number; reason: string }
 
@@ -105,6 +125,19 @@ export class FakeApi {
   nearbyScript: NearbyScript[] = []
   /** Every `POST /incidents/:id/nearby` with its body. */
   nearbyRequests: { incidentId: number; body: { radius_km: number } }[] = []
+  /** What `GET /config` answers; tests switch demo mode off to upload files. */
+  config = { demo_mode: true, vision_enabled: false }
+  /** Outcomes of the next photo uploads, in order; when empty, an upload is stored. */
+  photoScript: PhotoScript[] = []
+  /** While set, every photo upload waits for it before answering. */
+  photoGate: Promise<void> | null = null
+  /** Every `POST /incidents/:id/photos`: a file (with its name and type) or a sample id. */
+  photoRequests: {
+    incidentId: number
+    file?: { name: string; type: string }
+    sampleId?: string
+  }[] = []
+  private nextPhotoId = 1
   private nextTurnId = 1
   private nextId = 1
   private nextIncidentId = 1
@@ -120,6 +153,11 @@ export class FakeApi {
     this.turnRequests = []
     this.nearbyScript = []
     this.nearbyRequests = []
+    this.config = { demo_mode: true, vision_enabled: false }
+    this.photoScript = []
+    this.photoGate = null
+    this.photoRequests = []
+    this.nextPhotoId = 1
     this.nextTurnId = 1
     this.nextId = 1
     this.nextIncidentId = 1
@@ -152,6 +190,7 @@ export class FakeApi {
       location_label: null,
       created_at: now,
       updated_at: now,
+      photos: [],
       ai_turns: [],
       nearby: null,
     }
@@ -274,11 +313,10 @@ export class FakeApi {
     return [
       http.get(`${API}/api/v1/config`, () =>
         HttpResponse.json({
-          demo_mode: true,
-          vision_enabled: false,
+          ...this.config,
           max_photos: 5,
           max_photo_bytes: 1000,
-          sample_photos: [],
+          sample_photos: SAMPLES,
         }),
       ),
       http.get(`${API}/api/v1/vehicles`, () => HttpResponse.json(this.sorted())),
@@ -435,6 +473,57 @@ export class FakeApi {
         }
         this.incidents = this.incidents.map((i) => (i.id === incidentId ? { ...i, nearby } : i))
         return HttpResponse.json(nearby)
+      }),
+      http.post(`${API}/api/v1/incidents/:id/photos`, async ({ params, request }) => {
+        const incidentId = Number(params.id)
+        const multipart = (request.headers.get('Content-Type') ?? '').startsWith(
+          'multipart/form-data',
+        )
+        if (multipart) {
+          // Read from the raw body: undici's formData() can't build a File under jsdom.
+          const part = /name="file"; filename="([^"]*)"\r\nContent-Type: ([^\r]*)/.exec(
+            await request.text(),
+          )
+          if (!part) return problem(422, 'validation_error', 'No file')
+          this.photoRequests.push({
+            incidentId,
+            file: { name: part[1] ?? '', type: part[2] ?? '' },
+          })
+        } else {
+          const body = (await request.json()) as { sample_id: string }
+          this.photoRequests.push({ incidentId, sampleId: body.sample_id })
+        }
+        if (this.photoGate) await this.photoGate
+        const incident = this.incidents.find((i) => i.id === incidentId)
+        if (!incident) return problem(404, 'not_found', 'Incident not found')
+        // Like the server: demo mode refuses files.
+        if (multipart && this.config.demo_mode)
+          return problem(403, 'demo_uploads_disabled', 'Demo mode')
+        if (incident.photos.length >= 5) return problem(409, 'photo_limit', 'Five photos')
+        const next = this.photoScript.shift() ?? 'ok'
+        if (next !== 'ok') return problem(next.status, next.reason, 'internal detail')
+        const id = this.nextPhotoId++
+        const photo: PhotoRead = {
+          id,
+          url: `/api/v1/photos/${String(id)}`,
+          content_type: 'image/jpeg',
+          width: 1600,
+          height: 1200,
+          created_at: '2026-11-10T10:00:10.000Z',
+        }
+        this.incidents = this.incidents.map((i) =>
+          i.id === incidentId ? { ...i, photos: [...i.photos, photo] } : i,
+        )
+        return HttpResponse.json(photo, { status: 201, headers: { Location: photo.url } })
+      }),
+      http.delete(`${API}/api/v1/photos/:id`, ({ params }) => {
+        const id = Number(params.id)
+        const owner = this.incidents.find((i) => i.photos.some((p) => p.id === id))
+        if (!owner) return problem(404, 'not_found', 'Photo not found')
+        this.incidents = this.incidents.map((i) =>
+          i.id === owner.id ? { ...i, photos: i.photos.filter((p) => p.id !== id) } : i,
+        )
+        return new HttpResponse(null, { status: 204 })
       }),
       http.get(`${API}/api/v1/incidents/:id`, ({ params }) => {
         const found = this.incidents.find((i) => i.id === Number(params.id))

@@ -244,6 +244,10 @@ export type IncidentRead = {
      * Note
      */
     note: string | null;
+    /**
+     * Photos
+     */
+    photos: Array<PhotoRead>;
     problem_type: ProblemType;
     status: IncidentStatus;
     /**
@@ -381,6 +385,38 @@ export type NearbyRequest = {
      * Radius Km
      */
     radius_km: number;
+};
+
+/**
+ * PhotoRead
+ *
+ * A stored photo. `url` serves the file; there are no thumbnails (ADR 0002).
+ */
+export type PhotoRead = {
+    /**
+     * Content Type
+     */
+    content_type: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Height
+     */
+    height: number;
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Url
+     */
+    url: string;
+    /**
+     * Width
+     */
+    width: number;
 };
 
 /**
@@ -1063,6 +1099,134 @@ export type FindNearbyResponses = {
 };
 
 export type FindNearbyResponse = FindNearbyResponses[keyof FindNearbyResponses];
+
+export type AddPhotoData = {
+    /**
+     * SamplePhotoCreate
+     *
+     * Attach a bundled sample photo (`GET /config` lists them) instead of uploading a file.
+     */
+    body: {
+        /**
+         * Sample Id
+         */
+        sample_id: string;
+    };
+    path: {
+        /**
+         * Incident Id
+         */
+        incident_id: number;
+    };
+    query?: never;
+    url: '/api/v1/incidents/{incident_id}/photos';
+};
+
+export type AddPhotoErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type AddPhotoError = AddPhotoErrors[keyof AddPhotoErrors];
+
+export type AddPhotoResponses = {
+    /**
+     * Successful Response
+     */
+    201: PhotoRead;
+};
+
+export type AddPhotoResponse = AddPhotoResponses[keyof AddPhotoResponses];
+
+export type DeletePhotoData = {
+    body?: never;
+    path: {
+        /**
+         * Photo Id
+         */
+        photo_id: number;
+    };
+    query?: never;
+    url: '/api/v1/photos/{photo_id}';
+};
+
+export type DeletePhotoErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeletePhotoError = DeletePhotoErrors[keyof DeletePhotoErrors];
+
+export type DeletePhotoResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeletePhotoResponse = DeletePhotoResponses[keyof DeletePhotoResponses];
+
+export type GetPhotoData = {
+    body?: never;
+    path: {
+        /**
+         * Photo Id
+         */
+        photo_id: number;
+    };
+    query?: never;
+    url: '/api/v1/photos/{photo_id}';
+};
+
+export type GetPhotoErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetPhotoError = GetPhotoErrors[keyof GetPhotoErrors];
+
+export type GetPhotoResponses = {
+    /**
+     * The image file
+     */
+    200: Blob | File;
+};
+
+export type GetPhotoResponse = GetPhotoResponses[keyof GetPhotoResponses];
+
+export type GetSamplePhotoData = {
+    body?: never;
+    path: {
+        /**
+         * Sample Id
+         */
+        sample_id: string;
+    };
+    query?: never;
+    url: '/api/v1/sample-photos/{sample_id}';
+};
+
+export type GetSamplePhotoErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetSamplePhotoError = GetSamplePhotoErrors[keyof GetSamplePhotoErrors];
+
+export type GetSamplePhotoResponses = {
+    /**
+     * The bundled image
+     */
+    200: unknown;
+};
 
 export type ListVehiclesData = {
     body?: never;

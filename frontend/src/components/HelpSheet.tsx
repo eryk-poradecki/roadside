@@ -2,12 +2,15 @@ import { X } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
+import { useConfig } from '../api/config'
 import { useCreateIncident } from '../api/incidents'
+import { photoSrc, useAddPhoto, type PhotoSource } from '../api/photos'
 import type { VehicleRead } from '../api/vehicles'
 import type { GeoState } from '../lib/geolocation'
 import { problemKey, type ProblemType } from '../lib/problemType'
 import { EmergencyLink } from './AppShell'
 import { ErrorNotice } from './ErrorNotice'
+import { AddPhotos, DEFAULT_MAX_PHOTOS, PhotoGrid, VisionNote } from './PhotoPicker'
 import { TILE_ICONS } from './tiles'
 import './HelpSheet.css'
 
@@ -24,7 +27,26 @@ type Props = {
   onClose: () => void
 }
 
-/** The help sheet: optional note, the vehicle for this request, and "Get help now". */
+/** A photo picked in the sheet, uploaded once the incident exists. */
+type Picked = { key: number; source: PhotoSource; preview: string }
+
+let nextPickKey = 1
+
+/** A local preview of a picked file; none where the browser can't make one (tests). */
+const previewOf = (source: PhotoSource, sampleUrl: (id: string) => string) => {
+  if ('sampleId' in source) return sampleUrl(source.sampleId)
+  return typeof URL.createObjectURL === 'function' ? URL.createObjectURL(source.file) : ''
+}
+
+const revoke = (picked: Picked) => {
+  if ('file' in picked.source && picked.preview) URL.revokeObjectURL(picked.preview)
+}
+
+/**
+ * The help sheet: optional note and photos, the vehicle for this request, and "Get help now".
+ * The photos upload after the incident is created, while the Result screen already shows
+ * the checklist; the first AI turn waits for them (ADR 0002).
+ */
 export function HelpSheet({
   problemType,
   vehicles,
@@ -36,11 +58,20 @@ export function HelpSheet({
   const { t } = useTranslation()
   const navigate = useNavigate()
   const create = useCreateIncident()
+  const addPhoto = useAddPhoto()
+  const config = useConfig().data
+  const maxPhotos = config?.max_photos ?? DEFAULT_MAX_PHOTOS
   const ref = useRef<HTMLDialogElement>(null)
   const titleRef = useRef<HTMLHeadingElement>(null)
   // A request that finishes after the driver closed the sheet must not navigate them away.
   const mounted = useRef(true)
   const [note, setNote] = useState('')
+  const [photos, setPhotos] = useState<Picked[]>([])
+  // The latest list, for revoking previews on unmount.
+  const photosRef = useRef(photos)
+  useEffect(() => {
+    photosRef.current = photos
+  }, [photos])
   // `undefined` until the driver picks: follow the default vehicle, even if it loads late.
   const [picked, setPicked] = useState<number | null | undefined>(undefined)
   const titleId = useId()
@@ -59,8 +90,14 @@ export function HelpSheet({
     titleRef.current?.focus()
     return () => {
       mounted.current = false
+      photosRef.current.forEach(revoke)
     }
   }, [])
+
+  const sampleUrl = (id: string) => {
+    const sample = config?.sample_photos.find((s) => s.id === id)
+    return sample ? photoSrc(sample.url) : ''
+  }
 
   const submit = async () => {
     const location =
@@ -70,6 +107,10 @@ export function HelpSheet({
         { problem_type: problemType, vehicle_id: vehicleId, note: note.trim() || null, location },
         idempotencyKey,
       )
+      // Into the mutation cache, so they keep going after the sheet closes and the Result
+      // screen can wait for them before the first AI turn.
+      for (const photo of photos) addPhoto.mutate({ incidentId: incident.id, source: photo.source })
+      setPhotos([])
       onCreated()
       if (mounted.current)
         void navigate(`/incidents/${String(incident.id)}`, { state: { fromHelp: true } })
@@ -128,6 +169,34 @@ export function HelpSheet({
             {note.length}/{NOTE_MAX}
           </p>
         )}
+
+        <div className="sheet-photos" role="group" aria-label={t('photos.sheetLabel')}>
+          <p className="note-label">{t('photos.sheetLabel')}</p>
+          <PhotoGrid
+            items={photos.map((photo) => ({
+              key: photo.key,
+              src: photo.preview,
+              onRemove: () => {
+                revoke(photo)
+                setPhotos((list) => list.filter((p) => p.key !== photo.key))
+              },
+            }))}
+          />
+          {photos.length < maxPhotos && (
+            <AddPhotos
+              remaining={maxPhotos - photos.length}
+              onPick={(sources) => {
+                const added = sources.slice(0, maxPhotos - photos.length).map((source) => ({
+                  key: nextPickKey++,
+                  source,
+                  preview: previewOf(source, sampleUrl),
+                }))
+                setPhotos([...photos, ...added])
+              }}
+            />
+          )}
+          <VisionNote />
+        </div>
 
         {vehicles.length > 0 && (
           <fieldset className="vehicle-pick">

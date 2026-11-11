@@ -19,6 +19,7 @@ import {
 } from '../api/aiTurns'
 import type { FuelType } from '../api/generated/types.gen'
 import type { IncidentRead } from '../api/incidents'
+import { usePhotosUploading } from '../api/photos'
 import { isProblemType, problemKey } from '../lib/problemType'
 import { useErrorMessage } from './ErrorNotice'
 import { NOTE_MAX } from './HelpSheet'
@@ -34,6 +35,9 @@ export function AiPanel({ incident, autoStart }: { incident: IncidentRead; autoS
   const { t, i18n } = useTranslation()
   const turn = useTakeAiTurn(incident.id)
   const inFlight = useTurnInFlight(incident.id)
+  // Photos picked in the help sheet are still uploading: the first turn waits for every one
+  // to succeed or fail, so a failed upload never blocks it (ADR 0002).
+  const uploading = usePhotosUploading(incident.id)
   const message = useErrorMessage()
   const adviceTurn = findAdvice(incident)
   const question = openQuestion(incident)
@@ -53,7 +57,7 @@ export function AiPanel({ incident, autoStart }: { incident: IncidentRead; autoS
   // At most once per incident and session: not again after a remount, a reload or
   // StrictMode's second effect run, and never once the AI answer has begun.
   useEffect(() => {
-    if (!autoStart || started || inFlight || !claimAutoStart(incident)) return
+    if (!autoStart || started || inFlight || uploading || !claimAutoStart(incident)) return
     ask()
   })
 

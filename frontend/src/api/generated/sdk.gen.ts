@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateIncidentData, CreateIncidentErrors, CreateIncidentResponses, CreateVehicleData, CreateVehicleErrors, CreateVehicleResponses, DeleteIncidentData, DeleteIncidentErrors, DeleteIncidentResponses, DeleteVehicleData, DeleteVehicleErrors, DeleteVehicleResponses, FindNearbyData, FindNearbyErrors, FindNearbyResponses, GetIncidentData, GetIncidentErrors, GetIncidentResponses, GetVehicleData, GetVehicleErrors, GetVehicleResponses, HealthData, HealthResponses, ListIncidentsData, ListIncidentsErrors, ListIncidentsResponses, ListVehiclesData, ListVehiclesResponses, ReadConfigData, ReadConfigResponses, ReplaceVehicleData, ReplaceVehicleErrors, ReplaceVehicleResponses, TakeAiTurnData, TakeAiTurnErrors, TakeAiTurnResponses, UpdateIncidentData, UpdateIncidentErrors, UpdateIncidentResponses } from './types.gen';
+import type { AddPhotoData, AddPhotoErrors, AddPhotoResponses, CreateIncidentData, CreateIncidentErrors, CreateIncidentResponses, CreateVehicleData, CreateVehicleErrors, CreateVehicleResponses, DeleteIncidentData, DeleteIncidentErrors, DeleteIncidentResponses, DeletePhotoData, DeletePhotoErrors, DeletePhotoResponses, DeleteVehicleData, DeleteVehicleErrors, DeleteVehicleResponses, FindNearbyData, FindNearbyErrors, FindNearbyResponses, GetIncidentData, GetIncidentErrors, GetIncidentResponses, GetPhotoData, GetPhotoErrors, GetPhotoResponses, GetSamplePhotoData, GetSamplePhotoErrors, GetSamplePhotoResponses, GetVehicleData, GetVehicleErrors, GetVehicleResponses, HealthData, HealthResponses, ListIncidentsData, ListIncidentsErrors, ListIncidentsResponses, ListVehiclesData, ListVehiclesResponses, ReadConfigData, ReadConfigResponses, ReplaceVehicleData, ReplaceVehicleErrors, ReplaceVehicleResponses, TakeAiTurnData, TakeAiTurnErrors, TakeAiTurnResponses, UpdateIncidentData, UpdateIncidentErrors, UpdateIncidentResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -104,6 +104,44 @@ export const findNearby = <ThrowOnError extends boolean = false>(options: Option
         ...options.headers
     }
 });
+
+/**
+ * Add Photo
+ *
+ * Add one photo: a multipart `file`, or `{sample_id}` for a bundled sample photo.
+ *
+ * The server re-encodes every file (EXIF orientation applied, long edge at most 2048 px,
+ * no metadata). 409 `photo_limit` past five, 413 `photo_too_large`, 415
+ * `unsupported_media_type` for anything but a decodable JPEG, PNG or WebP, 403
+ * `demo_uploads_disabled` for a file in demo mode, 422 `unknown_sample`.
+ */
+export const addPhoto = <ThrowOnError extends boolean = false>(options: Options<AddPhotoData, ThrowOnError>): RequestResult<AddPhotoResponses, AddPhotoErrors, ThrowOnError> => (options.client ?? client).post<AddPhotoResponses, AddPhotoErrors, ThrowOnError>({
+    url: '/api/v1/incidents/{incident_id}/photos',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete Photo
+ */
+export const deletePhoto = <ThrowOnError extends boolean = false>(options: Options<DeletePhotoData, ThrowOnError>): RequestResult<DeletePhotoResponses, DeletePhotoErrors, ThrowOnError> => (options.client ?? client).delete<DeletePhotoResponses, DeletePhotoErrors, ThrowOnError>({ url: '/api/v1/photos/{photo_id}', ...options });
+
+/**
+ * Get Photo
+ *
+ * The stored file. Never a static mount: a deleted row's file is unreachable at once.
+ */
+export const getPhoto = <ThrowOnError extends boolean = false>(options: Options<GetPhotoData, ThrowOnError>): RequestResult<GetPhotoResponses, GetPhotoErrors, ThrowOnError> => (options.client ?? client).get<GetPhotoResponses, GetPhotoErrors, ThrowOnError>({ url: '/api/v1/photos/{photo_id}', ...options });
+
+/**
+ * Get Sample Photo
+ *
+ * A bundled sample photo, freely licensed and credited (`credit` in `GET /config`).
+ */
+export const getSamplePhoto = <ThrowOnError extends boolean = false>(options: Options<GetSamplePhotoData, ThrowOnError>): RequestResult<GetSamplePhotoResponses, GetSamplePhotoErrors, ThrowOnError> => (options.client ?? client).get<GetSamplePhotoResponses, GetSamplePhotoErrors, ThrowOnError>({ url: '/api/v1/sample-photos/{sample_id}', ...options });
 
 /**
  * List Vehicles
