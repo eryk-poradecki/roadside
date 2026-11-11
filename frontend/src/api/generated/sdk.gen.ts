@@ -96,7 +96,8 @@ export const takeAiTurn = <ThrowOnError extends boolean = false>(options: Option
  * Look up real places around the incident's location and store them as its snapshot.
  *
  * Replaces the snapshot only on success: 503 `nearby_unavailable` keeps the previous one.
- * 409 `no_location` when the incident has none.
+ * 409 `no_location` when the incident has none. In demo mode the places recorded for the
+ * scenario at that radius; 503 `nearby_not_recorded` when there are none.
  */
 export const findNearby = <ThrowOnError extends boolean = false>(options: Options<FindNearbyData, ThrowOnError>): RequestResult<FindNearbyResponses, FindNearbyErrors, ThrowOnError> => (options.client ?? client).post<FindNearbyResponses, FindNearbyErrors, ThrowOnError>({
     url: '/api/v1/incidents/{incident_id}/nearby',

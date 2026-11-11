@@ -7,9 +7,9 @@ import httpx
 import pytest
 from fastapi import FastAPI
 
-from app.deps import get_llm_provider, get_place_source
+from app.deps import get_geocoder, get_llm_provider, get_place_source
 from app.integrations.overpass import NearbyUnavailable
-from tests.fakes import FakePlaceSource, ScriptedProvider, answer_json, osm_node
+from tests.fakes import FakeGeocoder, FakePlaceSource, ScriptedProvider, answer_json, osm_node
 
 INC = "/api/v1/incidents"
 LOCATION = {"lat": 52.2297, "lon": 21.0122, "accuracy_m": 12}
@@ -22,6 +22,9 @@ NEAR_TYRES = osm_node(
 def use_source(app: FastAPI, *script: Any) -> FakePlaceSource:
     source = FakePlaceSource(*script)
     app.dependency_overrides[get_place_source] = lambda: source
+    # Live all through: with no geocoder the location context would be demo mode's, keyed by
+    # the scenario, and a new problem type would drop the places.
+    app.dependency_overrides[get_geocoder] = lambda: FakeGeocoder(None)
     return source
 
 

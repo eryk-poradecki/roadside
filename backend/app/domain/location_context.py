@@ -35,6 +35,15 @@ class LocationContext:
 
 UNKNOWN_CONTEXT = LocationContext(RoadClass.UNKNOWN, Settlement.UNKNOWN)
 
+
+@dataclass(frozen=True, slots=True)
+class ResolvedLocation:
+    """A successful lookup: the context for the model and the label for the driver."""
+
+    context: LocationContext
+    label: str | None
+
+
 _ROAD_CLASSES: dict[str, RoadClass] = {
     **dict.fromkeys(("motorway", "trunk"), RoadClass.MOTORWAY_EXPRESSWAY),
     **dict.fromkeys(("primary", "secondary", "tertiary"), RoadClass.MAIN_ROAD),

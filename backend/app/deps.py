@@ -8,6 +8,7 @@ from app.db.connection import connect
 from app.integrations.llm.base import LLMProvider
 from app.integrations.nominatim import ReverseGeocoder
 from app.integrations.overpass import PlaceSource
+from app.integrations.place_recording import PlaceRecorder, PlaceRecording
 from app.repositories.ai_turns import SqliteAiTurnRepository
 from app.repositories.incidents import SqliteIncidentRepository
 from app.repositories.nearby import SqliteNearbyRepository
@@ -62,14 +63,34 @@ def get_geocoder(request: Request) -> ReverseGeocoder | None:
     return geocoder
 
 
+def get_place_recordings(request: Request) -> dict[str, PlaceRecording]:
+    """Demo mode's recorded location contexts and places (#58); empty otherwise."""
+    recordings: dict[str, PlaceRecording] = request.app.state.place_recordings
+    return recordings
+
+
+def get_place_recorder(request: Request) -> PlaceRecorder | None:
+    """Set only with `LLM_RECORD=true`."""
+    recorder: PlaceRecorder | None = request.app.state.place_recorder
+    return recorder
+
+
+PlaceRecordings = Annotated[dict[str, PlaceRecording], Depends(get_place_recordings)]
+Recorder = Annotated[PlaceRecorder | None, Depends(get_place_recorder)]
+
+
 def get_location_resolver(
     settings: Annotated[Settings, Depends(get_settings)],
     geocoder: Annotated[ReverseGeocoder | None, Depends(get_geocoder)],
+    recorded: PlaceRecordings,
+    recorder: Recorder,
 ) -> LocationResolver:
     return LocationResolver(
         geocoder,
         max_gps_accuracy_m=settings.location_max_gps_accuracy_m,
         max_road_distance_m=settings.location_max_road_distance_m,
+        recorded=recorded,
+        recorder=recorder,
     )
 
 
@@ -118,8 +139,18 @@ def get_place_source(request: Request) -> PlaceSource | None:
 def get_nearby_service(
     conn: Connection,
     source: Annotated[PlaceSource | None, Depends(get_place_source)],
+    recorded: PlaceRecordings,
+    recorder: Recorder,
 ) -> NearbyService:
-    return NearbyService(conn, SqliteIncidentRepository(conn), SqliteNearbyRepository(conn), source)
+    return NearbyService(
+        conn,
+        SqliteIncidentRepository(conn),
+        SqliteVehicleRepository(conn),
+        SqliteNearbyRepository(conn),
+        source,
+        recorded=recorded,
+        recorder=recorder,
+    )
 
 
 def get_assistant_service(

@@ -1,0 +1,80 @@
+{
+  "key": "{\"fuel_type\":null,\"has_assistance\":false,\"problem_type\":\"flat_tyre\",\"situation\":\"on_road\",\"spare_wheel\":null,\"transmission\":null}",
+  "location": {
+    "road_class": "motorway_expressway",
+    "settlement": "village",
+    "label": "A2, Wola"
+  },
+  "nearby": [
+    {
+      "radius_km": 5,
+      "places": [
+        {
+          "osm_type": "node",
+          "osm_id": 101,
+          "category": "tyres",
+          "name": "Wulkanizacja A2",
+          "lat": 52.2301,
+          "lon": 20.9001,
+          "distance_m": 850,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 102,
+          "category": "fuel",
+          "name": "Orlen MOP Wola",
+          "lat": 52.2402,
+          "lon": 20.9105,
+          "distance_m": 2100,
+          "phone": null,
+          "opening_hours": null
+        }
+      ],
+      "fetched_at": "2026-11-11T10:00:00.000Z",
+      "source": "https://overpass.test/api/interpreter"
+    },
+    {
+      "radius_km": 25,
+      "places": [
+        {
+          "osm_type": "node",
+          "osm_id": 101,
+          "category": "tyres",
+          "name": "Wulkanizacja A2",
+          "lat": 52.2301,
+          "lon": 20.9001,
+          "distance_m": 850,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 102,
+          "category": "fuel",
+          "name": "Orlen MOP Wola",
+          "lat": 52.2402,
+          "lon": 20.9105,
+          "distance_m": 2100,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 103,
+          "category": "repair",
+          "name": "Auto Serwis Ożarów",
+          "lat": 52.2105,
+          "lon": 20.8003,
+          "distance_m": 14200,
+          "phone": null,
+          "opening_hours": null
+        }
+      ],
+      "fetched_at": "2026-11-11T10:00:00.000Z",
+      "source": "https://overpass.test/api/interpreter"
+    }
+  ],
+  "recorded_at": "2026-11-11T10:00:00.000Z"
+}

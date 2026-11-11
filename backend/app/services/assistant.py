@@ -29,7 +29,7 @@ from app.assist import prompt
 from app.assist.contract import TurnOutput, validate_output
 from app.assist.daylight import POLAND_CENTRE, is_dark
 from app.assist.prompt import Exchange, TurnInputs, VehicleFactBlock
-from app.assist.replay_key import replay_key
+from app.assist.replay_key import replay_key, scenario_key
 from app.db.connection import read_snapshot, transaction
 from app.domain.ai_turn import AiTurn, AiTurnKind, Locale, ModelProvenance, NewAiTurn, Reply
 from app.domain.incident import Incident
@@ -192,8 +192,9 @@ class AssistantService:
         _check_can_take(turns, reply)
         if reply is not None:
             turns = await self._store_reply(incident_id, reply)
-        incident = await self._with_location_context(incident, locale)
         facts = VehicleFactBlock.from_facts(vehicle.facts) if vehicle else None
+        scenario = scenario_key(incident.problem_type.value, incident.situation.value, facts)
+        incident = await self._with_location_context(incident, locale, scenario)
         sample_ids = [p.sample_id for p in photos if p.sample_id is not None]
         return _inputs(incident, facts), turns, sample_ids
 
@@ -208,7 +209,9 @@ class AssistantService:
             await self._turns.append(incident_id, new, utc_now())
             return await self._turns.list_for_incident(incident_id)
 
-    async def _with_location_context(self, incident: Incident, locale: Locale) -> Incident:
+    async def _with_location_context(
+        self, incident: Incident, locale: Locale, scenario: str
+    ) -> Incident:
         """Look the context up once, lazily, and cache it with the label on the incident.
 
         A failed lookup gives unknown for this turn and caches nothing, so a later turn tries again.
@@ -216,7 +219,7 @@ class AssistantService:
         if incident.location_context is not None:
             return incident
         return await refresh_location_context(
-            self._conn, self._incidents, self._location, incident, locale
+            self._conn, self._incidents, self._location, incident, locale, scenario
         )
 
     async def _generate(

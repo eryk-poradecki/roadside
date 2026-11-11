@@ -11,6 +11,7 @@ from app.errors import install_error_handlers
 from app.integrations.llm.factory import build_provider
 from app.integrations.nominatim import NominatimGeocoder
 from app.integrations.overpass import OverpassClient
+from app.integrations.place_recording import PlaceRecorder, load_place_recordings, places_dir
 from app.middleware import BodyLimitMiddleware
 from app.routers import ai_turns, incidents, meta, nearby, photos, vehicles
 from app.services.assistant import TurnLocks
@@ -56,6 +57,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
     )
 
+    # Demo mode's location context and places come with the scenarios instead (#58), and a
+    # recording run writes them next to the AI recordings.
+    place_recordings = (
+        load_place_recordings(places_dir(settings.llm_recordings_dir)) if settings.demo_mode else {}
+    )
+    place_recorder = (
+        PlaceRecorder(places_dir(settings.llm_recordings_dir)) if settings.llm_record else None
+    )
+
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         version = migrate(settings.database_path)
@@ -86,6 +96,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.turn_locks = TurnLocks()
     app.state.geocoder = geocoder
     app.state.place_source = place_source
+    app.state.place_recordings = place_recordings
+    app.state.place_recorder = place_recorder
 
     api = APIRouter(prefix="/api/v1")
     api.include_router(meta.config_router)
