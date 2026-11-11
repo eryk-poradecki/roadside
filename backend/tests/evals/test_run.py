@@ -141,3 +141,13 @@ def _passing_answer(s: Scenario) -> Transcript:
     steps = ["Call 112", "Get behind the barrier"] if urgent else ["Get behind the barrier", "Wait"]
     output = validate_output(answer_json(urgent=urgent, steps=steps), allow_ask=False)
     return Transcript((Turn(1.0, output, provider="fake", model="m"),))
+
+
+async def test_show_all_prints_every_conversation_passing_ones_too() -> None:
+    results = await run_all(ScriptedProvider(answer_json()), [SCENARIO], budget_s=10)
+    quiet = report(results, budget_s=10, prompt_version="v2", date="2026-11-11")
+    loud = report(results, budget_s=10, prompt_version="v2", date="2026-11-11", show_all=True)
+    assert "A puncture in the rear left tyre" not in quiet
+    assert "### Conversations" in loud
+    assert "#### noise · pass" in loud
+    assert "A puncture in the rear left tyre" in loud

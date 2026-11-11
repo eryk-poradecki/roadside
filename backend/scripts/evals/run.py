@@ -104,10 +104,16 @@ def _output_lines(output: TurnOutput) -> list[str]:
 
 
 def report(
-    results: list[ScenarioResult], *, budget_s: float, prompt_version: str, date: str
+    results: list[ScenarioResult],
+    *,
+    budget_s: float,
+    prompt_version: str,
+    date: str,
+    show_all: bool = False,
 ) -> str:
     """A Markdown report to paste into AI_USAGE: one row per scenario, one per rule, then the
-    failing conversations in full."""
+    failing conversations in full, or every conversation with `show_all`, so a person can read
+    the answers the rules passed."""
     # Every model that answered, in case the server routed some turns to another one.
     models = {
         f"{t.provider} / {t.model}": None for r in results for t in r.transcript.turns if t.model
@@ -139,13 +145,15 @@ def report(
         ["Rule", "Pass", "Fail", "n/a"],
         ([rule, *(_count(results, rule, status) for status in Status)] for rule in RULES),
     )
-    failures = [r for r in results if not r.passed]
-    if failures:
-        lines += ["", "### Failures"]
-    for r in failures:
-        lines += ["", f"#### {r.scenario.id}", ""]
-        lines += [f"- **{c.rule}**: {c.detail}" for c in r.failed]
-        lines.append("")
+    shown = results if show_all else [r for r in results if not r.passed]
+    if shown:
+        lines += ["", "### Conversations" if show_all else "### Failures"]
+    for r in shown:
+        title = f"{r.scenario.id} · {'pass' if r.passed else 'fail'}" if show_all else r.scenario.id
+        lines += ["", f"#### {title}", ""]
+        if r.failed:
+            lines += [f"- **{c.rule}**: {c.detail}" for c in r.failed]
+            lines.append("")
         for turn in r.transcript.turns:
             if turn.output is not None:
                 lines += _output_lines(turn.output)

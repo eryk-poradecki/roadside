@@ -1,6 +1,6 @@
 """Run the AI turn evals against the configured live provider (ADR 0004, #64).
 
-    cd backend && uv run python -m scripts.eval_assist [--scenario ID ...] [--out FILE]
+    cd backend && uv run python -m scripts.eval_assist [--scenario ID ...] [--out FILE] [--show-all]
 
 Run by hand, never in CI or `make check`: it calls a real model and costs time or quota. It
 reads the same settings as the app (`backend/.env` and the environment) and needs
@@ -59,7 +59,11 @@ async def _main(args: argparse.Namespace) -> int:
     finally:
         await provider.aclose()
     text = report(
-        results, budget_s=budget_s, prompt_version=PROMPT_VERSION, date=date.today().isoformat()
+        results,
+        budget_s=budget_s,
+        prompt_version=PROMPT_VERSION,
+        date=date.today().isoformat(),
+        show_all=args.show_all,
     )
     print(text)
     if args.out:
@@ -77,6 +81,11 @@ def main() -> None:
     )
     parser.add_argument("--list", action="store_true", help="list the scenario ids and exit")
     parser.add_argument("--out", type=Path, help="also write the Markdown report to this file")
+    parser.add_argument(
+        "--show-all",
+        action="store_true",
+        help="print every conversation, not only the failing ones, to read what the rules passed",
+    )
     args = parser.parse_args()
     if args.list:
         print("\n".join(s.id for s in SCENARIOS))
