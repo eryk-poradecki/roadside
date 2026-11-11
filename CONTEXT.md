@@ -65,7 +65,7 @@ The driver's daily driver: the vehicle a new help request uses unless the driver
 _Avoid_: favorite, primary, last used vehicle
 
 **Safety checklist**:
-Static, non-AI safety steps for a problem type, shown immediately and working without a connection, before and alongside any AI answer: one first step, a few more steps, and always the same "call 112" line last. The same for every road and every vehicle, except that out of charge has its own list, and a parked car gets a short variant without the roadside steps. The assistant never contradicts it, but it doesn't assume the driver has read it either.
+Static, non-AI safety steps for a problem type, shown immediately and working without a connection, before and alongside any AI answer: one first step, a few more steps, and always a "call 112" line last (the parked lists drop its live-lane clause). The same for every road and every vehicle, except that out of charge has its own list, and a parked car gets a short variant without the roadside steps. The assistant never contradicts it, but it doesn't assume the driver has read it either.
 _Avoid_: instructions, tips, AI steps
 
 **Situation**:

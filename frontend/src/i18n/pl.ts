@@ -12,6 +12,7 @@ const triangle =
   'Ustaw trójkąt ostrzegawczy za autem: w terenie zabudowanym tuż za nim, poza nim 30–50 m, na autostradzie lub drodze ekspresowej 100 m.'
 const call112 =
   'Ktoś jest ranny, widać dym lub ogień, cieknie paliwo albo auto stoi na pasie ruchu: dzwoń pod 112.'
+const call112Parked = 'Ktoś jest ranny, widać dym lub ogień albo cieknie paliwo: dzwoń pod 112.'
 
 export const pl: Localised<Translation> & {
   vehicles: PluralExtras
@@ -276,25 +277,26 @@ export const pl: Localised<Translation> & {
     },
     parkedLists: {
       tyre: {
-        first: 'Nie jedź na płaskiej oponie. Możesz uszkodzić koło, a auto trudniej prowadzić.',
+        first:
+          'Nie jedź na płaskiej oponie. Możesz uszkodzić felgę, a auto będzie się gorzej prowadzić.',
         items: [
           'Zmieniaj koło tylko na twardym, równym podłożu, z zaciągniętym hamulcem ręcznym i gdy nikt nie siedzi w aucie.',
           'Nigdy nie wkładaj żadnej części ciała pod auto podparte tylko podnośnikiem.',
-          call112,
+          call112Parked,
         ],
       },
       battery: {
         first: 'Wyłącz światła, radio, klimatyzację i wszystko, co pobiera prąd.',
         items: [
           'Nie odpalaj „na kable” akumulatora, który jest pęknięty, cieknie lub jest spuchnięty.',
-          call112,
+          call112Parked,
         ],
       },
       fuel: {
-        first: 'Wyłącz silnik i przestań próbować go uruchomić. To tylko rozładowuje akumulator.',
+        first: 'Przestań próbować uruchomić silnik. To tylko rozładowuje akumulator.',
         items: [
           'Nie pal i nie używaj otwartego ognia przy aucie, gdy wlewasz paliwo z kanistra.',
-          call112,
+          call112Parked,
         ],
       },
       charge: {
@@ -302,19 +304,19 @@ export const pl: Localised<Translation> & {
           'Wyłącz to, czego nie potrzebujesz, np. ogrzewanie lub klimatyzację, żeby oszczędzić resztę energii.',
         items: [
           'Poproś o lawetę. Wiele aut elektrycznych nie może być holowanych na kołach.',
-          call112,
+          call112Parked,
         ],
       },
       pothole: {
         first: 'Nie jedź dalej, jeśli opona, koło lub kierownica zachowują się dziwnie.',
         items: [
           'Zrób zdjęcia dziury i uszkodzeń i zapisz dokładne miejsce. Przydadzą się przy zgłoszeniu szkody.',
-          call112,
+          call112Parked,
         ],
       },
       other: {
-        first: 'Zaciągnij hamulec ręczny. Wyłącz silnik, jeśli to bezpieczne.',
-        items: [call112],
+        first: 'Zaciągnij hamulec ręczny i wyłącz silnik.',
+        items: [call112Parked],
       },
     },
   },

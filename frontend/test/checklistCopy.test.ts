@@ -78,12 +78,12 @@ describe('safety checklist copy', () => {
     expect(pl.checklist.parkedLists[key]).toEqual(fromDoc.pl)
   })
 
-  it('keeps the 112 line last in every parked list and leaves out the roadside steps', () => {
-    const roadside = /hazard|triangle|vest|barrier/i
+  it('ends every parked list with the parked 112 line and leaves out the roadside steps', () => {
+    const roadside = /hazard|triangle|vest|barrier|lane/i
     for (const key of KEYS) {
       const list = en.checklist.parkedLists[key]
-      expect(list.items.at(-1)).toBe(shared.get('call112')?.en)
-      expect(pl.checklist.parkedLists[key].items.at(-1)).toBe(shared.get('call112')?.pl)
+      expect(list.items.at(-1)).toBe(shared.get('call112Parked')?.en)
+      expect(pl.checklist.parkedLists[key].items.at(-1)).toBe(shared.get('call112Parked')?.pl)
       expect(list.items.length).toBeLessThanOrEqual(4)
       for (const line of [list.first, ...list.items]) expect(line).not.toMatch(roadside)
     }
