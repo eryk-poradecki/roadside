@@ -1,0 +1,32 @@
+# `docker compose up` -> http://localhost:8080 in demo mode, with no keys and no .env (ADR 0007).
+# Same origin: the browser talks only to nginx, which proxies /api to the backend.
+# The public demo layers compose.pi.yaml on top of this file (ADR 0011).
+name: roadside
+
+services:
+  backend:
+    build: ./backend
+    # Optional: a backend/.env (e.g. DEMO_MODE=false with a model) is picked up when present.
+    env_file:
+      - path: backend/.env
+        required: false
+    # These beat the env_file: the data must land on the volume, and there is no CORS caller.
+    environment:
+      DATABASE_PATH: /data/roadside.db
+      UPLOAD_DIR: /data/uploads
+      LLM_RECORDINGS_DIR: /app/recordings
+      FRONTEND_ORIGINS: ""
+    volumes:
+      - roadside-data:/data
+    # The healthcheck is the image's own (GET /health).
+
+  web:
+    build: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  roadside-data:

@@ -67,7 +67,7 @@ backend/
   - **backend:** `uv sync --locked`, ruff check, ruff format `--check`, mypy, pytest with `pytest-cov` (report only), the requirements drift check;
   - **frontend:** `npm ci`, lint, typecheck, test, build;
   - **openapi-drift:** export `openapi.json`, regenerate the TS types and fail on a diff, which is the guarantee ADR 0005 relies on;
-  - **docker:** `docker compose build`, on `main` and on PRs that touch Docker files;
+  - **docker:** `make docker-smoke`: `docker compose up --build --wait` on a clean checkout, then `/health` and demo mode in `/api/v1/config` through nginx. It runs on every PR, since a dependency or code change can break the image without touching a Docker file;
   - **e2e:** the Playwright smoke test (below), once it exists.
 - **Follow-up (ready-for-human, part of the CI ticket):** once `ci.yml` exists, make its `backend` and `frontend` jobs required status checks in the `main` branch ruleset. The ruleset already requires a PR and blocks force pushes and deletions.
 

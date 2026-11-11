@@ -1,0 +1,13 @@
+# Only pyproject.toml, uv.lock, app/, migrations/ and recordings/ go into the image.
+.venv/
+.env
+data/
+tests/
+**/__pycache__/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+requirements*.txt
+Dockerfile
+.dockerignore

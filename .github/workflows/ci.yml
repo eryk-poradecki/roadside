@@ -1,6 +1,6 @@
 # Quality gates for every PR and every push to main (ADR 0007).
 # Each job calls the Makefile, so `make check` runs exactly what CI runs.
-# The docker and e2e jobs are added by their own tickets.
+# The e2e job is added by its own ticket.
 name: CI
 
 on:
@@ -66,3 +66,14 @@ jobs:
         working-directory: frontend
       - name: Regenerate openapi.json and the TS client, fail on any diff
         run: make openapi-drift
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # A clean checkout has no backend/.env, so this is exactly what a reviewer runs.
+      - name: Build both images, start the stack, check /health and demo mode
+        run: make docker-smoke
+      - name: Logs on failure
+        if: failure()
+        run: docker compose logs
