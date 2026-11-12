@@ -107,6 +107,7 @@ export const en = {
       flat_tyre: 'Flat front tyre',
       screw_in_tread: 'Screw in the tyre tread',
       pothole: 'Deep pothole in the road',
+      empty_fuel_gauge: 'Fuel gauge on empty',
     },
   },
   history: {
