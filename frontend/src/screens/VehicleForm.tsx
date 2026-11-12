@@ -36,11 +36,13 @@ const SPARE_WHEELS = Object.keys(
 function Field({
   id,
   label,
+  hint,
   error,
   children,
 }: {
   id: string
   label: string
+  hint?: string
   error?: string | undefined
   children: ReactNode
 }) {
@@ -48,6 +50,11 @@ function Field({
     <div className="vform-field">
       <label htmlFor={id}>{label}</label>
       {children}
+      {hint && (
+        <p className="vform-hint" id={`${id}-hint`}>
+          {hint}
+        </p>
+      )}
       {error && (
         <p className="vform-error" id={`${id}-error`}>
           {error}
@@ -136,10 +143,11 @@ function VehicleEditor({ vehicle, initial }: { vehicle?: VehicleRead; initial: V
             }}
           />
         </Field>
-        <Field id="vf-fuel" label={t(`${f}.fuelType`)}>
+        <Field id="vf-fuel" label={t(`${f}.fuelType`)} hint={t(`${f}.fuelTypeHint`)}>
           <select
             id="vf-fuel"
             className="field"
+            aria-describedby="vf-fuel-hint"
             value={draft.fuelType}
             onChange={(e) => {
               set('fuelType', e.target.value as VehicleDraft['fuelType'])

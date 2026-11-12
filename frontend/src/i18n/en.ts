@@ -406,6 +406,7 @@ export const en = {
       makeModel: 'Make and model',
       year: 'Year',
       fuelType: 'Fuel type',
+      fuelTypeHint: 'Hybrid with LPG? Choose Hybrid.',
       transmission: 'Transmission',
       registration: 'Registration plate',
       tyreSize: 'Tyre size',
@@ -421,8 +422,8 @@ export const en = {
     },
     fuelTypes: {
       petrol: 'Petrol',
+      lpg: 'Petrol + LPG',
       diesel: 'Diesel',
-      lpg: 'LPG',
       hybrid: 'Hybrid',
       plug_in_hybrid: 'Plug-in hybrid',
       electric: 'Electric',

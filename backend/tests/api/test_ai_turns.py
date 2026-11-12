@@ -428,6 +428,20 @@ async def test_empty_vehicle_facts_are_unknown_never_none(
     assert "- Spare wheel: none" not in block
 
 
+async def test_lpg_reads_as_a_petrol_engine_with_an_lpg_installation(
+    client: httpx.AsyncClient, install: Install
+) -> None:
+    """#107: LPG is fitted to petrol engines; a bare "lpg" reads as if it were the only fuel."""
+    fake = install(answer_json())
+    vehicle = (await client.post(V, json={"name": "Astra", "fuel_type": "lpg"})).json()
+    incident_id = await make_incident(client, vehicle_id=vehicle["id"])
+
+    await turn(client, incident_id)
+
+    block = fake.requests[0].messages[-1].text
+    assert "- Fuel type: petrol engine with an LPG installation" in block
+
+
 async def test_no_vehicle_says_so(client: httpx.AsyncClient, install: Install) -> None:
     fake = install(answer_json())
     incident_id = await make_incident(client)
@@ -634,7 +648,7 @@ async def test_lpg_switching_is_mentioned_only_for_an_lpg_car_that_ran_dry_or_wo
 
     await turn(client, incident_id)
 
-    assert ("LPG" in fake.prompt_text()) is mentions_lpg
+    assert ("most LPG systems switch to petrol" in fake.prompt_text()) is mentions_lpg
 
 
 async def test_no_vehicle_never_mentions_lpg(client: httpx.AsyncClient, install: Install) -> None:

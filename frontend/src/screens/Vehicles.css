@@ -75,6 +75,10 @@
   font-size: 0.9375rem;
   color: var(--muted);
 }
+.vform-hint {
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
 .vform-error {
   color: var(--danger);
   font-size: 0.9375rem;
