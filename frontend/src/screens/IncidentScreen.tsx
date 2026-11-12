@@ -24,7 +24,7 @@ import { useVehicles, type VehicleRead } from '../api/vehicles'
 import { findAdvice } from '../api/aiTurns'
 import { AiPanel } from '../components/AiPanel'
 import { DockAction, EmergencyFirst, useDockUrgent } from '../components/AppShell'
-import { DamageReportPanel, PotholeHint } from '../components/DamageReportPanel'
+import { DamageReportCard, PotholeHint } from '../components/DamageReportCard'
 import { ErrorNotice } from '../components/ErrorNotice'
 import { NearbyPanel } from '../components/NearbyPanel'
 import { PhotosPanel } from '../components/PhotosPanel'
@@ -179,23 +179,14 @@ function Result({
         answered={adviceTurn !== undefined}
       />
 
-      {noVehicles && (
-        <p className="notice invite">
-          <span>{t('incident.addVehicle')}</span>
-          <Link to="/vehicles/new" className="link-btn">
-            {t('incident.addVehicleLink')}
-          </Link>
-        </p>
-      )}
-
-      <AiPanel incident={incident} autoStart={fromHelp} />
+      <AiPanel incident={incident} autoStart={fromHelp} noVehicles={noVehicles} />
 
       <NearbyPanel incident={incident} fuelType={vehicle?.fuel_type} />
 
       <PhotosPanel incident={incident} />
 
       {incident.problem_type === 'flat_tyre' && <PotholeHint incident={incident} />}
-      <DamageReportPanel incident={incident} />
+      <DamageReportCard incident={incident} />
 
       <Upkeep incident={incident} />
 

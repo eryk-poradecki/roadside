@@ -114,10 +114,19 @@ describe('help request: Start → Get help now → Result', () => {
 
     expect(await screen.findByText(en.checklist.lists.other.first)).toBeInTheDocument()
     expect(screen.getByText('No location')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Add a vehicle' })).toHaveAttribute(
+    // The invite waits in the AI answer's footer, not above the answer.
+    const ai = screen.getByRole('region', { name: en.ai.title })
+    expect(await within(ai).findByRole('link', { name: 'Add a vehicle' })).toHaveAttribute(
       'href',
       '/vehicles/new',
     )
+    expect(screen.getAllByRole('link', { name: 'Add a vehicle' })).toHaveLength(1)
+    expect(
+      within(ai)
+        .getByText(en.ai.disclaimer)
+        .compareDocumentPosition(within(ai).getByRole('link', { name: 'Add a vehicle' })) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
     expect(fakeApi.incidentRequests[0]?.body).toMatchObject({ vehicle_id: null, location: null })
   })
 

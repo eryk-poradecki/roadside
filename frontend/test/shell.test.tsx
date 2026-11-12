@@ -3,7 +3,7 @@ import { fakeApi } from './fakeApi'
 import { renderApp } from './render'
 
 const TOP_LEVEL = ['/', '/incidents', '/vehicles']
-const FLOW = ['/incidents/1', '/vehicles/new', '/vehicles/1']
+const FLOW = ['/incidents/1', '/incidents/1/report', '/vehicles/new', '/vehicles/1']
 
 describe('app shell', () => {
   beforeEach(() => {

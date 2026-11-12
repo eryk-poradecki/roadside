@@ -198,6 +198,7 @@ export const en = {
     languageLabel: 'Letter language',
     languages: { pl: 'Polish', en: 'English' },
     draft: 'Draft the report',
+    open: 'Open',
     drafting: 'Drafting your report…',
     draftingSub: 'This can take up to a minute.',
     label:

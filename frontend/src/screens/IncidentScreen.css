@@ -121,18 +121,6 @@
   font-size: 1.0625rem;
 }
 
-.invite {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px 12px;
-  color: var(--text);
-}
-.invite .link-btn {
-  padding: 0;
-}
-
 /* "Call <insurer>": label plus the policy number. */
 .btn-call {
   justify-content: flex-start;
@@ -158,45 +146,6 @@
   font-weight: 700;
   opacity: 0.8;
   overflow-wrap: anywhere;
-}
-
-/* Resolved: the whole checklist folds into one "Safety steps" disclosure (ADR 0010). */
-.fold {
-  display: block;
-}
-.fold summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: 48px;
-  margin: -12px 0;
-  font-size: 1.125rem;
-  font-weight: 700;
-  list-style: none;
-  cursor: pointer;
-}
-.fold summary::-webkit-details-marker {
-  display: none;
-}
-.fold-body {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin-top: 26px;
-}
-.fold-icon {
-  flex: none;
-  color: var(--muted);
-  transition: transform 160ms ease-out;
-}
-.fold[open] .fold-icon {
-  transform: rotate(180deg);
-}
-@media (prefers-reduced-motion: reduce) {
-  .fold-icon {
-    transition: none;
-  }
 }
 
 /* Upkeep: status first, then the quieter edit and delete. */

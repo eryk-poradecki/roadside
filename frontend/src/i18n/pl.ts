@@ -212,6 +212,7 @@ export const pl: Localised<Translation> & {
     languageLabel: 'Język pisma',
     languages: { pl: 'polski', en: 'angielski' },
     draft: 'Przygotuj zgłoszenie',
+    open: 'Otwórz',
     drafting: 'Przygotowuję zgłoszenie…',
     draftingSub: 'To może potrwać do minuty.',
     label:

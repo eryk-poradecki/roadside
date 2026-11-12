@@ -2,6 +2,7 @@ import { ChevronDown } from 'lucide-react'
 import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ProblemKey } from '../lib/problemType'
+import { Fold } from './Fold'
 import type { Situation } from './SituationPick'
 
 /**
@@ -29,15 +30,9 @@ export function SafetyChecklist({
 
   if (resolved) {
     return (
-      <details className="panel fold">
-        <summary>
-          <span>{t('checklist.resolvedSummary')}</span>
-          <ChevronDown className="fold-icon" size={20} aria-hidden="true" />
-        </summary>
-        <div className="fold-body">
-          <Steps list={listPath(problem, situation)} titleId={titleId} folds={false} />
-        </div>
-      </details>
+      <Fold summary={t('checklist.resolvedSummary')} open={false}>
+        <Steps list={listPath(problem, situation)} titleId={titleId} folds={false} />
+      </Fold>
     )
   }
   return (
