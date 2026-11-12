@@ -1,18 +1,10 @@
-import { Copy, ExternalLink, FileText, Info, Loader, RotateCw, Send, Sparkles } from 'lucide-react'
+import { Copy, ExternalLink, FileText, Info, RotateCw, Send, Sparkles } from 'lucide-react'
 import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Locale } from '../api/aiTurns'
 import { isApiError } from '../api/client'
+import { useUpdateDamageReport, type DamageReportRead } from '../api/damageReports'
 import {
-  useCreateDamageReport,
-  useDamageReport,
-  useUpdateDamageReport,
-  type DamageReportRead,
-} from '../api/damageReports'
-import type { IncidentRead } from '../api/incidents'
-import { useUpdateIncident } from '../api/incidents'
-import {
-  EMPTY_CLAIMANT,
   fillClaimant,
   forgetClaimant,
   loadClaimant,
@@ -20,92 +12,33 @@ import {
   type Claimant,
 } from '../lib/claimant'
 import { ErrorNotice, useErrorMessage } from './ErrorNotice'
-import './DamageReportPanel.css'
+import { Fold } from './Fold'
+import './DamageReport.css'
+
+/**
+ * The pieces of the damage report (ADR 0009) shared by its card on Incident detail and its
+ * own screen, `/incidents/:id/report`.
+ */
 
 /** GDDKiA's "Who manages this road?" page ([GD-WHO] in docs/copy/safety-checklist.md). */
 const WHO_MANAGES_URL = 'https://www.gov.pl/web/gddkia/kto-jest-zarzadca-tej-drogi2'
 
 const LOCALES: Locale[] = ['pl', 'en']
 
-/**
- * The damage report on Incident detail (ADR 0009): a letter to the road manager the assistant
- * drafts from the incident, which the driver edits, copies with their own details and marks
- * sent. Created only for pothole damage; a report kept after a type change still shows.
- */
-export function DamageReportPanel({ incident }: { incident: IncidentRead }) {
-  const { t } = useTranslation()
-  const titleId = useId()
-  const pothole = incident.problem_type === 'pothole_damage'
-  // A report kept after a type change still shows; no other incident asks for one.
-  const shown = pothole || incident.damage_report_status !== null
-  const report = useDamageReport(incident.id, shown)
-  const create = useCreateDamageReport(incident.id)
-  // Here, not in the editor, so a regenerated letter keeps the details typed for this visit.
-  const [claimant, setClaimant] = useState<Claimant>(() => loadClaimant() ?? EMPTY_CLAIMANT)
-  if (!shown) return null
+export const reportPath = (incidentId: number) => `/incidents/${String(incidentId)}/report`
 
-  const generate = (locale: Locale, replace = false) => {
-    create.generate(locale, replace).catch(() => {
-      // Shown below from `create.error`.
-    })
-  }
-  const data = report.data
-  const busy = create.isPending
-
-  return (
-    <section className="panel panel-report" aria-labelledby={titleId} aria-busy={busy}>
-      <div className="panel-head">
-        <h2 id={titleId}>{t('report.title')}</h2>
-        {data && (
-          <span className={data.status === 'sent' ? 'badge' : 'badge badge-accent'}>
-            {t(`report.status.${data.status}`)}
-          </span>
-        )}
-      </div>
-
-      {busy && (
-        <div className="report-busy" role="status">
-          <p className="ai-line">
-            <Loader size={20} className="spin" aria-hidden="true" />
-            {t('report.drafting')}
-          </p>
-          <p className="muted">{t('report.draftingSub')}</p>
-        </div>
-      )}
-      {create.isError && <GenerateError error={create.error} />}
-      {report.isPending ? (
-        <p className="muted">{t('common.loading')}</p>
-      ) : report.isError ? (
-        <ErrorNotice error={report.error} />
-      ) : data ? (
-        // Stays mounted while a new draft is written: a failed one keeps unsaved edits.
-        <ReportEditor
-          incidentId={incident.id}
-          report={data}
-          busy={busy}
-          // Only a pothole incident can be drafted again (ADR 0009).
-          canRegenerate={pothole}
-          claimant={claimant}
-          onClaimantChange={setClaimant}
-          onSaved={create.reset}
-          onRegenerate={(locale) => {
-            generate(locale, true)
-          }}
-        />
-      ) : (
-        !busy && (
-          <StartReport
-            onDraft={(locale) => {
-              generate(locale)
-            }}
-          />
-        )
-      )}
-    </section>
-  )
+/** Router state from "Draft the report": the report screen drafts in this language on arrival. */
+export interface DraftOnArrival {
+  draftLocale: Locale
 }
 
-function GenerateError({ error }: { error: unknown }) {
+export function draftOnArrival(state: unknown): Locale | null {
+  if (typeof state !== 'object' || state === null || !('draftLocale' in state)) return null
+  const locale = (state as DraftOnArrival).draftLocale
+  return LOCALES.includes(locale) ? locale : null
+}
+
+export function GenerateError({ error }: { error: unknown }) {
   const { t } = useTranslation()
   const message = useErrorMessage()
   // Demo mode with no recording for this case: labelled, never another case's draft.
@@ -156,7 +89,8 @@ function LanguagePick({ value, onChange }: { value: Locale; onChange: (l: Locale
   )
 }
 
-function StartReport({ onDraft }: { onDraft: (locale: Locale) => void }) {
+/** What the report is, the letter's language and "Draft the report". */
+export function StartReport({ onDraft }: { onDraft: (locale: Locale) => void }) {
   const { t } = useTranslation()
   const [locale, setLocale] = useState<Locale>('pl')
   return (
@@ -177,7 +111,20 @@ function StartReport({ onDraft }: { onDraft: (locale: Locale) => void }) {
   )
 }
 
-function ReportEditor({
+export function StatusBadge({ status }: { status: DamageReportRead['status'] }) {
+  const { t } = useTranslation()
+  return (
+    <span className={status === 'sent' ? 'badge' : 'badge badge-accent'}>
+      {t(`report.status.${status}`)}
+    </span>
+  )
+}
+
+/**
+ * The report itself: the assistant label and status, the editable letter, "Your details",
+ * "Who manages this road?" and the actions, Copy first.
+ */
+export function ReportEditor({
   incidentId,
   report,
   busy,
@@ -235,36 +182,41 @@ function ReportEditor({
 
   return (
     <>
-      <p className="report-label">
-        <Sparkles size={16} aria-hidden="true" />
-        {t('report.label')}
-      </p>
+      <div className="panel report-letter">
+        <div className="report-head">
+          <p className="report-label">
+            <Sparkles size={16} aria-hidden="true" />
+            {t('report.label')}
+          </p>
+          <StatusBadge status={report.status} />
+        </div>
 
-      <div className="report-field">
-        <label htmlFor={bodyId}>{t('report.bodyLabel')}</label>
-        <textarea
-          id={bodyId}
-          className="field report-body"
-          rows={14}
-          value={body}
-          onChange={(e) => {
-            setBody(e.target.value)
-            setCopyState('idle')
-          }}
-        />
+        <div className="report-field">
+          <label htmlFor={bodyId}>{t('report.bodyLabel')}</label>
+          <textarea
+            id={bodyId}
+            className="field report-body"
+            rows={14}
+            value={body}
+            onChange={(e) => {
+              setBody(e.target.value)
+              setCopyState('idle')
+            }}
+          />
+        </div>
+        {dirty && (
+          <button
+            type="button"
+            className="btn btn-quiet"
+            disabled={busy || update.isPending || !body.trim()}
+            onClick={() => {
+              save({ body })
+            }}
+          >
+            {t('report.save')}
+          </button>
+        )}
       </div>
-      {dirty && (
-        <button
-          type="button"
-          className="btn btn-quiet"
-          disabled={busy || update.isPending || !body.trim()}
-          onClick={() => {
-            save({ body })
-          }}
-        >
-          {t('report.save')}
-        </button>
-      )}
 
       <ClaimantForm claimant={claimant} onChange={onClaimantChange} />
 
@@ -284,7 +236,7 @@ function ReportEditor({
         </p>
         <button
           type="button"
-          className="btn btn-quiet"
+          className="btn btn-secondary"
           disabled={busy || update.isPending || (dirty && !body.trim())}
           onClick={() => {
             // The letter marked sent is the one on screen, unsaved edits included.
@@ -324,15 +276,16 @@ function ReportEditor({
             </div>
           </div>
         ) : (
+          // Overwrites the driver's edits, so it stays out of the way.
           <button
             type="button"
-            className="btn btn-quiet"
+            className="link-btn report-regenerate"
             disabled={busy}
             onClick={() => {
               setConfirming(true)
             }}
           >
-            <RotateCw size={18} aria-hidden="true" />
+            <RotateCw size={16} aria-hidden="true" />
             {t('report.regenerate')}
           </button>
         )}
@@ -348,7 +301,10 @@ const CLAIMANT_FIELDS = [
   { field: 'bankAccount', autoComplete: 'off' },
 ] as const
 
-/** "Your details": kept in this browser only, never sent to the server (ADR 0009). */
+/**
+ * "Your details": kept in this browser only, never sent to the server (ADR 0009). Open
+ * until they are saved on this device; after that the copy fills them in on its own.
+ */
 function ClaimantForm({
   claimant,
   onChange,
@@ -359,6 +315,8 @@ function ClaimantForm({
   const { t } = useTranslation()
   const id = useId()
   const [remember, setRemember] = useState(() => loadClaimant() !== null)
+  // Decided once: ticking "Remember" must not fold the form away while it is being filled.
+  const [open] = useState(() => !remember)
 
   const change = (next: Claimant) => {
     onChange(next)
@@ -366,8 +324,7 @@ function ClaimantForm({
   }
 
   return (
-    <fieldset className="report-details">
-      <legend>{t('report.details.title')}</legend>
+    <Fold summary={t('report.details.title')} open={open}>
       <p className="muted">{t('report.details.hint')}</p>
       {CLAIMANT_FIELDS.map(({ field, autoComplete }) => (
         <div className="report-field" key={field}>
@@ -395,7 +352,7 @@ function ClaimantForm({
         />
         {t('report.details.remember')}
       </label>
-    </fieldset>
+    </Fold>
   )
 }
 
@@ -404,48 +361,16 @@ function AddresseeHelp() {
   const { t } = useTranslation()
   const help = t('report.addressee', { returnObjects: true })
   return (
-    <div className="report-addressee">
-      <p>
-        <strong>{help.title}</strong>
-      </p>
-      <ul>
+    <Fold summary={help.title} open={false}>
+      <ul className="report-addressee">
         {help.items.map((item) => (
           <li key={item}>{item}</li>
         ))}
       </ul>
-      <a href={WHO_MANAGES_URL} target="_blank" rel="noreferrer">
+      <a className="report-lookup" href={WHO_MANAGES_URL} target="_blank" rel="noreferrer">
         {help.lookup}
         <ExternalLink size={14} aria-hidden="true" />
       </a>
-    </div>
-  )
-}
-
-/**
- * On a flat-tyre incident: "Was this caused by a pothole?" switches the problem type, after
- * which the damage report panel offers the report (ADR 0009).
- */
-export function PotholeHint({ incident }: { incident: IncidentRead }) {
-  const { t } = useTranslation()
-  const update = useUpdateIncident(incident.id)
-  return (
-    <div className="notice report-hint">
-      <p>
-        <strong>{t('report.potholeHint')}</strong> {t('report.potholeHintSub')}
-      </p>
-      <button
-        type="button"
-        className="btn btn-quiet"
-        disabled={update.isPending}
-        onClick={() => {
-          update.update({ problem_type: 'pothole_damage' }).catch(() => {
-            // Shown below from `update.error`.
-          })
-        }}
-      >
-        {t('report.potholeSwitch')}
-      </button>
-      {update.isError && <ErrorNotice error={update.error} />}
-    </div>
+    </Fold>
   )
 }

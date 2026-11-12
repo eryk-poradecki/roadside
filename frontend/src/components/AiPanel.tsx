@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useId, useRef, useState, type SyntheticEvent } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router'
 import {
   autoStartClaimed,
   claimAutoStart,
@@ -47,7 +48,16 @@ export const UPLOAD_WAIT_MS = 20_000
  * why and "Try again", while the safety checklist above stays as it is. In demo mode a case
  * with no recorded answer is labelled as such, with no "Try again": it would only miss again.
  */
-export function AiPanel({ incident, autoStart }: { incident: IncidentRead; autoStart: boolean }) {
+export function AiPanel({
+  incident,
+  autoStart,
+  noVehicles = false,
+}: {
+  incident: IncidentRead
+  autoStart: boolean
+  /** The driver has no vehicle saved: the answer's footer invites adding one. */
+  noVehicles?: boolean
+}) {
   const { t, i18n } = useTranslation()
   const turn = useTakeAiTurn(incident.id)
   const inFlight = useTurnInFlight(incident.id)
@@ -103,7 +113,7 @@ export function AiPanel({ incident, autoStart }: { incident: IncidentRead; autoS
 
       <div className="ai-body" aria-live="polite">
         {adviceTurn?.advice ? (
-          <Advice advice={adviceTurn.advice} inputs={adviceTurn.inputs} />
+          <Advice advice={adviceTurn.advice} inputs={adviceTurn.inputs} noVehicles={noVehicles} />
         ) : inFlight || starting ? (
           <div className="ai-loading">
             <p className="ai-line">
@@ -340,7 +350,15 @@ function PhotosNotSeen({ inputs }: { inputs: TurnInputsRead }) {
   )
 }
 
-function Advice({ advice, inputs }: { advice: AdviceRead; inputs: TurnInputsRead | null }) {
+function Advice({
+  advice,
+  inputs,
+  noVehicles,
+}: {
+  advice: AdviceRead
+  inputs: TurnInputsRead | null
+  noVehicles: boolean
+}) {
   const { t } = useTranslation()
   return (
     <div className="answer">
@@ -398,6 +416,12 @@ function Advice({ advice, inputs }: { advice: AdviceRead; inputs: TurnInputsRead
       <div className="answer-foot">
         {inputs && <AnsweredFor inputs={inputs} />}
         <p>{t('ai.disclaimer')}</p>
+        {noVehicles && (
+          <p className="answer-invite">
+            {t('incident.addVehicle')}{' '}
+            <Link to="/vehicles/new">{t('incident.addVehicleLink')}</Link>
+          </p>
+        )}
       </div>
     </div>
   )

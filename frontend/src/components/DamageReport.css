@@ -1,4 +1,4 @@
-/* The damage report on Incident detail (ADR 0009), mobile layout. */
+/* The damage report (ADR 0009): its card on Incident detail and its own screen, mobile layout. */
 .report-busy {
   display: flex;
   flex-direction: column;
@@ -13,6 +13,15 @@
 }
 
 /* The assistant label stays above the letter, also after the driver's edits. */
+.report-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.report-head .badge {
+  flex: none;
+}
 .report-label {
   display: flex;
   align-items: flex-start;
@@ -42,20 +51,6 @@
   white-space: pre-wrap;
 }
 
-.report-details {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-width: 0;
-  margin: 0;
-  padding: 16px;
-  border: 1px solid var(--line);
-  border-radius: var(--r);
-}
-.report-details legend {
-  padding: 0 6px;
-  font-weight: 700;
-}
 .report-remember {
   display: flex;
   align-items: center;
@@ -69,26 +64,19 @@
 }
 
 .report-addressee {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 14px 16px;
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
-  font-size: 0.9375rem;
-}
-.report-addressee ul {
   margin: 0;
   padding-left: 1.2em;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  font-size: 0.9375rem;
 }
-.report-addressee a {
+.report-lookup {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   min-height: 44px;
+  font-size: 0.9375rem;
   color: var(--amber);
 }
 
@@ -96,6 +84,17 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+.report-regenerate {
+  align-self: center;
+  gap: 6px;
+  padding: 0 8px;
+  color: var(--muted);
+  font-weight: 400;
+}
+.report-regenerate:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 .report-copy-state {
   min-height: 1.4em;
@@ -119,4 +118,40 @@
 }
 .report-hint .btn {
   align-self: flex-start;
+}
+
+/* Incident detail once a report exists: "Damage report · Draft · Open", one tap target. */
+.report-card {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  color: var(--text);
+  text-decoration: none;
+  transition:
+    background 160ms var(--ease),
+    transform 160ms var(--ease);
+}
+.report-card:hover {
+  background: var(--surface-2);
+}
+.report-card:active {
+  transform: scale(0.985);
+}
+.report-card h2 {
+  margin-right: auto;
+}
+.report-card-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+@media (prefers-reduced-motion: reduce) {
+  .report-card {
+    transition: none;
+  }
 }

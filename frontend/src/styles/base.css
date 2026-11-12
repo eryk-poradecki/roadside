@@ -102,6 +102,22 @@ h2 {
   color: var(--text);
   font-size: 0.9375rem;
 }
+/* The action beside a primary one: full width like it, outlined so it never competes. */
+.btn-secondary {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 16px;
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-size: 0.9375rem;
+}
+.btn-secondary:active {
+  background: var(--surface-2);
+}
+.btn-secondary:disabled {
+  border-color: transparent;
+}
 .btn-danger {
   min-height: 48px;
   padding: 0 16px;
@@ -219,5 +235,44 @@ h2 {
 @media (prefers-reduced-motion: reduce) {
   .spin {
     animation: none;
+  }
+}
+
+/* A panel that folds into its summary: the resolved checklist (ADR 0010), the report's details. */
+.fold {
+  display: block;
+}
+.fold summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  margin: -12px 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  list-style: none;
+  cursor: pointer;
+}
+.fold summary::-webkit-details-marker {
+  display: none;
+}
+.fold-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 26px;
+}
+.fold-icon {
+  flex: none;
+  color: var(--muted);
+  transition: transform 160ms ease-out;
+}
+.fold[open] .fold-icon {
+  transform: rotate(180deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .fold-icon {
+    transition: none;
   }
 }
