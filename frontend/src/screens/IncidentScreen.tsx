@@ -172,23 +172,30 @@ function Result({
         </div>
       )}
 
-      <SafetyChecklist
-        problem={key}
-        situation={incident.situation}
-        resolved={resolved}
-        answered={adviceTurn !== undefined}
-      />
+      {/* One column on mobile; on desktop the advice beside the record (ADR 0008). */}
+      <div className="result-columns">
+        <div className="result-col">
+          <SafetyChecklist
+            problem={key}
+            situation={incident.situation}
+            resolved={resolved}
+            answered={adviceTurn !== undefined}
+          />
 
-      <AiPanel incident={incident} autoStart={fromHelp} noVehicles={noVehicles} />
+          <AiPanel incident={incident} autoStart={fromHelp} noVehicles={noVehicles} />
+        </div>
 
-      <NearbyPanel incident={incident} fuelType={vehicle?.fuel_type} />
+        <div className="result-col">
+          <NearbyPanel incident={incident} fuelType={vehicle?.fuel_type} />
 
-      <PhotosPanel incident={incident} />
+          <PhotosPanel incident={incident} />
 
-      {incident.problem_type === 'flat_tyre' && <PotholeHint incident={incident} />}
-      <DamageReportCard incident={incident} />
+          {incident.problem_type === 'flat_tyre' && <PotholeHint incident={incident} />}
+          <DamageReportCard incident={incident} />
 
-      <Upkeep incident={incident} />
+          <Upkeep incident={incident} />
+        </div>
+      </div>
 
       {vehicle?.assistance_phone && <CallAssistance vehicle={vehicle} />}
     </div>

@@ -101,6 +101,7 @@ export const pl: Localised<Translation> & {
     filterLabel: 'Pokaż zdarzenia',
     filters: { all: 'Wszystkie', open: 'Otwarte', resolved: 'Rozwiązane' },
     listLabel: 'Twoje zdarzenia',
+    mapLabel: 'Mapa Twoich zdarzeń',
     empty: 'Nie masz jeszcze zdarzeń. Każde wezwanie pomocy zapisze się tutaj.',
     emptyOpen: 'Brak otwartych zdarzeń.',
     emptyResolved: 'Nie masz jeszcze rozwiązanych zdarzeń.',

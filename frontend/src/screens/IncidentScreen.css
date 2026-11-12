@@ -3,6 +3,22 @@
   flex-direction: column;
   gap: 20px;
 }
+/* Mobile: the two column wrappers stack and space like the rest of the screen. */
+.result-columns,
+.result-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+@media (min-width: 900px) {
+  .result-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+  }
+}
 .result h1 {
   display: flex;
   align-items: center;

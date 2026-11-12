@@ -44,6 +44,24 @@ describe('PlacesMap with real Leaflet', () => {
     expect(container.querySelector('.leaflet-control-attribution')).toBeNull()
   })
 
+  it('frames pins alone when there is no driver, as on the desktop History map', () => {
+    const { container } = render(
+      <PlacesMap pins={props.pins} label="Map of your incidents" attribution={props.attribution} />,
+    )
+    expect(container.querySelector('.you-dot')).toBeNull()
+    expect(container.querySelector('.pin')).toHaveTextContent('1')
+  })
+
+  it('shows an empty map when nothing has a location', () => {
+    const { container } = render(
+      <PlacesMap pins={[]} label="Map of your incidents" attribution={props.attribution} />,
+    )
+    expect(container.querySelector('.leaflet-control-attribution')).toHaveTextContent(
+      props.attribution,
+    )
+    expect(container.querySelector('.pin')).toBeNull()
+  })
+
   it('opens on a chosen place, as when the driver taps one in the list', () => {
     const { container } = render(
       <PlacesMap {...props} selected="node/1" showAttribution={false} onSelect={() => undefined} />,

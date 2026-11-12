@@ -7,6 +7,8 @@ import './map.css'
 
 export const OSM_COPYRIGHT_URL = 'https://www.openstreetmap.org/copyright'
 const DEFAULT_TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+/** Poland, for a map with nothing to frame. */
+const EMPTY_VIEW = { center: [52, 19.4] as L.LatLngTuple, zoom: 6 }
 
 /** `VITE_TILE_URL`, so the tile server can change without a code edit (OSM tile policy). */
 const tileUrl = (): string => {
@@ -18,8 +20,8 @@ export type MapPin = { id: string; lat: number; lon: number }
 
 type Props = {
   pins: MapPin[]
-  /** The driver's location. */
-  user: { lat: number; lon: number }
+  /** The driver's location. Absent on the History map, which frames the pins alone. */
+  user?: { lat: number; lon: number } | null
   selected?: string | null
   onSelect?: (id: string) => void
   /** Accessible name of the map image. */
@@ -32,6 +34,8 @@ type Props = {
   showAttribution?: boolean
   /** Pixels at the bottom covered by a sheet, so framing keeps the pins above it. */
   padBottom?: number
+  /** Zoom buttons, for a mouse on the desktop map (wheel zoom stays off so the page scrolls). */
+  zoomControl?: boolean
 }
 
 const escapeHtml = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${String(c.charCodeAt(0))};`)
@@ -54,7 +58,7 @@ const youIcon = () =>
 
 /**
  * Standard OSM tiles, darkened by a CSS filter on the tile pane only, with numbered pins in
- * list order and the driver's dot. The attribution is always fully visible.
+ * list order and the driver's dot when there is one. The attribution is always fully visible.
  */
 export function PlacesMap({
   pins,
@@ -66,20 +70,27 @@ export function PlacesMap({
   interactive = true,
   showAttribution = true,
   padBottom = 0,
+  zoomControl = false,
 }: Props) {
   const el = useRef<HTMLDivElement>(null)
   const map = useRef<L.Map | null>(null)
   const layer = useRef<L.LayerGroup | null>(null)
   const select = useRef(onSelect)
   const fit = useRef<() => void>(() => undefined)
+  const userLat = user?.lat
+  const userLon = user?.lon
 
   useEffect(() => {
     select.current = onSelect
     fit.current = () => {
       const points: L.LatLngTuple[] = [
-        [user.lat, user.lon],
+        ...(user ? [[user.lat, user.lon] as L.LatLngTuple] : []),
         ...pins.map((p): L.LatLngTuple => [p.lat, p.lon]),
       ]
+      if (points.length === 0) {
+        map.current?.setView(EMPTY_VIEW.center, EMPTY_VIEW.zoom, { animate: false })
+        return
+      }
       map.current?.fitBounds(L.latLngBounds(points), {
         paddingTopLeft: [28, padBottom ? 72 : 24],
         paddingBottomRight: [28, 24 + padBottom],
@@ -92,7 +103,7 @@ export function PlacesMap({
   useEffect(() => {
     if (!el.current) return
     const m = L.map(el.current, {
-      zoomControl: false,
+      zoomControl: interactive && zoomControl,
       attributionControl: showAttribution,
       dragging: interactive,
       touchZoom: interactive,
@@ -107,9 +118,10 @@ export function PlacesMap({
       maxZoom: 19,
       attribution: `<a href="${OSM_COPYRIGHT_URL}" target="_blank" rel="noopener">${escapeHtml(attribution)}</a>`,
     }).addTo(m)
-    L.marker([user.lat, user.lon], { icon: youIcon(), interactive: false, keyboard: false }).addTo(
-      m,
-    )
+    if (userLat !== undefined && userLon !== undefined)
+      L.marker([userLat, userLon], { icon: youIcon(), interactive: false, keyboard: false }).addTo(
+        m,
+      )
     layer.current = L.layerGroup().addTo(m)
     map.current = m
     const resize = new ResizeObserver(() => {
@@ -123,7 +135,7 @@ export function PlacesMap({
       map.current = null
       layer.current = null
     }
-  }, [interactive, attribution, showAttribution, user.lat, user.lon])
+  }, [interactive, attribution, showAttribution, zoomControl, userLat, userLon])
 
   // Pins, in list order. Also after the map above is rebuilt with an empty layer.
   useEffect(() => {
@@ -141,12 +153,22 @@ export function PlacesMap({
       marker.on('click', () => select.current?.(p.id))
       marker.addTo(group)
     })
-  }, [pins, selected, interactive, onSelect, attribution, showAttribution, user.lat, user.lon])
+  }, [
+    pins,
+    selected,
+    interactive,
+    onSelect,
+    attribution,
+    showAttribution,
+    zoomControl,
+    userLat,
+    userLon,
+  ])
 
   // Frame the driver and every pin.
   useEffect(() => {
     fit.current()
-  }, [pins, user.lat, user.lon, padBottom, interactive])
+  }, [pins, userLat, userLon, padBottom, interactive, zoomControl])
 
   // Keep the chosen place in view.
   useEffect(() => {

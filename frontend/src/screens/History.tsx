@@ -1,13 +1,15 @@
 import { ChevronRight, Car, MapPin } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { useIncidents, type IncidentStatus, type IncidentSummary } from '../api/incidents'
 import { useVehicles, type VehicleRead } from '../api/vehicles'
 import { ErrorNotice } from '../components/ErrorNotice'
+import { PlacesMap, type MapPin as Pin } from '../components/map/PlacesMap'
 import { TILE_ICONS } from '../components/tiles'
 import { formatCoords } from '../lib/place'
 import { problemKey } from '../lib/problemType'
+import { useDesktop } from '../lib/useMediaQuery'
 import './History.css'
 
 type Filter = IncidentStatus | null
@@ -17,10 +19,16 @@ const FILTERS: { value: Filter; key: 'all' | IncidentStatus }[] = [
   { value: 'resolved', key: 'resolved' },
 ]
 
-/** `/incidents`: past incidents, newest first, with a status filter (mobile layout). */
+/**
+ * `/incidents`: past incidents, newest first, with a status filter. On desktop the list sits
+ * beside a map of the loaded page's located incidents (no geo-bounds filter, ADR 0005).
+ */
 export function History() {
   const { t, i18n } = useTranslation()
+  const desktop = useDesktop()
   const [status, setStatus] = useState<Filter>(null)
+  // The incident picked on the map, or pointed at in the list: highlighted in both.
+  const [selected, setSelected] = useState<string | null>(null)
   const incidents = useIncidents(status)
   const vehicles = useVehicles()
   // Offset paging can repeat a row when incidents change between pages: keep the first.
@@ -30,6 +38,15 @@ export function History() {
       .flatMap((page) => page.items)
       .filter((i) => !seen.has(i.id) && seen.add(i.id))
   }, [incidents.data])
+  // Pins in list order; an incident without a location stays list-only.
+  const pins = useMemo(
+    () =>
+      items.flatMap((i): Pin[] =>
+        i.location ? [{ id: String(i.id), lat: i.location.lat, lon: i.location.lon }] : [],
+      ),
+    [items],
+  )
+  const pinNumber = useMemo(() => new Map(pins.map((p, n) => [p.id, n + 1])), [pins])
   const vehicleById = useMemo(
     () => new Map((vehicles.data ?? []).map((v) => [v.id, v])),
     [vehicles.data],
@@ -47,7 +64,7 @@ export function History() {
         ? t('history.emptyResolved')
         : t('history.empty')
 
-  return (
+  const list = (
     <>
       <div className="history-head">
         <h1>{t('history.heading')}</h1>
@@ -93,6 +110,11 @@ export function History() {
                 incident.vehicle_id === null ? null : (vehicleById.get(incident.vehicle_id) ?? null)
               }
               formatDate={formatDate}
+              {...(desktop && {
+                pin: pinNumber.get(String(incident.id)),
+                selected: selected === String(incident.id),
+                onPoint: setSelected,
+              })}
             />
           ))}
         </ul>
@@ -111,18 +133,49 @@ export function History() {
       )}
     </>
   )
+
+  if (!desktop) return list
+  return (
+    <div className="history-split">
+      <div className="history-list">{list}</div>
+      <div className="history-map">
+        <PlacesMap
+          pins={pins}
+          selected={selected}
+          onSelect={setSelected}
+          label={t('history.mapLabel')}
+          attribution={t('nearby.attribution')}
+          zoomControl
+        />
+      </div>
+    </div>
+  )
 }
 
 function IncidentRow({
   incident,
   vehicle,
   formatDate,
+  pin,
+  selected = false,
+  onPoint,
 }: {
   incident: IncidentSummary
   vehicle: VehicleRead | null
   formatDate: Intl.DateTimeFormat
+  /** Desktop: the number of this incident's pin on the map, when it has a location. */
+  pin?: number | undefined
+  /** Desktop: highlighted, as its pin is. */
+  selected?: boolean
+  /** Desktop: pointing at or focusing the row highlights its pin. */
+  onPoint?: (id: string) => void
 }) {
   const { t } = useTranslation()
+  const row = useRef<HTMLAnchorElement>(null)
+  // A pin picked on the map brings its row into view.
+  useEffect(() => {
+    if (selected) row.current?.scrollIntoView({ block: 'nearest' })
+  }, [selected])
   const key = problemKey(incident.problem_type, vehicle?.fuel_type)
   const Icon = TILE_ICONS[key]
   const resolved = incident.status === 'resolved'
@@ -132,7 +185,19 @@ function IncidentRow({
 
   return (
     <li>
-      <Link className="incident-row" to={`/incidents/${String(incident.id)}`}>
+      <Link
+        ref={row}
+        className={selected ? 'incident-row incident-row-selected' : 'incident-row'}
+        to={`/incidents/${String(incident.id)}`}
+        {...(onPoint && {
+          onMouseEnter: () => {
+            onPoint(String(incident.id))
+          },
+          onFocus: () => {
+            onPoint(String(incident.id))
+          },
+        })}
+      >
         <span className="incident-icon" aria-hidden="true">
           <Icon size={24} strokeWidth={1.75} />
         </span>
@@ -161,7 +226,13 @@ function IncidentRow({
               )}
               {place && (
                 <span>
-                  <MapPin size={16} aria-hidden="true" />
+                  {pin === undefined ? (
+                    <MapPin size={16} aria-hidden="true" />
+                  ) : (
+                    <span className="pin-ref" aria-hidden="true">
+                      {pin}
+                    </span>
+                  )}
                   {place}
                 </span>
               )}

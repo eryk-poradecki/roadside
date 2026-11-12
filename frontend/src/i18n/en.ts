@@ -89,6 +89,7 @@ export const en = {
     filterLabel: 'Show incidents',
     filters: { all: 'All', open: 'Open', resolved: 'Resolved' },
     listLabel: 'Your incidents',
+    mapLabel: 'Map of your incidents',
     empty: 'No incidents yet. When you ask for help, it is saved here.',
     emptyOpen: 'No open incidents.',
     emptyResolved: 'No resolved incidents yet.',
