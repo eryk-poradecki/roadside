@@ -9,6 +9,9 @@ import { renderApp } from './render'
 /** The damage report card on Incident detail. */
 const card = () => screen.getByRole('region', { name: en.report.title })
 const letter = () => screen.getByRole('textbox', { name: en.report.bodyLabel })
+/** The compact card is one link, named by its whole content: title, status and "Open". */
+const openName = (status: 'draft' | 'sent') =>
+  new RegExp(`${en.report.title}\\s*${en.report.status[status]}\\s*${en.report.open}`)
 const fold = (summary: string) => {
   const details = screen.getByText(summary).closest('details')
   if (!details) throw new Error(`No fold "${summary}"`)
@@ -76,10 +79,13 @@ describe('damage report (ADR 0009)', () => {
       expect(within(region).getByText(en.report.status.sent)).toBeInTheDocument()
       expect(within(card()).queryByRole('textbox')).not.toBeInTheDocument()
       expect(within(card()).queryByRole('button')).not.toBeInTheDocument()
-      const open = within(card()).getByRole('link', { name: en.report.open })
+      // The whole card is the link: a tap on its title opens the report.
+      const open = within(card()).getByRole('link', { name: openName('sent') })
       expect(open).toHaveAttribute('href', `/incidents/${String(incident.id)}/report`)
+      expect(open).toContainElement(within(card()).getByRole('heading', { name: en.report.title }))
+      expect(open).toContainElement(within(card()).getByText(en.report.status.sent))
 
-      await user.click(open)
+      await user.click(within(card()).getByRole('heading', { name: en.report.title }))
       expect(await screen.findByRole('textbox', { name: en.report.bodyLabel })).toHaveValue(
         reportBody('pl'),
       )
@@ -120,7 +126,7 @@ describe('damage report (ADR 0009)', () => {
 
       const region = await screen.findByRole('region', { name: en.report.title })
       expect(within(region).getByText(en.report.status.sent)).toBeInTheDocument()
-      await user.click(within(card()).getByRole('link', { name: en.report.open }))
+      await user.click(within(card()).getByRole('link', { name: openName('sent') }))
 
       await screen.findByRole('textbox', { name: en.report.bodyLabel })
       // Only a pothole incident can be drafted again.
@@ -167,7 +173,7 @@ describe('damage report (ADR 0009)', () => {
       await draft(user)
 
       await user.click(screen.getByRole('link', { name: en.common.back }))
-      await user.click(await within(card()).findByRole('link', { name: en.report.open }))
+      await user.click(await within(card()).findByRole('link', { name: openName('draft') }))
       await screen.findByRole('textbox', { name: en.report.bodyLabel })
 
       expect(fakeApi.reportRequests).toHaveLength(1)

@@ -120,16 +120,38 @@
   align-self: flex-start;
 }
 
-/* Incident detail once a report exists: one line, "Damage report · Draft · Open". */
+/* Incident detail once a report exists: "Damage report · Draft · Open", one tap target. */
 .report-card {
   flex-direction: row;
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
+  min-height: 64px;
+  color: var(--text);
+  text-decoration: none;
+  transition:
+    background 160ms var(--ease),
+    transform 160ms var(--ease);
+}
+.report-card:hover {
+  background: var(--surface-2);
+}
+.report-card:active {
+  transform: scale(0.985);
 }
 .report-card h2 {
   margin-right: auto;
 }
-.report-card .link-btn {
-  padding: 0 0 0 4px;
+.report-card-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+@media (prefers-reduced-motion: reduce) {
+  .report-card {
+    transition: none;
+  }
 }

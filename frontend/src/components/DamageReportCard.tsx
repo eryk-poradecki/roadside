@@ -1,3 +1,4 @@
+import { ChevronRight } from 'lucide-react'
 import { useId } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
@@ -21,11 +22,15 @@ export function DamageReportCard({ incident }: { incident: IncidentRead }) {
 
   if (status !== null) {
     return (
-      <section className="panel report-card" aria-labelledby={titleId}>
-        <h2 id={titleId}>{t('report.title')}</h2>
-        <StatusBadge status={status} />
-        <Link to={path} className="link-btn">
-          {t('report.open')}
+      // The whole card opens the report, not just "Open".
+      <section aria-labelledby={titleId}>
+        <Link to={path} className="panel report-card">
+          <h2 id={titleId}>{t('report.title')}</h2>
+          <StatusBadge status={status} />
+          <span className="report-card-open">
+            {t('report.open')}
+            <ChevronRight size={18} aria-hidden="true" />
+          </span>
         </Link>
       </section>
     )
