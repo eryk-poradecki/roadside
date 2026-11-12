@@ -112,6 +112,7 @@ export function DamageReportScreen() {
         <ReportEditor
           incidentId={id}
           report={report.data}
+          photos={data.photos}
           busy={busy}
           // Only a pothole incident can be drafted again (ADR 0009).
           canRegenerate={pothole}

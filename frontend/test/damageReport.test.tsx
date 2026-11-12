@@ -1,6 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import { i18n } from '../src/i18n'
 import type { ProblemType } from '../src/lib/problemType'
+import type { PhotoRead } from '../src/api/photos'
 import { en } from '../src/i18n/en'
 import { pl } from '../src/i18n/pl'
 import { fakeApi, reportBody } from './fakeApi'
@@ -49,8 +50,9 @@ async function draft(user: ReturnType<typeof renderApp>['user']) {
 async function openReport(
   status: 'draft' | 'sent' = 'draft',
   problem: ProblemType = 'pothole_damage',
+  photos: PhotoRead[] = [],
 ) {
-  const incident = fakeApi.seedIncident({ problem_type: problem })
+  const incident = fakeApi.seedIncident({ problem_type: problem }, { photos })
   fakeApi.reports.set(incident.id, { ...STORED, status })
   const rendered = renderApp(`/incidents/${String(incident.id)}/report`)
   await screen.findByRole('textbox', { name: en.report.bodyLabel })
@@ -252,6 +254,102 @@ describe('damage report (ADR 0009)', () => {
   })
 
   describe('the report screen', () => {
+    afterEach(() => {
+      vi.restoreAllMocks()
+      Reflect.deleteProperty(HTMLImageElement.prototype, 'decode')
+    })
+
+    it('keeps the print dialog closed if a photo fails, and lets the driver retry', async () => {
+      const { user } = await openReport('draft', 'pothole_damage', [
+        {
+          id: 42,
+          url: '/photos/42',
+          content_type: 'image/jpeg',
+          width: 1200,
+          height: 900,
+          created_at: STORED.created_at,
+        },
+      ])
+      const decode = vi
+        .fn()
+        .mockRejectedValueOnce(new Error('Offline'))
+        .mockResolvedValue(undefined)
+      Object.defineProperty(HTMLImageElement.prototype, 'decode', {
+        configurable: true,
+        value: decode,
+      })
+      const print = vi.spyOn(window, 'print').mockImplementation(() => {})
+      await user.click(screen.getByRole('button', { name: en.report.print }))
+      expect(await screen.findByRole('alert')).toHaveTextContent(en.report.printFailed)
+      expect(print).not.toHaveBeenCalled()
+      await user.click(screen.getByRole('button', { name: en.report.print }))
+      await waitFor(() => {
+        expect(print).toHaveBeenCalledOnce()
+      })
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    })
+
+    it('waits for full-size photos before printing them inline', async () => {
+      const photo = {
+        id: 42,
+        url: '/photos/42',
+        content_type: 'image/jpeg',
+        width: 1200,
+        height: 900,
+        created_at: STORED.created_at,
+      }
+      const { user } = await openReport('draft', 'pothole_damage', [photo])
+      let release = () => {}
+      const decode = vi.fn(
+        () =>
+          new Promise<void>((resolve) => {
+            release = resolve
+          }),
+      )
+      Object.defineProperty(HTMLImageElement.prototype, 'decode', {
+        configurable: true,
+        value: decode,
+      })
+      const print = vi.spyOn(window, 'print').mockImplementation(() => {})
+      await user.click(screen.getByRole('button', { name: 'Print / Save as PDF' }))
+      expect(decode).toHaveBeenCalledOnce()
+      expect(print).not.toHaveBeenCalled()
+      const attachment = screen.getByRole('article', { hidden: true })
+      expect(within(attachment).getByRole('img', { hidden: true })).toHaveAttribute(
+        'src',
+        'http://api.test/photos/42',
+      )
+      release()
+      await waitFor(() => {
+        expect(print).toHaveBeenCalledOnce()
+      })
+      print.mockRestore()
+      Reflect.deleteProperty(HTMLImageElement.prototype, 'decode')
+    })
+
+    it('prints unsaved edits with browser-only details without saving the letter', async () => {
+      const { user, incident } = await openReport()
+      const print = vi.spyOn(window, 'print').mockImplementation(() => {})
+      await user.type(letter(), ' Edited.')
+      await user.type(screen.getByLabelText(en.report.details.name), JAN.name)
+      await user.type(screen.getByLabelText(en.report.details.address), JAN.address)
+      await user.type(screen.getByLabelText(en.report.details.phone), JAN.phone)
+      await user.type(screen.getByLabelText(en.report.details.bankAccount), JAN.bankAccount)
+      await user.click(screen.getByRole('button', { name: 'Print / Save as PDF' }))
+
+      expect(print).toHaveBeenCalledOnce()
+      const attachment = screen.getByRole('article', { hidden: true })
+      expect(attachment.textContent).toContain(JAN.name)
+      for (const value of Object.values(JAN)) expect(attachment.textContent).toContain(value)
+      expect(attachment.textContent).toContain(' Edited.')
+      expect(attachment.textContent).not.toContain('[Imię i nazwisko]')
+      expect(letter()).toHaveValue(`${reportBody('pl')} Edited.`)
+      expect(fakeApi.reports.get(incident.id)?.body).toBe(reportBody('pl'))
+      expect(fakeApi.reportRequests).toHaveLength(0)
+      expect(localStorage.getItem('roadside.claimant')).toBeNull()
+      print.mockRestore()
+    })
+
     it('shows label and status, letter, details, road manager help, then the actions', async () => {
       const { incident } = await openReport()
 

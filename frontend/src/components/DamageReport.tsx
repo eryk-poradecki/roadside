@@ -1,9 +1,11 @@
-import { Copy, ExternalLink, FileText, Info, RotateCw, Send, Sparkles } from 'lucide-react'
-import { useId, useState } from 'react'
+import { Copy, ExternalLink, FileText, Info, Printer, RotateCw, Send, Sparkles } from 'lucide-react'
+import { useId, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import type { Locale } from '../api/aiTurns'
 import { isApiError } from '../api/client'
 import { useUpdateDamageReport, type DamageReportRead } from '../api/damageReports'
+import { photoSrc, type PhotoRead } from '../api/photos'
 import {
   fillClaimant,
   forgetClaimant,
@@ -127,6 +129,7 @@ export function StatusBadge({ status }: { status: DamageReportRead['status'] }) 
 export function ReportEditor({
   incidentId,
   report,
+  photos,
   busy,
   canRegenerate,
   claimant,
@@ -136,6 +139,7 @@ export function ReportEditor({
 }: {
   incidentId: number
   report: DamageReportRead
+  photos: PhotoRead[]
   /** A new draft is being written. */
   busy: boolean
   canRegenerate: boolean
@@ -153,6 +157,8 @@ export function ReportEditor({
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle')
   const [confirming, setConfirming] = useState(false)
   const [locale, setLocale] = useState<Locale>(report.locale)
+  const printView = useRef<HTMLElement>(null)
+  const [printState, setPrintState] = useState<'idle' | 'loading' | 'failed'>('idle')
   // A new body from the server (saved, or drafted again) replaces the text being edited; a
   // status change alone keeps unsaved edits.
   if (report.body !== stored) {
@@ -177,6 +183,24 @@ export function ReportEditor({
       setCopyState('copied')
     } catch {
       setCopyState('failed')
+    }
+  }
+  const print = async () => {
+    setPrintState('loading')
+    try {
+      // Eager images also support the browser's own Print command. The button waits for
+      // decoding so a slow connection cannot silently produce an attachment without photos.
+      await Promise.all(
+        Array.from(printView.current?.querySelectorAll('img') ?? []).map((img) => {
+          // A failed image does not retry its request just because decode is called again.
+          if (printState === 'failed') img.setAttribute('src', img.src)
+          return img.decode()
+        }),
+      )
+      window.print()
+      setPrintState('idle')
+    } catch {
+      setPrintState('failed')
     }
   }
 
@@ -237,6 +261,17 @@ export function ReportEditor({
         <button
           type="button"
           className="btn btn-secondary"
+          disabled={busy || printState === 'loading'}
+          onClick={() => void print()}
+        >
+          <Printer size={18} aria-hidden="true" />
+          {t('report.print')}
+        </button>
+        {printState === 'loading' && <p role="status">{t('report.printLoading')}</p>}
+        {printState === 'failed' && <p role="alert">{t('report.printFailed')}</p>}
+        <button
+          type="button"
+          className="btn btn-secondary"
           disabled={busy || update.isPending || (dirty && !body.trim())}
           onClick={() => {
             // The letter marked sent is the one on screen, unsaved edits included.
@@ -290,6 +325,22 @@ export function ReportEditor({
           </button>
         )}
       </div>
+      {createPortal(
+        <article className="report-print" lang={report.locale} ref={printView}>
+          <p className="report-print-body">{fillClaimant(body, claimant)}</p>
+          {photos.map((photo, index) => (
+            <figure key={photo.id}>
+              <img
+                src={photoSrc(photo.url)}
+                alt={t('photos.photo', { n: index + 1, lng: report.locale })}
+                loading="eager"
+              />
+              <figcaption>{t('photos.photo', { n: index + 1, lng: report.locale })}</figcaption>
+            </figure>
+          ))}
+        </article>,
+        document.body,
+      )}
     </>
   )
 }

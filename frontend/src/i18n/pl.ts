@@ -250,6 +250,9 @@ export const pl: Localised<Translation> & {
     bodyLabel: 'Treść pisma',
     save: 'Zapisz zmiany',
     copy: 'Kopiuj pismo',
+    print: 'Drukuj / Zapisz jako PDF',
+    printLoading: 'Przygotowywanie zdjęć do druku…',
+    printFailed: 'Nie udało się wczytać zdjęcia. Sprawdź połączenie i spróbuj wydrukować ponownie.',
     copied: 'Skopiowano z Twoimi danymi. Dołącz zdjęcia przy wysyłce.',
     copyFailed: 'Nie udało się skopiować. Zaznacz treść pisma i skopiuj ją sam.',
     markSent: 'Oznacz jako wysłane',
@@ -265,7 +268,7 @@ export const pl: Localised<Translation> & {
       'Demo odtwarza zgłoszenia nagrane dla ustalonych scenariuszy, a ten przypadek do nich nie należy.',
     details: {
       title: 'Twoje dane',
-      hint: 'Trafiają do pisma dopiero przy kopiowaniu i nie opuszczają tego urządzenia.',
+      hint: 'Trafiają do pisma przy kopiowaniu lub drukowaniu i nie opuszczają tego urządzenia.',
       name: 'Imię i nazwisko',
       address: 'Adres',
       phone: 'Telefon',

@@ -1,4 +1,52 @@
 /* The damage report (ADR 0009): its card on Incident detail and its own screen, mobile layout. */
+.report-print {
+  display: none;
+}
+
+@media print {
+  @page {
+    margin: 18mm;
+  }
+
+  body:has(> .report-print) {
+    background: white;
+    color: black;
+  }
+
+  body:has(> .report-print) > :not(.report-print) {
+    display: none !important;
+  }
+
+  .report-print {
+    display: block;
+    font: 11pt / 1.5 sans-serif;
+    overflow-wrap: anywhere;
+  }
+
+  .report-print-body {
+    white-space: pre-wrap;
+    orphans: 3;
+    widows: 3;
+  }
+
+  .report-print figure {
+    margin: 10mm 0 0;
+    break-inside: avoid;
+  }
+
+  .report-print img {
+    display: block;
+    width: 100%;
+    max-height: 200mm;
+    object-fit: contain;
+  }
+
+  .report-print figcaption {
+    margin-top: 2mm;
+    font-size: 9pt;
+  }
+}
+
 .report-busy {
   display: flex;
   flex-direction: column;
