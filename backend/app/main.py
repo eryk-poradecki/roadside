@@ -6,6 +6,7 @@ from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRoute
 
+from app.db.connection import connect
 from app.db.migrate import migrate
 from app.errors import install_error_handlers
 from app.integrations.llm.factory import build_provider
@@ -13,8 +14,10 @@ from app.integrations.nominatim import NominatimGeocoder
 from app.integrations.overpass import OverpassClient
 from app.integrations.place_recording import PlaceRecorder, load_place_recordings, places_dir
 from app.middleware import BodyLimitMiddleware
+from app.repositories.vehicles import SqliteVehicleRepository
 from app.routers import ai_turns, damage_reports, incidents, meta, nearby, photos, vehicles
 from app.services.assistant import TurnLocks
+from app.services.demo_vehicles import seed_demo_vehicles
 from app.settings import Settings
 
 logger = logging.getLogger("roadside")
@@ -70,6 +73,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         version = migrate(settings.database_path)
         settings.upload_dir.mkdir(parents=True, exist_ok=True)
+        if settings.demo_mode:
+            conn = await connect(settings.database_path)
+            try:
+                seeded = await seed_demo_vehicles(conn, SqliteVehicleRepository(conn))
+            finally:
+                await conn.close()
+            if seeded:
+                logger.info("seeded %d demo vehicles", seeded)
         logger.info(
             "database ready at schema version %d (demo_mode=%s, llm_provider=%s)",
             version,

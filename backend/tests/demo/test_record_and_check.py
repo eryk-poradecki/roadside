@@ -6,7 +6,8 @@ reviewer's choice, and the pothole with its damage report draft.
 """
 
 import json
-from collections.abc import AsyncIterator, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable
+from contextlib import AsyncExitStack
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -23,10 +24,11 @@ from app.integrations.place_recording import load_place_recordings
 from app.main import create_app
 from app.services import assistant
 from app.settings import Settings
-from scripts.demo.check import NotDemoMode, check
+from scripts.demo.check import NoDemoVehicle, NotDemoMode, check
 from scripts.demo.record import RecordRun, record
 from scripts.demo.scenarios import Scenario, load_scenarios
 from tests.fakes import FakePlaceSource, answer_json, ask_json, osm_node, report_json
+from tests.running import running
 
 IDS = ("smoke_engine_bay", "unknown_knocking_warning", "pothole_damaged_wheel")
 QUESTION = "Jakiego koloru jest kontrolka?"
@@ -115,25 +117,19 @@ async def record_with(
 
 
 @pytest.fixture
-async def demo(tmp_path: Path) -> AsyncIterator[Callable[[Path], httpx.AsyncClient]]:
-    clients: list[httpx.AsyncClient] = []
+async def demo(tmp_path: Path) -> AsyncIterator[Callable[[Path], Awaitable[httpx.AsyncClient]]]:
+    """A started demo-mode app: its lifespan has seeded the demo vehicles (#122)."""
+    async with AsyncExitStack() as stack:
 
-    def open_demo(recordings: Path) -> httpx.AsyncClient:
-        settings = Settings(
-            database_path=tmp_path / "demo.db",
-            upload_dir=tmp_path / "demo-uploads",
-            llm_recordings_dir=recordings,
-        )
-        migrate(settings.database_path)
-        settings.upload_dir.mkdir(parents=True, exist_ok=True)
-        transport = httpx.ASGITransport(app=create_app(settings))
-        client = httpx.AsyncClient(transport=transport, base_url="http://demo")
-        clients.append(client)
-        return client
+        async def open_demo(recordings: Path) -> httpx.AsyncClient:
+            settings = Settings(
+                database_path=tmp_path / "demo.db",
+                upload_dir=tmp_path / "demo-uploads",
+                llm_recordings_dir=recordings,
+            )
+            return await stack.enter_async_context(running(settings))
 
-    yield open_demo
-    for c in clients:
-        await c.aclose()
+        yield open_demo
 
 
 @pytest.fixture
@@ -199,7 +195,7 @@ async def test_the_run_records_turns_places_light_and_report(
 
 async def test_the_demo_check_replays_every_walk_with_no_miss(
     recorded: tuple[Path, Model, RecordRun, RecordRun],
-    demo: Callable[[Path], httpx.AsyncClient],
+    demo: Callable[[Path], Awaitable[httpx.AsyncClient]],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     recordings, model, _, _ = recorded
@@ -207,7 +203,7 @@ async def test_the_demo_check_replays_every_walk_with_no_miss(
     # The visitor's clock says night: the recorded light must win.
     monkeypatch.setattr(assistant, "is_dark", lambda *_: True)
 
-    walks = await check(demo(recordings), scenarios(), CHOICES)
+    walks = await check(await demo(recordings), scenarios(), CHOICES)
 
     assert [(w.name, w.problems) for w in walks if not w.ok] == []
     assert len(walks) == 2 + 4 + 2
@@ -217,9 +213,9 @@ async def test_the_demo_check_replays_every_walk_with_no_miss(
 
 
 async def test_the_demo_check_reports_a_miss(
-    tmp_path: Path, demo: Callable[[Path], httpx.AsyncClient]
+    tmp_path: Path, demo: Callable[[Path], Awaitable[httpx.AsyncClient]]
 ) -> None:
-    walks = await check(demo(tmp_path / "empty"), scenarios(), CHOICES)
+    walks = await check(await demo(tmp_path / "empty"), scenarios(), CHOICES)
 
     assert walks
     assert all(any("no_recording" in p for p in w.problems) for w in walks)
@@ -227,14 +223,40 @@ async def test_the_demo_check_reports_a_miss(
 
 async def test_the_demo_check_cleans_up_after_itself(
     recorded: tuple[Path, Model, RecordRun, RecordRun],
-    demo: Callable[[Path], httpx.AsyncClient],
+    demo: Callable[[Path], Awaitable[httpx.AsyncClient]],
 ) -> None:
-    client = demo(recorded[0])
+    client = await demo(recorded[0])
+    seeded = (await client.get("/api/v1/vehicles")).json()
 
     await check(client, scenarios(), CHOICES)
 
     assert (await client.get("/api/v1/incidents")).json()["total"] == 0
-    assert (await client.get("/api/v1/vehicles")).json() == []
+    # It walked the seeded vehicles, as a visitor picks them, and left them be.
+    assert (await client.get("/api/v1/vehicles")).json() == seeded
+
+
+async def test_the_demo_check_refuses_an_app_without_a_seeded_demo_vehicle(
+    tmp_path: Path, demo: Callable[[Path], Awaitable[httpx.AsyncClient]]
+) -> None:
+    """A visitor can't pick a deleted demo vehicle, so the check doesn't make its own."""
+    client = await demo(tmp_path / "empty")
+    [octavia] = [v for v in (await client.get("/api/v1/vehicles")).json() if v["name"] == "Octavia"]
+    await client.delete(f"/api/v1/vehicles/{octavia['id']}")
+
+    with pytest.raises(NoDemoVehicle, match="Octavia"):
+        await check(client, scenarios(), CHOICES)
+
+
+async def test_the_demo_check_refuses_an_edited_demo_vehicle(
+    tmp_path: Path, demo: Callable[[Path], Awaitable[httpx.AsyncClient]]
+) -> None:
+    """An edited demo vehicle no longer hits its recordings: say so, not a row of misses."""
+    client = await demo(tmp_path / "empty")
+    [octavia] = [v for v in (await client.get("/api/v1/vehicles")).json() if v["name"] == "Octavia"]
+    await client.put(f"/api/v1/vehicles/{octavia['id']}", json={"name": "Octavia"})
+
+    with pytest.raises(NoDemoVehicle, match="Octavia"):
+        await check(client, scenarios(), CHOICES)
 
 
 async def test_the_demo_check_refuses_a_live_app(tmp_path: Path) -> None:
