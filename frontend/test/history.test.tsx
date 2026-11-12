@@ -2,6 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import { en } from '../src/i18n/en'
 import { fakeApi } from './fakeApi'
 import { renderApp } from './render'
+import { asDesktop } from './viewport'
 
 const list = () => screen.getByRole('list', { name: 'Your incidents' })
 const items = () => within(list()).getAllByRole('listitem')
@@ -81,6 +82,78 @@ describe('History', () => {
     await user.click(row)
     expect(await screen.findByRole('heading', { level: 1, name: 'Flat tyre' })).toBeInTheDocument()
     expect(fakeApi.incidents[0]?.id).toBe(incident.id)
+  })
+})
+
+describe('History beside a map on desktop', () => {
+  const map = () => screen.getByRole('img', { name: 'Map of your incidents' })
+  const pinIds = () => map().getAttribute('data-pins')
+
+  it('pins the located incidents of the loaded page and leaves the rest list-only', async () => {
+    asDesktop()
+    const here = fakeApi.seedIncident(
+      { problem_type: 'flat_tyre', location: { lat: 52.23, lon: 21.01 } },
+      { created_at: '2026-11-03T08:00:00.000Z' },
+    )
+    fakeApi.seedIncident({ problem_type: 'other' }, { created_at: '2026-11-02T08:00:00.000Z' })
+    const there = fakeApi.seedIncident(
+      { problem_type: 'out_of_fuel', location: { lat: 50.06, lon: 19.94 } },
+      { created_at: '2026-11-01T08:00:00.000Z' },
+    )
+    renderApp('/incidents')
+
+    await screen.findByRole('list', { name: 'Your incidents' })
+    expect(items()).toHaveLength(3)
+    expect(pinIds()).toBe(`${String(here.id)} ${String(there.id)}`)
+    expect(map()).toHaveTextContent('© OpenStreetMap contributors')
+  })
+
+  it('adds the next page to the map with Show more', async () => {
+    asDesktop()
+    for (let day = 1; day <= 21; day++)
+      fakeApi.seedIncident(
+        { problem_type: 'other', location: { lat: 52 + day / 100, lon: 21 } },
+        { created_at: `2026-10-${String(day).padStart(2, '0')}T08:00:00.000Z` },
+      )
+    const { user } = renderApp('/incidents')
+    await screen.findByRole('list', { name: 'Your incidents' })
+    expect(pinIds()?.split(' ')).toHaveLength(20)
+    await user.click(screen.getByRole('button', { name: 'Show more' }))
+    await waitFor(() => {
+      expect(pinIds()?.split(' ')).toHaveLength(21)
+    })
+  })
+
+  it('highlights the incident whose pin is selected, and the pin of a pointed-at row', async () => {
+    asDesktop()
+    const first = fakeApi.seedIncident(
+      { problem_type: 'flat_tyre', location: { lat: 52.23, lon: 21.01 } },
+      { created_at: '2026-11-03T08:00:00.000Z' },
+    )
+    const second = fakeApi.seedIncident(
+      { problem_type: 'flat_battery', location: { lat: 50.06, lon: 19.94 } },
+      { created_at: '2026-11-01T08:00:00.000Z' },
+    )
+    const { user } = renderApp('/incidents')
+    const tyre = await screen.findByRole('link', { name: /Flat tyre/ })
+    const battery = screen.getByRole('link', { name: /Flat battery/ })
+
+    await user.click(screen.getByRole('button', { name: `Pin ${String(second.id)}` }))
+    expect(battery).toHaveClass('incident-row-selected')
+    expect(tyre).not.toHaveClass('incident-row-selected')
+    expect(map()).toHaveAttribute('data-selected', String(second.id))
+
+    await user.hover(tyre)
+    expect(map()).toHaveAttribute('data-selected', String(first.id))
+    expect(tyre).toHaveClass('incident-row-selected')
+    expect(battery).not.toHaveClass('incident-row-selected')
+  })
+
+  it('keeps the mobile History map-free', async () => {
+    fakeApi.seedIncident({ problem_type: 'flat_tyre', location: { lat: 52.23, lon: 21.01 } })
+    renderApp('/incidents')
+    await screen.findByRole('list', { name: 'Your incidents' })
+    expect(screen.queryByRole('img', { name: 'Map of your incidents' })).not.toBeInTheDocument()
   })
 })
 

@@ -21,8 +21,9 @@ Element.prototype.scrollIntoView = function () {
   // jsdom lays nothing out.
 }
 
-// Leaflet needs a real layout engine (ADR 0008): the map module renders its labelled image
-// and the pin ids in order, so tests can check what the map would show.
+// Leaflet needs a real layout engine (ADR 0008): the map module renders its labelled image,
+// the pin ids in order and the selected one, so tests can check what the map would show. A
+// selectable map also gets one "Pin <id>" button per pin, standing in for a click on it.
 vi.mock('../src/components/map/PlacesMap', () => ({
   OSM_COPYRIGHT_URL: 'https://www.openstreetmap.org/copyright',
   PlacesMap: ({
@@ -30,16 +31,46 @@ vi.mock('../src/components/map/PlacesMap', () => ({
     label,
     attribution,
     showAttribution = true,
+    selected = null,
+    onSelect,
+    interactive = true,
   }: {
     pins: { id: string }[]
     label: string
     attribution: string
     showAttribution?: boolean
+    selected?: string | null
+    onSelect?: (id: string) => void
+    interactive?: boolean
   }) =>
     createElement(
       'div',
-      { role: 'img', 'aria-label': label, 'data-pins': pins.map((p) => p.id).join(' ') },
-      showAttribution ? attribution : null,
+      {},
+      createElement(
+        'div',
+        {
+          role: 'img',
+          'aria-label': label,
+          'data-pins': pins.map((p) => p.id).join(' '),
+          'data-selected': selected ?? '',
+        },
+        showAttribution ? attribution : null,
+      ),
+      interactive && onSelect
+        ? pins.map((p) =>
+            createElement(
+              'button',
+              {
+                key: p.id,
+                type: 'button',
+                onClick: () => {
+                  onSelect(p.id)
+                },
+              },
+              `Pin ${p.id}`,
+            ),
+          )
+        : null,
     ),
 }))
 
@@ -66,6 +97,7 @@ beforeEach(async () => {
 })
 afterEach(() => {
   cleanup()
+  vi.unstubAllGlobals()
   // The offline flag is module state: one test's lost network must not leak into the next.
   requestAnswered(requestSent())
   server.resetHandlers()

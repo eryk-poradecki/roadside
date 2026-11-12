@@ -110,3 +110,48 @@
 .incident-report {
   align-self: flex-start;
 }
+
+/* Desktop (ADR 0008): the list beside a map of the loaded page. The list scrolls with the
+   shell; the map stays put beside it. */
+.history-split {
+  display: grid;
+  grid-template-columns: minmax(320px, 2fr) 3fr;
+  gap: 20px;
+  align-items: start;
+}
+.history-list {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.history-map {
+  position: sticky;
+  top: 0;
+  height: clamp(360px, calc(100dvh - 260px), 760px);
+  overflow: hidden;
+  border-radius: var(--r);
+  border: 1px solid var(--line);
+}
+.incident-row-selected {
+  border-color: var(--amber);
+}
+/* The row's pin number, styled like its pin on the map. */
+.pin-ref {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.incident-row-selected .pin-ref {
+  background: var(--text);
+  color: var(--bg);
+}
