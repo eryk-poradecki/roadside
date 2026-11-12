@@ -1,0 +1,25 @@
+# Disposable, key-free smoke stack. Never reads backend/.env or the local data volume.
+# The backend can reach nginx, but cannot reach external services.
+services:
+  backend:
+    env_file: !reset []
+    environment:
+      DEMO_MODE: "true"
+      PUBLIC_DEPLOY: "true"
+      LLM_RECORD: "false"
+    volumes: !reset []
+    tmpfs:
+      - /data:size=256m,uid=10001,gid=10001,mode=0700
+
+  web:
+    ports: !override
+      - "127.0.0.1:18080:80"
+    networks:
+      - default
+      - browser
+
+networks:
+  default:
+    internal: true
+  # Docker does not publish ports on an internal-only network.
+  browser:

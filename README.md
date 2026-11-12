@@ -34,6 +34,14 @@ For development, install Python 3.14, uv, Node.js 24.15 or newer, npm and Make:
    <http://localhost:5173>. The default CORS origin permits this frontend.
 5. Run `make check` for lint, typechecking, tests, build and generated-client drift.
 
+For the browser smoke test, run `cd frontend && npx playwright install --with-deps chromium`
+once, then `make e2e` from the repository root (Docker Compose 2.24.4+ required).
+It builds a separate disposable demo stack on <http://localhost:18080>, runs the
+recorded parked-battery scenario through History, then removes the stack. It ignores
+`backend/.env`, uses temporary data, and blocks external traffic from the backend and
+browser. CI runs the same target in its `e2e` job; failure traces and screenshots
+are in `frontend/test-results/`.
+
 ## AI development workflow
 
 The repository includes shared instructions for Codex and Claude Code in

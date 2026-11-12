@@ -3,10 +3,11 @@ BACKEND := backend
 # Agent hooks, linted and typed with the backend rules.
 HOOKS := ../.claude/hooks
 FRONTEND := frontend
+E2E_COMPOSE := docker compose -p roadside-e2e -f compose.yaml -f compose.e2e.yaml
 
 .PHONY: help install dev-api dev-web migrate lint format typecheck test build openapi openapi-drift pre-commit requirements check-requirements check check-backend check-frontend \
 	lint-backend lint-frontend typecheck-backend typecheck-frontend test-backend test-frontend \
-	up down deploy-pi docker-smoke eval record-replays demo-check
+	up down deploy-pi docker-smoke e2e eval record-replays demo-check
 
 help: ## List targets
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "%-20s %s\n", $$1, $$2}'
@@ -27,6 +28,12 @@ up: ## Build and run the compose stack on http://localhost:8080 (demo mode, no .
 
 down: ## Stop the compose stack (the data volume is kept; add -v by hand to drop it)
 	docker compose down
+
+e2e: ## Run the Playwright smoke test against a disposable, network-isolated demo stack
+	@set -eu; \
+	  trap 'status=$$?; if [ $$status -ne 0 ]; then $(E2E_COMPOSE) logs; fi; $(E2E_COMPOSE) down --volumes; exit $$status' EXIT; \
+	  $(E2E_COMPOSE) up --build --detach --wait; \
+	  (cd $(FRONTEND) && npm run test:e2e)
 
 deploy-pi: ## Build and start the public demo (set TUNNEL_NETWORK in the root .env)
 	docker compose -f compose.yaml -f compose.pi.yaml up -d --build --wait
@@ -113,5 +120,5 @@ check-requirements: ## Fail if the requirements files drift from uv.lock
 check-backend: lint-backend typecheck-backend test-backend check-requirements
 check-frontend: lint-frontend typecheck-frontend test-frontend build
 
-# CI also runs docker-smoke, left out here because it needs Docker.
-check: check-backend check-frontend openapi-drift ## Everything CI runs except docker-smoke
+# CI also runs docker-smoke and e2e, left out here because they need Docker.
+check: check-backend check-frontend openapi-drift ## Everything CI runs except Docker checks

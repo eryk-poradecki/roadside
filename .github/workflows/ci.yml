@@ -1,7 +1,6 @@
 # Quality gates for every PR and every push to main (ADR 0007).
-# Each job calls the Makefile, so `make check` runs what CI runs, bar `make docker-smoke`
-# (it needs Docker).
-# The e2e job is added by its own ticket.
+# Each job calls the Makefile. `make check` excludes docker-smoke and e2e,
+# which need Docker.
 name: CI
 
 on:
@@ -21,6 +20,30 @@ env:
   UV_VERSION: 0.13.7 # keep in step with the uv-export rev in .pre-commit-config.yaml
 
 jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - run: make e2e
+      - name: Upload failure trace and screenshot
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-results
+          path: frontend/test-results/
+          if-no-files-found: ignore
+          retention-days: 7
+
   backend:
     runs-on: ubuntu-latest
     steps:

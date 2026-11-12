@@ -6,6 +6,7 @@ import { pwaOptions } from './pwa.config'
 export default defineConfig({
   plugins: [react(), VitePWA(pwaOptions)],
   test: {
+    exclude: ['e2e/**', 'node_modules/**', 'dist/**'],
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./test/setup.ts'],
