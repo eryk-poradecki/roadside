@@ -25,6 +25,8 @@ Each scenario has a YAML block for the recording runner, followed by human-reada
 
 These are **fictional profiles** based on recognizable vehicles. Equipment and assistance are deliberately selected demo facts; do not infer them from the real model's standard equipment.
 
+Demo mode seeds them into an empty vehicles table at startup (`backend/app/services/demo_vehicles.py`, #122), with the Octavia as the default vehicle, so a visitor picks the scenario's car by name. The help request preselects the default, so a scenario with no vehicle needs **No vehicle** picked. A visitor's own vehicles and edits survive a restart. On the public demo the seeded cars are shared by every visitor until the nightly wipe, so one visitor's edit breaks their replays for the rest (decision pending in #124). The seeded MINI's assistance phone is a placeholder with no digits, so the app never offers to call it. The recording run creates the same vehicles in its live app with canary registration, policy and phone values planted (`backend/scripts/demo/scenarios.py`), and `/demo-check` walks the seeded ones.
+
 | Profile ID | Vehicle | Fuel / transmission | Spare wheel | `has_assistance` | Additional selected facts |
 |---|---|---|---|---|---|
 | `golf_2017` | Volkswagen Golf VII 1.4 TSI (2017) | Petrol / manual | `full_size` | `false` | Wheel locks; key available in glovebox |

@@ -2,9 +2,10 @@
 walk them (#63).
 
 The document is the source: each `## Scenario` heading has a fenced YAML block. What the
-document leaves to the runner sits here: the fixed demo vehicles as API bodies, and where and
-when each scenario happens. The points are public roads, chosen because Nominatim classifies
-them as the scenario's `road_class`; the recordings never store them (ADR 0004, #58).
+document leaves to the runner sits here: the fixed demo vehicles as API bodies (the ones demo
+mode seeds, with canaries planted), and where and when each scenario happens. The points are
+public roads, chosen because Nominatim classifies them as the scenario's `road_class`; the
+recordings never store them (ADR 0004, #58).
 """
 
 import re
@@ -16,7 +17,9 @@ from typing import Any
 import yaml
 
 from app.domain.ai_turn import Locale
+from app.schemas.vehicle import VehicleCreate
 from app.services.assistant import LOCAL_TZ
+from app.services.demo_vehicles import DEMO_VEHICLES
 
 DOC = Path(__file__).resolve().parents[3] / "docs" / "demo-scenarios.md"
 
@@ -26,42 +29,20 @@ CANARY_REGISTRATION = "ZZ 06363"
 CANARY_POLICY = "CANARY-POLICY-0063"
 CANARY_PHONE = "+48 000 063 063"
 
-# The fixed demo vehicles of the document's table, as `POST /vehicles` bodies.
+
+def _profile(seeded: VehicleCreate) -> dict[str, Any]:
+    """A seeded demo vehicle as a `POST /vehicles` body, with the canaries planted."""
+    body = seeded.model_dump(mode="json", exclude_none=True)
+    body |= {"registration": CANARY_REGISTRATION, "policy_number": CANARY_POLICY}
+    if seeded.assistance_phone:
+        # Still sets `has_assistance`; the number itself never reaches the model.
+        body["assistance_phone"] = CANARY_PHONE
+    return body
+
+
+# The demo vehicles demo mode seeds (#122), as the recording run creates them in a live app.
 PROFILES: dict[str, dict[str, Any]] = {
-    "golf_2017": {
-        "name": "Golf",
-        "make_model": "Volkswagen Golf VII 1.4 TSI",
-        "year": 2017,
-        "fuel_type": "petrol",
-        "transmission": "manual",
-        "spare_wheel": "full_size",
-        "wheel_locks": True,
-        "lock_key_location": "glovebox",
-        "registration": CANARY_REGISTRATION,
-        "policy_number": CANARY_POLICY,
-    },
-    "mini_ev_2021": {
-        "name": "MINI",
-        "make_model": "MINI Cooper SE Electric",
-        "year": 2021,
-        "fuel_type": "electric",
-        "transmission": "automatic",
-        "spare_wheel": "none",
-        # Sets `has_assistance`; the number itself never reaches the model.
-        "assistance_phone": CANARY_PHONE,
-        "registration": CANARY_REGISTRATION,
-        "policy_number": CANARY_POLICY,
-    },
-    "octavia_2015": {
-        "name": "Octavia",
-        "make_model": "Škoda Octavia III 1.6 TDI",
-        "year": 2015,
-        "fuel_type": "diesel",
-        "transmission": "manual",
-        "spare_wheel": "space_saver",
-        "registration": CANARY_REGISTRATION,
-        "policy_number": CANARY_POLICY,
-    },
+    profile_id: _profile(seeded) for profile_id, seeded in DEMO_VEHICLES.items()
 }
 
 
