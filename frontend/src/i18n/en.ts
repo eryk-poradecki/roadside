@@ -237,6 +237,9 @@ export const en = {
     bodyLabel: 'Letter',
     save: 'Save changes',
     copy: 'Copy letter',
+    print: 'Print / Save as PDF',
+    printLoading: 'Preparing photos for printing…',
+    printFailed: 'A photo could not be loaded. Check your connection and try printing again.',
     copied: 'Copied with your details. Attach your photos when you send it.',
     copyFailed: "Couldn't copy. Select the letter and copy it yourself.",
     markSent: 'Mark as sent',
@@ -252,7 +255,7 @@ export const en = {
       'The demo replays reports recorded for fixed scenarios, and this case is not one of them.',
     details: {
       title: 'Your details',
-      hint: 'They fill the letter only when you copy it, and never leave this device.',
+      hint: 'They fill the letter when you copy or print it, and never leave this device.',
       name: 'Name',
       address: 'Address',
       phone: 'Phone',
