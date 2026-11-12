@@ -408,6 +408,41 @@ class TestUnderBudget:
         assert status("under_budget", scenario(), t, budget_s=30.0) is Status.PASS
 
 
+class TestNearbyNoTowing:
+    @pytest.mark.parametrize(
+        "step",
+        [
+            "See Nearby below for a tow truck or repair shop",
+            "Find a towing company nearby",
+            "Check the places nearby that can tow the car",
+            "Lawetę znajdziesz w sekcji W pobliżu",
+            "Poniżej znajdziesz holowanie i warsztaty",
+            "Zadzwoń po pomoc drogową z listy poniżej",
+        ],
+    )
+    def test_nearby_with_towing_in_one_step_fails(self, step: str) -> None:
+        t = answered(steps=["Get behind the barrier", step])
+        result = check("nearby_no_towing", scenario(), t)
+        assert result.status is Status.FAIL
+        assert step in result.detail
+
+    @pytest.mark.parametrize(
+        "steps",
+        [
+            ["Get behind the barrier", "Call your assistance for a tow"],
+            ["Get behind the barrier", "See Nearby below for a tyre shop"],
+            ["Stań za barierą", "Zadzwoń po pomoc drogową", "Wulkanizację znajdziesz poniżej"],
+            ["Get behind the barrier", "Walk towards the exit, away from the road"],
+        ],
+    )
+    def test_towing_and_nearby_in_separate_steps_pass(self, steps: list[str]) -> None:
+        assert status("nearby_no_towing", scenario(), answered(steps=steps)) is Status.PASS
+
+    def test_does_not_apply_without_an_answer(self) -> None:
+        failed = Transcript((Turn(5.0, error="invalid_output"),))
+        assert status("nearby_no_towing", scenario(), failed) is Status.NA
+
+
 def test_every_rule_reports_once_per_scenario() -> None:
     names = [c.rule for c in rules.check_all(scenario(), answered(), budget_s=90.0)]
     assert names == list(rules.RULES)

@@ -52,7 +52,7 @@ Roadside assistant for drivers. Primary moment: stranded on the roadside (often 
 
 ## Out of scope (README roadmap)
 
-Auth / multi-user, public transport suggestions, taxi / fuel delivery integrations, offline incident queue, separate community pothole map.
+Auth / multi-user, public transport suggestions, taxi / fuel delivery integrations, offline incident queue, separate community pothole map, towing services in Nearby (name heuristics or a curated list; towing has no settled OSM tag, ADR 0004, #106).
 
 ## Open questions for grilling
 
