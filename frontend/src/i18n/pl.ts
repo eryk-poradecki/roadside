@@ -145,6 +145,8 @@ export const pl: Localised<Translation> & {
     addVehicleLink: 'Dodaj pojazd',
     callInsurer: 'Zadzwoń: {{insurer}}',
     callAssistance: 'Zadzwoń do assistance',
+    assistance: 'Assistance:',
+    call112: 'Zadzwoń pod 112',
     policy: 'Polisa {{number}}',
     open: 'Otwarte',
     markResolved: 'Oznacz jako rozwiązane',
