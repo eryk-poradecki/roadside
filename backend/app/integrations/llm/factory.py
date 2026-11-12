@@ -18,6 +18,19 @@ def build_provider(settings: Settings) -> LLMProvider:
             vision=settings.llm_vision,
             max_images=settings.llm_max_images,
         )
+    if settings.llm_provider == "cli":
+        from app.integrations.llm.cli import CLIProvider
+
+        return RecordingProvider(
+            CLIProvider(
+                model=settings.llm_model,
+                timeout_s=settings.llm_timeout_s,
+                vision=settings.llm_vision,
+                max_images=settings.llm_max_images,
+            ),
+            settings.llm_recordings_dir,
+            prompt_version=PROMPT_VERSION,
+        )
     if not (settings.llm_base_url and settings.llm_api_key and settings.llm_model):
         raise RuntimeError("LLM settings are missing")
     live = OpenAICompatibleProvider(
