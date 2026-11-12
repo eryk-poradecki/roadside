@@ -99,6 +99,7 @@ respx==0.23.1
 ruff==0.17.4
 starlette==1.10.0
     # via fastapi
+types-pyyaml==6.0.12.20261111
 typing-extensions==4.16.0
     # via
     #   anyio

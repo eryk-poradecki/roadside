@@ -42,6 +42,18 @@ SAMPLE_PHOTOS: tuple[SamplePhoto, ...] = (
         title="Deep pothole in the road",
         credit="Роман Рябенко, CC0, via Wikimedia Commons",
     ),
+    SamplePhoto(
+        id="empty_fuel_gauge",
+        file="empty_fuel_gauge.jpg",
+        title="Fuel gauge on empty",
+        credit="BrokenSphere, CC BY-SA 3.0, via Wikimedia Commons",
+    ),
+    SamplePhoto(
+        id="rim_damage",
+        file="rim_damage.jpg",
+        title="Chipped rim and a deflated tyre",
+        credit="Hazel Nicholson, CC BY 2.0, via Flickr",
+    ),
 )
 
 _BY_ID = {s.id: s for s in SAMPLE_PHOTOS}
