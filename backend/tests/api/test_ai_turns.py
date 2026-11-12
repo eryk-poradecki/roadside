@@ -598,8 +598,8 @@ def _returning(fake: ScriptedProvider) -> Callable[[], ScriptedProvider]:
     return lambda: fake
 
 
-async def test_another_worker_storing_the_advice_first_is_409(settings: Settings) -> None:
-    # Two app instances on one database stand in for two workers: separate turn locks.
+async def test_another_worker_cannot_start_a_turn_for_the_same_incident(settings: Settings) -> None:
+    # Two app instances share the database and its per-incident file lock.
     release = asyncio.Event()
     migrate(settings.database_path)
     apps = [create_app(settings), create_app(settings)]
@@ -612,12 +612,16 @@ async def test_another_worker_storing_the_advice_first_is_409(settings: Settings
     ]
     try:
         incident_id = await make_incident(clients[0])
-        pending = [asyncio.create_task(turn(c, incident_id)) for c in clients]
-        for fake in fakes:
-            await fake.called.wait()
-        release.set()
-        statuses = sorted([(await p).status_code for p in pending])
-        assert statuses == [201, 409]
+        pending = asyncio.create_task(turn(clients[0], incident_id))
+        try:
+            await asyncio.wait_for(fakes[0].called.wait(), timeout=5)
+            rejected = await turn(clients[1], incident_id)
+            assert rejected.status_code == 409
+            assert rejected.json()["reason"] == "turn_in_progress"
+            assert not fakes[1].called.is_set()
+        finally:
+            release.set()
+            assert (await pending).status_code == 201
         assert len(await stored_turns(clients[0], incident_id)) == 1
     finally:
         for c in clients:

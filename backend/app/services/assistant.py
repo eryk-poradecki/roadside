@@ -20,10 +20,12 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import datetime
 from itertools import pairwise
+from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
 import aiosqlite
+from filelock import FileLock, Timeout
 
 from app.assist import prompt
 from app.assist.contract import TurnOutput, validate_output
@@ -63,10 +65,13 @@ MAX_QUESTIONS = 2
 
 
 class TurnLocks:
-    """One in-process lock per incident (ADR 0005). Assumes one uvicorn worker."""
+    """One generation per incident, including API and MCP processes sharing a database."""
 
-    def __init__(self) -> None:
+    def __init__(self, database_path: Path | None = None) -> None:
         self._locks: weakref.WeakValueDictionary[int, asyncio.Lock] = weakref.WeakValueDictionary()
+        self._directory = (
+            Path(f"{database_path.resolve()}.locks") if database_path is not None else None
+        )
 
     @asynccontextmanager
     async def hold(self, incident_id: int) -> AsyncIterator[None]:
@@ -77,7 +82,21 @@ class TurnLocks:
         if lock.locked():
             raise AppError(409, "turn_in_progress", "A turn for this incident is running")
         async with lock:
-            yield
+            if self._directory is None:
+                yield
+                return
+            self._directory.mkdir(parents=True, exist_ok=True)
+            process_lock = FileLock(self._directory / f"{incident_id}.lock")
+            try:
+                process_lock.acquire(timeout=0)
+            except Timeout as exc:
+                raise AppError(
+                    409, "turn_in_progress", "A turn for this incident is running"
+                ) from exc
+            try:
+                yield
+            finally:
+                process_lock.release()
 
 
 class AssistantService:

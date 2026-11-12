@@ -1,5 +1,14 @@
 # REST conventions and the MVP endpoint list
 
+> **Amended by #70:** API and MCP may open the same local SQLite database. Generation
+> keeps the in-process lock and also acquires a nonblocking OS file lock per incident
+> under `<resolved database path>.locks/`, shared by both processes through `filelock`.
+> Contention still answers `turn_in_progress`; process exit releases the lock. Lock files
+> stay in place so concurrent processes never lock different files for the same incident.
+> This replaces the generation lock's one-worker assumption below without holding a SQLite
+> write transaction across a model call. Both entry points must use the same local database
+> path; this is not a distributed deployment lock.
+
 > **Amended by ADR 0008 and the spec #43:**
 > - Types and the client are generated with `@hey-api/openapi-ts` (ADR 0008), not `openapi-typescript`.
 > - Problem type wire values are `flat_tyre`, `flat_battery`, `out_of_fuel`, `pothole_damage`, `other`.

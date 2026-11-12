@@ -42,6 +42,37 @@ recorded parked-battery scenario through History, then removes the stack. It ign
 browser. CI runs the same target in its `e2e` job; failure traces and screenshots
 are in `frontend/test-results/`.
 
+## Connect an MCP client
+
+The local stdio MCP server uses the same SQLite database, settings and services as
+the API. No running HTTP server is needed. After `make install`, configure your MCP
+client with this entry (replace the path with your checkout's absolute path):
+
+```json
+{
+  "mcpServers": {
+    "roadside": {
+      "command": "uv",
+      "args": ["--directory", "/absolute/path/to/roadside/backend", "run", "python", "-m", "app.mcp"]
+    }
+  }
+}
+```
+
+The working directory above makes `backend/.env`, the default database and demo
+recordings resolve just as they do with `make dev-api`. A Docker stack has its own
+database volume; this command opens the local development database instead.
+
+Tools: `list_incidents(status?, limit?, offset?)`, `get_incident(incident_id)`,
+`find_nearby(incident_id, radius_km=5)` and
+`draft_damage_report(incident_id, locale="pl")` (`pl` or `en`). Nearby places are
+real OpenStreetMap data (recorded in demo mode); this tool does not save or replace
+the incident's nearby snapshot. Drafting creates a report only for pothole damage,
+and refuses to overwrite an existing report. There are no edit, send or delete
+tools. In demo mode, a missing recording returns an error; live drafting uses the
+model configured in `backend/.env`. Keep the connection local: it exposes the
+driver's incident details to the MCP client.
+
 ## AI development workflow
 
 The repository includes shared instructions for Codex and Claude Code in

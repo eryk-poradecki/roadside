@@ -8,14 +8,26 @@ anyio==4.16.0
     # via
     #   fastapi
     #   httpx
+    #   mcp
+    #   sse-starlette
     #   starlette
+attrs==26.1.0
+    # via
+    #   jsonschema
+    #   referencing
 certifi==2026.10.23
     # via
     #   httpcore
     #   httpx
+cffi==2.1.1 ; platform_python_implementation != 'PyPy'
+    # via cryptography
 click==8.5.1
     # via uvicorn
+cryptography==50.0.2
+    # via pyjwt
 fastapi==0.162.4
+    # via roadside-backend
+filelock==4.2.10
     # via roadside-backend
 h11==0.16.0
     # via
@@ -24,34 +36,69 @@ h11==0.16.0
 httpcore==1.0.9
     # via httpx
 httpx==0.28.1
-    # via roadside-backend
+    # via
+    #   mcp
+    #   roadside-backend
+httpx-sse==0.4.3
+    # via mcp
 idna==3.20
     # via
     #   anyio
     #   httpx
+jsonschema==4.26.0
+    # via mcp
+jsonschema-specifications==2025.9.1
+    # via jsonschema
+mcp==1.30.0
+    # via roadside-backend
 opentelemetry-api==1.45.2
     # via fastapi
 pillow==13.0.0
     # via roadside-backend
+pycparser==3.12 ; implementation_name != 'PyPy' and platform_python_implementation != 'PyPy'
+    # via cffi
 pydantic==2.14.3
     # via
     #   fastapi
+    #   mcp
     #   pydantic-settings
     #   roadside-backend
 pydantic-core==2.50.4
     # via pydantic
 pydantic-settings==2.16.2
-    # via roadside-backend
+    # via
+    #   mcp
+    #   roadside-backend
+pyjwt==2.15.1
+    # via mcp
 python-dotenv==1.2.4
     # via pydantic-settings
 python-multipart==0.0.33
-    # via roadside-backend
+    # via
+    #   mcp
+    #   roadside-backend
+pywin32==312 ; sys_platform == 'win32'
+    # via mcp
+referencing==0.37.0
+    # via
+    #   jsonschema
+    #   jsonschema-specifications
+rpds-py==2026.9.1
+    # via
+    #   jsonschema
+    #   referencing
+sse-starlette==3.7.0
+    # via mcp
 starlette==1.10.0
-    # via fastapi
+    # via
+    #   fastapi
+    #   mcp
+    #   sse-starlette
 typing-extensions==4.16.0
     # via
     #   anyio
     #   fastapi
+    #   mcp
     #   opentelemetry-api
     #   pydantic
     #   pydantic-core
@@ -60,9 +107,12 @@ typing-extensions==4.16.0
 typing-inspection==0.4.5
     # via
     #   fastapi
+    #   mcp
     #   pydantic
     #   pydantic-settings
 tzdata==2026.6
     # via roadside-backend
 uvicorn==0.54.0
-    # via roadside-backend
+    # via
+    #   mcp
+    #   roadside-backend

@@ -41,12 +41,16 @@ class NearbyService:
         self._recorded = recorded or {}
         self._recorder = recorder
 
-    async def lookup(self, incident_id: int, radius_km: int) -> NearbySnapshot:
+    async def lookup(
+        self, incident_id: int, radius_km: int, *, persist: bool = True
+    ) -> NearbySnapshot:
         """Look up places around the incident and store them as its snapshot.
 
         No transaction is open during the lookup, which can take most of a minute. A failure
         stores nothing, so the previous snapshot stays (503). A location changed meanwhile
         stores nothing either: the places were found around the old point.
+
+        MCP uses `persist=False`: neither the saved snapshot nor recordings are changed.
         """
         incident = await self._incidents.get(incident_id)
         if incident is None:
@@ -74,8 +78,9 @@ class NearbyService:
                 raise NotFoundError("Incident")
             if current.location != location:
                 raise AppError(409, "location_changed", "The location changed during the lookup")
-            await self._nearby.replace(incident_id, snapshot)
-        if self._recorder is not None:
+            if persist:
+                await self._nearby.replace(incident_id, snapshot)
+        if persist and self._recorder is not None:
             await self._recorder.record_nearby(scenario, location, snapshot)
         return snapshot
 
