@@ -40,6 +40,9 @@ describe('incident header on desktop (ADR 0012)', () => {
     renderApp(`/incidents/${String(incident.id)}`)
     await screen.findByRole('heading', { level: 1, name: 'Flat tyre' })
     expect(within(header()).getByRole('link', { name: EMERGENCY })).toHaveClass('head-sos-urgent')
+    expect(
+      within(screen.getByRole('alert')).getByRole('link', { name: EMERGENCY }),
+    ).toHaveAttribute('href', 'tel:112')
   })
 
   it('has no 112 once the incident is resolved', async () => {
@@ -48,6 +51,55 @@ describe('incident header on desktop (ADR 0012)', () => {
     await screen.findByRole('heading', { level: 1, name: 'Flat tyre' })
     expect(screen.queryByRole('link', { name: EMERGENCY })).not.toBeInTheDocument()
   })
+})
+
+describe('desktop assistance from the incident vehicle', () => {
+  beforeEach(() => {
+    asDesktop()
+  })
+
+  it('uses current assistance details of the incident vehicle, never the default', async () => {
+    fakeApi.seed({
+      name: 'Default',
+      assistance_phone: '999999',
+      assistance_insurer: 'Default insurer',
+    })
+    const vehicle = fakeApi.seed({
+      name: 'Family',
+      assistance_phone: '+48 123 456',
+      assistance_insurer: 'Family insurer',
+      policy_number: 'POL-42',
+    })
+    const incident = fakeApi.seedIncident({ problem_type: 'flat_tyre', vehicle_id: vehicle.id })
+    renderApp(`/incidents/${String(incident.id)}`)
+    const phone = await screen.findByRole('link', { name: '+48 123 456' })
+    expect(phone).toHaveAttribute('href', 'tel:+48123456')
+    expect(header()).toHaveTextContent('Assistance: Family insurer')
+    expect(header()).toHaveTextContent('Policy POL-42')
+    expect(screen.queryByText('Default insurer')).not.toBeInTheDocument()
+  })
+
+  it.each(['resolved', 'no phone', 'no vehicle', 'deleted vehicle'] as const)(
+    'hides assistance with %s',
+    async (scenario) => {
+      fakeApi.seed({ name: 'Default', assistance_phone: '999999' })
+      const vehicle = fakeApi.seed({
+        name: 'Family',
+        assistance_phone: scenario === 'no phone' ? null : '123456',
+      })
+      const incident = fakeApi.seedIncident(
+        { problem_type: 'flat_tyre', vehicle_id: scenario === 'no vehicle' ? null : vehicle.id },
+        { status: scenario === 'resolved' ? 'resolved' : 'open' },
+      )
+      if (scenario === 'deleted vehicle')
+        fakeApi.vehicles = fakeApi.vehicles.filter((v) => v.id !== vehicle.id)
+      renderApp(`/incidents/${String(incident.id)}`)
+      await screen.findByRole('heading', { name: 'Flat tyre', level: 1 })
+      expect(screen.queryByRole('link', { name: '123456' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('link', { name: '999999' })).not.toBeInTheDocument()
+      expect(header()).not.toHaveTextContent('Assistance:')
+    },
+  )
 })
 
 describe('incident header on mobile', () => {

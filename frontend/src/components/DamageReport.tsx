@@ -206,124 +206,132 @@ export function ReportEditor({
 
   return (
     <>
-      <div className="panel report-letter">
-        <div className="report-head">
-          <p className="report-label">
-            <Sparkles size={16} aria-hidden="true" />
-            {t('report.label')}
-          </p>
-          <StatusBadge status={report.status} />
+      <div className="report-columns">
+        <div className="panel report-letter">
+          <div className="report-head">
+            <p className="report-label">
+              <Sparkles size={16} aria-hidden="true" />
+              {t('report.label')}
+            </p>
+            <StatusBadge status={report.status} />
+          </div>
+
+          <div className="report-field">
+            <label htmlFor={bodyId}>{t('report.bodyLabel')}</label>
+            <textarea
+              id={bodyId}
+              className="field report-body"
+              rows={14}
+              value={body}
+              onChange={(e) => {
+                setBody(e.target.value)
+                setCopyState('idle')
+              }}
+            />
+          </div>
+          {dirty && (
+            <button
+              type="button"
+              className="btn btn-quiet"
+              disabled={busy || update.isPending || !body.trim()}
+              onClick={() => {
+                save({ body })
+              }}
+            >
+              {t('report.save')}
+            </button>
+          )}
         </div>
 
-        <div className="report-field">
-          <label htmlFor={bodyId}>{t('report.bodyLabel')}</label>
-          <textarea
-            id={bodyId}
-            className="field report-body"
-            rows={14}
-            value={body}
-            onChange={(e) => {
-              setBody(e.target.value)
-              setCopyState('idle')
-            }}
-          />
-        </div>
-        {dirty && (
-          <button
-            type="button"
-            className="btn btn-quiet"
-            disabled={busy || update.isPending || !body.trim()}
-            onClick={() => {
-              save({ body })
-            }}
-          >
-            {t('report.save')}
-          </button>
-        )}
-      </div>
+        <div className="report-sidebar">
+          <ClaimantForm claimant={claimant} onChange={onClaimantChange} />
 
-      <ClaimantForm claimant={claimant} onChange={onClaimantChange} />
+          <AddresseeHelp />
 
-      <AddresseeHelp />
+          <div className="report-actions">
+            <button type="button" className="btn btn-primary" onClick={() => void copy()}>
+              <Copy size={20} aria-hidden="true" />
+              {t('report.copy')}
+            </button>
+            <p className="report-copy-state" role="status">
+              {copyState === 'copied'
+                ? t('report.copied')
+                : copyState === 'failed'
+                  ? t('report.copyFailed')
+                  : ''}
+            </p>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              disabled={busy || printState === 'loading'}
+              onClick={() => void print()}
+            >
+              <Printer size={18} aria-hidden="true" />
+              {t('report.print')}
+            </button>
+            {printState === 'loading' && <p role="status">{t('report.printLoading')}</p>}
+            {printState === 'failed' && <p role="alert">{t('report.printFailed')}</p>}
+            <button
+              type="button"
+              className="btn btn-secondary"
+              disabled={busy || update.isPending || (dirty && !body.trim())}
+              onClick={() => {
+                // The letter marked sent is the one on screen, unsaved edits included.
+                save({ status: sent ? 'draft' : 'sent', ...(dirty ? { body } : {}) })
+              }}
+            >
+              {sent ? (
+                <FileText size={18} aria-hidden="true" />
+              ) : (
+                <Send size={18} aria-hidden="true" />
+              )}
+              {sent ? t('report.markDraft') : t('report.markSent')}
+            </button>
+            {update.isError && <ErrorNotice error={update.error} />}
 
-      <div className="report-actions">
-        <button type="button" className="btn btn-primary" onClick={() => void copy()}>
-          <Copy size={20} aria-hidden="true" />
-          {t('report.copy')}
-        </button>
-        <p className="report-copy-state" role="status">
-          {copyState === 'copied'
-            ? t('report.copied')
-            : copyState === 'failed'
-              ? t('report.copyFailed')
-              : ''}
-        </p>
-        <button
-          type="button"
-          className="btn btn-secondary"
-          disabled={busy || printState === 'loading'}
-          onClick={() => void print()}
-        >
-          <Printer size={18} aria-hidden="true" />
-          {t('report.print')}
-        </button>
-        {printState === 'loading' && <p role="status">{t('report.printLoading')}</p>}
-        {printState === 'failed' && <p role="alert">{t('report.printFailed')}</p>}
-        <button
-          type="button"
-          className="btn btn-secondary"
-          disabled={busy || update.isPending || (dirty && !body.trim())}
-          onClick={() => {
-            // The letter marked sent is the one on screen, unsaved edits included.
-            save({ status: sent ? 'draft' : 'sent', ...(dirty ? { body } : {}) })
-          }}
-        >
-          {sent ? <FileText size={18} aria-hidden="true" /> : <Send size={18} aria-hidden="true" />}
-          {sent ? t('report.markDraft') : t('report.markSent')}
-        </button>
-        {update.isError && <ErrorNotice error={update.error} />}
-
-        {!canRegenerate ? null : confirming ? (
-          <div className="report-confirm" role="group" aria-label={t('report.regenerate')}>
-            <p>{t('report.confirmRegenerate')}</p>
-            <LanguagePick value={locale} onChange={setLocale} />
-            <div className="upkeep-row">
+            {!canRegenerate ? null : confirming ? (
+              <div className="report-confirm" role="group" aria-label={t('report.regenerate')}>
+                <p>{t('report.confirmRegenerate')}</p>
+                <LanguagePick value={locale} onChange={setLocale} />
+                <div className="upkeep-row">
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    disabled={busy}
+                    onClick={() => {
+                      setConfirming(false)
+                      onRegenerate(locale)
+                    }}
+                  >
+                    {t('report.confirmRegenerateYes')}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-quiet"
+                    onClick={() => {
+                      setConfirming(false)
+                    }}
+                  >
+                    {t('common.cancel')}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              // Overwrites the driver's edits, so it stays out of the way.
               <button
                 type="button"
-                className="btn btn-danger"
+                className="link-btn report-regenerate"
                 disabled={busy}
                 onClick={() => {
-                  setConfirming(false)
-                  onRegenerate(locale)
+                  setConfirming(true)
                 }}
               >
-                {t('report.confirmRegenerateYes')}
+                <RotateCw size={16} aria-hidden="true" />
+                {t('report.regenerate')}
               </button>
-              <button
-                type="button"
-                className="btn btn-quiet"
-                onClick={() => {
-                  setConfirming(false)
-                }}
-              >
-                {t('common.cancel')}
-              </button>
-            </div>
+            )}
           </div>
-        ) : (
-          // Overwrites the driver's edits, so it stays out of the way.
-          <button
-            type="button"
-            className="link-btn report-regenerate"
-            disabled={busy}
-            onClick={() => {
-              setConfirming(true)
-            }}
-          >
-            <RotateCw size={16} aria-hidden="true" />
-            {t('report.regenerate')}
-          </button>
-        )}
+        </div>
       </div>
       {createPortal(
         <article className="report-print" lang={report.locale} ref={printView}>

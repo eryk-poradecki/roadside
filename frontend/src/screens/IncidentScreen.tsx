@@ -170,6 +170,7 @@ function Result({
             </span>
           )}
         </p>
+        {desktop && !resolved && vehicle?.assistance_phone && <AssistanceRow vehicle={vehicle} />}
       </header>
 
       {urgent && (
@@ -178,12 +179,15 @@ function Result({
           <p>
             <strong>{t('ai.urgentTitle')}</strong>
             <span>{t('ai.urgentBody')}</span>
+            {desktop && (
+              <EmergencyLink className="urgent-call">{t('incident.call112')}</EmergencyLink>
+            )}
           </p>
           <EmergencyFirst />
         </div>
       )}
 
-      {/* One column on mobile; on desktop the advice beside the record (ADR 0008). */}
+      {/* Keep mobile's sequence; desktop groups the AI record and photos together. */}
       <div className="result-columns">
         <div className="result-col">
           <SafetyChecklist
@@ -194,12 +198,13 @@ function Result({
           />
 
           <AiPanel incident={incident} autoStart={fromHelp} noVehicles={noVehicles} />
+          {desktop && <PhotosPanel incident={incident} />}
         </div>
 
         <div className="result-col">
           <NearbyPanel incident={incident} fuelType={vehicle?.fuel_type} />
 
-          <PhotosPanel incident={incident} />
+          {!desktop && <PhotosPanel incident={incident} />}
 
           {incident.problem_type === 'flat_tyre' && <PotholeHint incident={incident} />}
           <DamageReportCard incident={incident} />
@@ -209,6 +214,25 @@ function Result({
       </div>
 
       {vehicle?.assistance_phone && <CallAssistance vehicle={vehicle} />}
+    </div>
+  )
+}
+
+/** Current contact details belong to the incident's vehicle, not the AI snapshot. */
+function AssistanceRow({ vehicle }: { vehicle: VehicleRead }) {
+  const { t } = useTranslation()
+  const phone = (vehicle.assistance_phone ?? '').replace(/[^\d+]/g, '')
+  if (!/\d/.test(phone)) return null
+  return (
+    <div className="assistance-row">
+      <span>
+        {t('incident.assistance')}
+        {vehicle.assistance_insurer && ` ${vehicle.assistance_insurer}`} ·{' '}
+        <a href={`tel:${phone}`}>{vehicle.assistance_phone}</a>
+      </span>
+      {vehicle.policy_number && (
+        <span>{t('incident.policy', { number: vehicle.policy_number })}</span>
+      )}
     </div>
   )
 }

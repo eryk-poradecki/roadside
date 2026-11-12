@@ -134,6 +134,8 @@ export const en = {
     addVehicleLink: 'Add a vehicle',
     callInsurer: 'Call {{insurer}}',
     callAssistance: 'Call your assistance',
+    assistance: 'Assistance:',
+    call112: 'Call 112',
     policy: 'Policy {{number}}',
     open: 'Open',
     markResolved: 'Mark resolved',
