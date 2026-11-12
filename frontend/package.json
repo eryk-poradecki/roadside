@@ -14,7 +14,8 @@
     "lint": "eslint . && prettier --check .",
     "format": "eslint --fix . && prettier --write .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@fontsource-variable/atkinson-hyperlegible-next": "~5.3.0",
@@ -32,6 +33,7 @@
   "devDependencies": {
     "@eslint/js": "~9.39.5",
     "@hey-api/openapi-ts": "0.99.0",
+    "@playwright/test": "1.65.0",
     "@tanstack/react-query-devtools": "~5.107.1",
     "@testing-library/jest-dom": "~7.0.1",
     "@testing-library/react": "~16.3.3",

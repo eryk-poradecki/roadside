@@ -11,6 +11,8 @@ __pycache__/
 # node
 node_modules/
 dist/
+frontend/test-results/
+frontend/playwright-report/
 .mypy_cache/
 .ruff_cache/
 .pytest_cache/
