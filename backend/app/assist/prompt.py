@@ -38,7 +38,7 @@ _LPG = (
 _LPG_PROBLEMS = frozenset({"out_of_fuel", "other"})
 
 # LPG is fitted to petrol engines (#107, ADR 0003): a bare "lpg" reads as if it were the only fuel.
-_FUEL_TYPES = {"lpg": "petrol engine with an LPG installation"}
+_FUEL_TYPE_WORDING = {"lpg": "petrol engine with an LPG installation"}
 
 
 @dataclass(frozen=True, slots=True)
@@ -89,11 +89,12 @@ class VehicleFactBlock:
             assistance = f"has assistance, insurer {v(self.assistance_insurer)}"
         else:
             assistance = "unknown"
+        fuel = self.fuel_type and _FUEL_TYPE_WORDING.get(self.fuel_type, self.fuel_type)
         lines = [
             ("Name", self.name),
             ("Model", v(self.make_model)),
             ("Year", v(self.year)),
-            ("Fuel type", v(self.fuel_type and _FUEL_TYPES.get(self.fuel_type, self.fuel_type))),
+            ("Fuel type", v(fuel)),
             ("Transmission", v(self.transmission)),
             ("Tyre size", v(self.tyre_size)),
             ("Spare wheel", v(self.spare_wheel)),

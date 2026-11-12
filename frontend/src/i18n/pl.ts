@@ -426,7 +426,7 @@ export const pl: Localised<Translation> & {
       makeModel: 'Marka i model',
       year: 'Rok produkcji',
       fuelType: 'Rodzaj paliwa',
-      fuelTypeHint: 'Hybryda z LPG? Wybierz Hybryda.',
+      fuelTypeHint: 'Hybryda z LPG? Wybierz „Hybryda”.',
       transmission: 'Skrzynia biegów',
       registration: 'Numer rejestracyjny',
       tyreSize: 'Rozmiar opon',
