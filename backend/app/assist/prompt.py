@@ -17,7 +17,7 @@ from app.assist.report_contract import report_schema
 from app.domain.ai_turn import Locale, Reply
 from app.domain.vehicle import VehicleFacts
 
-PROMPT_VERSION = "v2"
+PROMPT_VERSION = "v3"
 _PROMPTS = Path(__file__).parent / "prompts"
 
 _LANGUAGES: dict[Locale, str] = {"pl": "Polish", "en": "English"}

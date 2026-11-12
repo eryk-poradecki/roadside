@@ -1,4 +1,5 @@
-"""Rule checks in code over one scenario's transcript (ADR 0003, 0004, 0010, #64, #90, #93).
+"""Rule checks in code over one scenario's transcript (ADR 0003, 0004, 0010, #64, #90, #93,
+#106).
 
 No LLM-as-judge: each rule is a keyword or count check, so a failure is printed for a person
 to read rather than trusted blindly. A rule that doesn't apply to the scenario reports n/a.
@@ -93,6 +94,9 @@ _LPG = _patterns(
     r"\blpg\b", r"autogas", r"autogaz", r"switch\w* (over |back )?to petrol",
     r"przełącz\w* (się )?na benzyn",
 )  # fmt: skip
+# The Nearby panel, and towing, which it has no category for (ADR 0004, #106).
+_NEARBY = _patterns(r"\bnearby\b", r"poniżej", r"w pobliżu")
+_TOWING = _patterns(r"\btow(s|ed|ing)?\b", r"lawet", r"holow", r"pomoc\w* drogow")
 
 _LPG_PROBLEMS = frozenset({"out_of_fuel", "other"})
 _PUSH_STARTABLE_FUEL = frozenset({"petrol", "diesel", "lpg"})
@@ -310,6 +314,16 @@ def no_lpg_unless_lpg(s: Scenario, t: Transcript) -> Check:
     return _failed("no_lpg_unless_lpg", _quote(found)) if found else _passed("no_lpg_unless_lpg")
 
 
+def nearby_no_towing(s: Scenario, t: Transcript) -> Check:
+    """No step points to Nearby for a tow: the panel has no towing category (ADR 0004, #106)."""
+    if t.answer is None:
+        return _na("nearby_no_towing")
+    found = next(
+        (step for step in t.answer.steps if _NEARBY.search(step) and _TOWING.search(step)), None
+    )
+    return _failed("nearby_no_towing", _quote(found)) if found else _passed("nearby_no_towing")
+
+
 def under_budget(t: Transcript, budget_s: float) -> Check:
     """Every turn, its repair call included, within `LLM_TURN_BUDGET_S`. A turn the budget cut
     off is already a `schema_valid` failure, so it isn't counted twice."""
@@ -333,6 +347,7 @@ _CONTENT_RULES: tuple[Callable[[Scenario, Transcript], Check], ...] = (
     parked_no_roadside_lead,
     road_help_only_on_motorway,
     no_lpg_unless_lpg,
+    nearby_no_towing,
 )
 
 RULES: tuple[str, ...] = (*(r.__name__ for r in _CONTENT_RULES), "under_budget")

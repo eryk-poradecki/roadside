@@ -78,7 +78,7 @@ async def test_a_turn_returns_the_advice_and_stores_it(
         "photo_observation": None,
         "extra_categories": ["repair"],
     }
-    assert body["prompt_version"] == "v2"
+    assert body["prompt_version"] == "v3"
     assert body["provider"] == "fake"
     assert body["model"] == "fake-model-1"
     assert body["created_at"].endswith("Z")
@@ -467,6 +467,28 @@ async def test_the_prompt_carries_the_safety_rules(
     assert "Nearby panel" in text
     assert "Ask only when the driver's reply would change the first steps" in text
     assert "When the situation is parked" in text
+
+
+async def test_the_prompt_points_to_nearby_only_for_its_four_categories(
+    client: httpx.AsyncClient, install: Install
+) -> None:
+    """Nearby has no towing (ADR 0004, #106): a step must not promise a tow truck there."""
+    fake = install(answer_json())
+    incident_id = await make_incident(client)
+
+    await turn(client, incident_id)
+
+    text = fake.requests[0].messages[0].text
+    assert (
+        "exactly four categories: tyre shops, fuel stations, charging stations and car repair"
+        in text
+    )
+    assert "wulkanizacja, stacja paliw, stacja ładowania, warsztat samochodowy" in text
+    assert (
+        "Never point to Nearby for towing, roadside assistance, police, hospitals"
+        " or anything else" in text
+    )
+    assert "For a tow, tell the driver to call roadside assistance" in text
 
 
 async def test_the_situation_is_in_the_fact_block_and_on_the_road_by_default(
