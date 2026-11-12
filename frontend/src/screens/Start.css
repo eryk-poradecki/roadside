@@ -67,3 +67,82 @@
   align-items: center;
   justify-content: flex-start;
 }
+
+/* Desktop (ADR 0012): the phone panel beside the trial column, or the column alone under a
+   short heading where a phone couldn't open this address. */
+.start-desk {
+  display: grid;
+  grid-template-columns: minmax(0, 26rem) 400px;
+  justify-content: center;
+  align-items: center;
+  gap: 40px clamp(56px, 6vw, 96px);
+  flex: 1 0 auto;
+}
+.start-phone {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+}
+.start-phone .lede {
+  max-width: 34ch;
+}
+.qr {
+  display: block;
+  width: 216px;
+  height: 216px;
+  margin-top: 16px;
+  border-radius: var(--r-sm);
+  box-shadow: 0 12px 32px oklch(0.05 0.01 255 / 0.5);
+}
+.qr-plate {
+  fill: var(--text);
+}
+.qr-modules {
+  fill: var(--bg);
+}
+.start-origin {
+  color: var(--muted);
+  font-size: 0.9375rem;
+  overflow-wrap: anywhere;
+}
+.start-try {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.start-try > h2 {
+  padding-left: 4px;
+  color: var(--muted);
+  font-size: 1rem;
+}
+/* The mobile flow at phone width, framed so it reads as the phone, not as page content. */
+.trial {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px var(--gutter) var(--gutter);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+}
+.trial .intro-heading {
+  font-size: 2.25rem;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.start-solo {
+  grid-template-columns: 400px;
+  align-content: center;
+  align-items: start;
+}
+.start-solo-head {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 400px;
+}
+.start-solo-head .lede {
+  max-width: none;
+}

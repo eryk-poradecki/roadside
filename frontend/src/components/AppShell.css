@@ -7,6 +7,10 @@
   flex-direction: column;
   gap: 12px;
 }
+/* Mobile: no box of its own; its children lay out in `.shell`. */
+.shell-main {
+  display: contents;
+}
 .shell-body {
   flex: 1;
   min-height: 0;
@@ -185,12 +189,6 @@
   color: var(--amber);
 }
 
-@media (min-width: 900px) {
-  .shell {
-    max-width: 960px;
-  }
-}
-
 /* Urgent AI answer: 112 leads the dock with its full label, the screen's action beside it. */
 .sos-urgent {
   min-height: 56px;
@@ -208,4 +206,85 @@
 }
 .dock-urgent > .dock-main {
   flex: 2 1 0;
+}
+
+/* Desktop (ADR 0012, from 1024 px): a sidebar on every route beside the screen, which scrolls
+   on its own. No dock and no global 112. */
+.desk {
+  height: 100dvh;
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+}
+.desk-side {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  min-height: 0;
+  padding: 28px 16px 20px;
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+}
+.desk-side .wordmark {
+  padding: 0 12px;
+}
+.desk-side .lang {
+  margin-top: auto;
+  align-self: flex-start;
+  background: var(--bg);
+}
+.desk-side .lang button {
+  min-width: 44px;
+  min-height: 44px;
+}
+.desk-side .lang button[aria-pressed='true'] {
+  background: var(--surface-2);
+}
+.sidenav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sidenav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: var(--r-sm);
+  color: var(--muted);
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    background 160ms var(--ease),
+    color 160ms var(--ease);
+}
+.sidenav-item svg {
+  flex: none;
+}
+.sidenav-item:hover {
+  color: var(--text);
+  background: color-mix(in oklch, var(--surface-2) 55%, transparent);
+}
+.sidenav-item[aria-current='page'] {
+  background: var(--surface-2);
+  color: var(--text);
+}
+.sidenav-item[aria-current='page'] svg {
+  color: var(--amber);
+}
+.desk-main {
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 40px 48px 56px;
+}
+.desk-main .shell-body {
+  flex: 1 0 auto;
+  overflow: visible;
+  margin: 0;
+  padding: 0;
+  gap: 24px;
 }

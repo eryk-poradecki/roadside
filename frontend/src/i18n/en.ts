@@ -34,6 +34,16 @@ export const en = {
       pothole: 'Pothole damage',
       other: 'Something else',
     },
+    // Desktop Start (ADR 0012): a QR code to the phone, beside the flow to try here.
+    desktop: {
+      qrHeading: 'Open it on your phone',
+      qrBody: "In a real roadside moment you'd use your phone, so scan to open it there.",
+      qrLabel: 'QR code for {{url}}',
+      tryHere: 'Or try it here',
+      soloHeading: 'Try the roadside flow',
+      soloBody:
+        "It's built for a phone at the roadside, so here it runs in a narrow column, as it would there.",
+    },
   },
   location: {
     label: 'Your location',

@@ -44,6 +44,15 @@ export const pl: Localised<Translation> & {
       pothole: 'Dziura w drodze',
       other: 'Coś innego',
     },
+    desktop: {
+      qrHeading: 'Otwórz na telefonie',
+      qrBody: 'Na poboczu korzystasz z telefonu, więc zeskanuj kod i otwórz aplikację tam.',
+      qrLabel: 'Kod QR do {{url}}',
+      tryHere: 'Albo wypróbuj tutaj',
+      soloHeading: 'Wypróbuj pomoc na poboczu',
+      soloBody:
+        'Aplikacja powstała z myślą o telefonie na poboczu, więc tutaj działa w wąskiej kolumnie, tak jak tam.',
+    },
   },
   location: {
     label: 'Twoja lokalizacja',
