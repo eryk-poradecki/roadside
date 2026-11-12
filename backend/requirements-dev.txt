@@ -8,13 +8,21 @@ anyio==4.16.0
     # via
     #   fastapi
     #   httpx
+    #   mcp
+    #   sse-starlette
     #   starlette
 ast-serialize==0.13.1
     # via mypy
+attrs==26.1.0
+    # via
+    #   jsonschema
+    #   referencing
 certifi==2026.10.23
     # via
     #   httpcore
     #   httpx
+cffi==2.1.1 ; platform_python_implementation != 'PyPy'
+    # via cryptography
 cfgv==3.5.0
     # via pre-commit
 click==8.5.1
@@ -23,6 +31,8 @@ colorama==0.4.6 ; sys_platform == 'win32'
     # via pytest
 coverage==7.17.2
     # via pytest-cov
+cryptography==50.0.2
+    # via pyjwt
 distlib==0.4.4
     # via virtualenv
 fastapi==0.162.4
@@ -30,6 +40,7 @@ fastapi==0.162.4
 filelock==4.2.10
     # via
     #   python-discovery
+    #   roadside-backend
     #   virtualenv
 h11==0.16.0
     # via
@@ -39,8 +50,11 @@ httpcore==1.0.9
     # via httpx
 httpx==0.28.1
     # via
+    #   mcp
     #   respx
     #   roadside-backend
+httpx-sse==0.4.3
+    # via mcp
 identify==2.6.20
     # via pre-commit
 idna==3.20
@@ -49,8 +63,14 @@ idna==3.20
     #   httpx
 iniconfig==2.3.1
     # via pytest
+jsonschema==4.26.0
+    # via mcp
+jsonschema-specifications==2025.9.1
+    # via jsonschema
 librt==0.16.0 ; platform_python_implementation != 'PyPy'
     # via mypy
+mcp==1.30.0
+    # via roadside-backend
 mypy==2.4.1
 mypy-extensions==1.2.0
     # via mypy
@@ -73,17 +93,24 @@ pluggy==1.7.0
     #   pytest
     #   pytest-cov
 pre-commit==4.7.0
+pycparser==3.12 ; implementation_name != 'PyPy' and platform_python_implementation != 'PyPy'
+    # via cffi
 pydantic==2.14.3
     # via
     #   fastapi
+    #   mcp
     #   pydantic-settings
     #   roadside-backend
 pydantic-core==2.50.4
     # via pydantic
 pydantic-settings==2.16.2
-    # via roadside-backend
+    # via
+    #   mcp
+    #   roadside-backend
 pygments==2.21.0
     # via pytest
+pyjwt==2.15.1
+    # via mcp
 pytest==9.2.0
     # via pytest-cov
 pytest-cov==7.1.0
@@ -92,18 +119,36 @@ python-discovery==1.9.5
 python-dotenv==1.2.4
     # via pydantic-settings
 python-multipart==0.0.33
-    # via roadside-backend
+    # via
+    #   mcp
+    #   roadside-backend
+pywin32==312 ; sys_platform == 'win32'
+    # via mcp
 pyyaml==6.0.3
     # via pre-commit
+referencing==0.37.0
+    # via
+    #   jsonschema
+    #   jsonschema-specifications
 respx==0.23.1
+rpds-py==2026.9.1
+    # via
+    #   jsonschema
+    #   referencing
 ruff==0.17.4
+sse-starlette==3.7.0
+    # via mcp
 starlette==1.10.0
-    # via fastapi
+    # via
+    #   fastapi
+    #   mcp
+    #   sse-starlette
 types-pyyaml==6.0.12.20261111
 typing-extensions==4.16.0
     # via
     #   anyio
     #   fastapi
+    #   mcp
     #   mypy
     #   opentelemetry-api
     #   pydantic
@@ -113,11 +158,14 @@ typing-extensions==4.16.0
 typing-inspection==0.4.5
     # via
     #   fastapi
+    #   mcp
     #   pydantic
     #   pydantic-settings
 tzdata==2026.6
     # via roadside-backend
 uvicorn==0.54.0
-    # via roadside-backend
+    # via
+    #   mcp
+    #   roadside-backend
 virtualenv==21.15.6
     # via pre-commit

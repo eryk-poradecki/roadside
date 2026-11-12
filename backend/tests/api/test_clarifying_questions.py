@@ -395,8 +395,10 @@ async def test_the_inputs_snapshot_carries_no_reply_text(
 # --- two workers ---------------------------------------------------------------------------
 
 
-async def test_another_worker_storing_a_turn_first_is_409(settings: Settings) -> None:
-    # Two app instances on one database stand in for two workers: separate turn locks.
+async def test_another_worker_cannot_start_a_question_for_the_same_incident(
+    settings: Settings,
+) -> None:
+    # Two app instances share the database and its per-incident file lock.
     release = asyncio.Event()
     migrate(settings.database_path)
     apps = [create_app(settings), create_app(settings)]
@@ -409,13 +411,16 @@ async def test_another_worker_storing_a_turn_first_is_409(settings: Settings) ->
     ]
     try:
         incident_id = await make_incident(clients[0])
-        pending = [asyncio.create_task(turn(c, incident_id)) for c in clients]
-        for fake in fakes:
-            await fake.called.wait()
-        release.set()
-        responses = [await p for p in pending]
-        assert sorted(r.status_code for r in responses) == [201, 409]
-        assert {r.json().get("reason") for r in responses} == {None, "turn_in_progress"}
+        pending = asyncio.create_task(turn(clients[0], incident_id))
+        try:
+            await asyncio.wait_for(fakes[0].called.wait(), timeout=5)
+            rejected = await turn(clients[1], incident_id)
+            assert rejected.status_code == 409
+            assert rejected.json()["reason"] == "turn_in_progress"
+            assert not fakes[1].called.is_set()
+        finally:
+            release.set()
+            assert (await pending).status_code == 201
         # Never two questions in a row.
         assert kinds(await stored_turns(clients[0], incident_id)) == ["question"]
     finally:

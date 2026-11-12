@@ -104,7 +104,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     app.state.settings = settings
     app.state.llm_provider = provider
-    app.state.turn_locks = TurnLocks()
+    app.state.turn_locks = TurnLocks(settings.database_path)
     app.state.geocoder = geocoder
     app.state.place_source = place_source
     app.state.place_recordings = place_recordings

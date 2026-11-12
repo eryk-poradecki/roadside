@@ -13,6 +13,8 @@ dependencies = [
   "tzdata>=2024.1",
   "pillow>=11",
   "python-multipart>=0.0.20",
+  "mcp>=1.26,<2",
+  "filelock>=3.20",
 ]
 
 [dependency-groups]
