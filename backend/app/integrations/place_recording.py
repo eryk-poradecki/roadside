@@ -2,9 +2,10 @@
 
 Demo mode calls neither Nominatim nor Overpass (ADR 0011): what they answered comes with the
 scenario. One JSON file per scenario key (the part of the replay key known when the incident
-is created) holds the location context with its label and one nearby snapshot per radius:
-`{key, location, nearby[], recorded_at}`. A recording run with a live provider writes them
-into `places/` next to the AI recordings; each successful lookup merges into the file.
+is created) holds the location context with its label, whether it was dark, and one nearby
+snapshot per radius: `{key, location, dark, nearby[], recorded_at}`. A recording run with a
+live provider writes them into `places/` next to the AI recordings; each successful lookup
+merges into the file.
 
 The recorded point itself is never stored, only what was derived from it. A file holds one
 point's lookups: the recorder remembers the point in memory, and a lookup from another point
@@ -26,7 +27,7 @@ from app.domain.incident import Location
 from app.domain.location_context import LocationContext, ResolvedLocation, RoadClass, Settlement
 from app.domain.nearby import MAX_PLACES, NearbyCategory, NearbySnapshot, OsmType, Place
 from app.integrations.llm.recording import file_name, write_json
-from app.services.clock import utc_now
+from app.services.clock import real_utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +43,9 @@ class PlaceRecording:
     # By radius in km.
     nearby: Mapping[int, NearbySnapshot]
     recorded_at: str
+    # Whether it was dark when the scenario was recorded (#63): demo mode replays it in place
+    # of the visitor's clock. None in a file recorded before it was kept.
+    dark: bool | None = None
 
 
 class _Strict(BaseModel):
@@ -76,6 +80,7 @@ class _SnapshotJson(_Strict):
 class _FileJson(_Strict):
     key: str
     location: _LocationJson | None
+    dark: bool | None = None
     nearby: list[_SnapshotJson]
     recorded_at: str
 
@@ -103,6 +108,7 @@ def _from_json(data: object) -> PlaceRecording:
             for s in f.nearby
         },
         recorded_at=f.recorded_at,
+        dark=f.dark,
     )
 
 
@@ -119,6 +125,7 @@ def _to_json(rec: PlaceRecording) -> dict[str, object]:
             if loc
             else None
         ),
+        "dark": rec.dark,
         "nearby": [
             {
                 "radius_km": s.radius_km,
@@ -160,7 +167,7 @@ class PlaceRecorder:
     A write that fails is logged and lost: the driver still gets the live result.
     """
 
-    def __init__(self, directory: Path, *, clock: Callable[[], str] = utc_now) -> None:
+    def __init__(self, directory: Path, *, clock: Callable[[], str] = real_utc_now) -> None:
         self._directory = directory
         self._clock = clock
         # The context and the places of one incident are looked up in parallel; one process.
@@ -177,6 +184,9 @@ class PlaceRecorder:
             point,
             lambda rec: replace(rec, nearby={**rec.nearby, snapshot.radius_km: snapshot}),
         )
+
+    async def record_dark(self, key: str, point: Location, *, dark: bool) -> None:
+        await self._merge(key, point, lambda rec: replace(rec, dark=dark))
 
     async def _merge(
         self, key: str, point: Location, change: Callable[[PlaceRecording], PlaceRecording]

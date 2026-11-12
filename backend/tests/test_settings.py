@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import pytest
@@ -50,16 +51,31 @@ def test_demo_mode_off_with_nothing_set_fails(monkeypatch: pytest.MonkeyPatch) -
         create_app()
 
 
-def test_demo_mode_needs_no_llm_settings_and_replays() -> None:
-    provider = build_provider(Settings())
+def test_demo_mode_needs_no_llm_settings_and_replays(tmp_path: Path) -> None:
+    # An empty recordings dir: the committed recordings were made with vision.
+    provider = build_provider(Settings(llm_recordings_dir=tmp_path))
     assert isinstance(provider, ReplayProvider)
     assert (provider.vision, provider.max_images) == (False, 0)
 
 
-def test_demo_mode_replays_recordings_made_with_vision() -> None:
-    # The replay key says whether the recorded model saw the photos; LLM_VISION says which
-    # recordings demo mode plays. No image is sent anywhere.
-    provider = build_provider(Settings(llm_vision=True, llm_max_images=2))
+def test_demo_mode_replays_recordings_made_with_vision(tmp_path: Path) -> None:
+    # The replay key says whether the recorded model saw the photos, and the recordings say
+    # how they were made, so `docker compose up` needs no LLM_VISION (#63). No image is sent
+    # anywhere.
+    key = json.dumps({"vision": True})
+    recording = {
+        "key": key,
+        "request": {},
+        "raw_output": "{}",
+        "provider": "p",
+        "model": "m",
+        "prompt_version": "v3",
+        "recorded_at": "t",
+    }
+    (tmp_path / "a.json").write_text(json.dumps(recording))
+
+    provider = build_provider(Settings(llm_recordings_dir=tmp_path, llm_max_images=2))
+
     assert (provider.vision, provider.max_images) == (True, 2)
 
 

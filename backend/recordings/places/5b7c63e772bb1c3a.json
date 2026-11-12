@@ -1,0 +1,466 @@
+{
+  "key": "{\"fuel_type\":\"petrol\",\"has_assistance\":false,\"problem_type\":\"out_of_fuel\",\"situation\":\"on_road\",\"spare_wheel\":\"full_size\",\"transmission\":\"manual\"}",
+  "location": {
+    "road_class": "main_road",
+    "settlement": "village",
+    "label": "Poznańska, Tarnowo Podgórne"
+  },
+  "dark": false,
+  "nearby": [
+    {
+      "radius_km": 5,
+      "places": [
+        {
+          "osm_type": "node",
+          "osm_id": 10917049012,
+          "category": "repair",
+          "name": "Aliwojtrans",
+          "lat": 52.4561203,
+          "lon": 16.6935164,
+          "distance_m": 65,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 5173020626,
+          "category": "repair",
+          "name": "AutoSzyk Wesołowski",
+          "lat": 52.4581689,
+          "lon": 16.6902963,
+          "distance_m": 266,
+          "phone": null,
+          "opening_hours": "Mo-Fr 08:00-18:00; Sa 08:00-14:00"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 12153497332,
+          "category": "charging",
+          "name": null,
+          "lat": 52.4595899,
+          "lon": 16.6857078,
+          "distance_m": 612,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 11685943431,
+          "category": "fuel",
+          "name": "Mikstol",
+          "lat": 52.4597482,
+          "lon": 16.6855803,
+          "distance_m": 629,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 487441506,
+          "category": "repair",
+          "name": "MAN Truck & Bus Center Poznań - sprzedaż",
+          "lat": 52.4529711,
+          "lon": 16.7105526,
+          "distance_m": 1234,
+          "phone": null,
+          "opening_hours": "Mo 08:00-20:00; Tu-Fr 07:00-22:00; Sa 07:00-15:00"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 12558589966,
+          "category": "repair",
+          "name": "Nowakowski",
+          "lat": 52.4659809,
+          "lon": 16.6733516,
+          "distance_m": 1706,
+          "phone": "+48603750863",
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 11547217467,
+          "category": "repair",
+          "name": null,
+          "lat": 52.4638191,
+          "lon": 16.6708238,
+          "distance_m": 1722,
+          "phone": "+48601571900",
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 1837511778,
+          "category": "fuel",
+          "name": "BP",
+          "lat": 52.4669376,
+          "lon": 16.6724172,
+          "distance_m": 1821,
+          "phone": "+48618146431",
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 11543749045,
+          "category": "repair",
+          "name": "KT-Technik",
+          "lat": 52.4655608,
+          "lon": 16.670442,
+          "distance_m": 1841,
+          "phone": "+48506157524",
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 13695551601,
+          "category": "charging",
+          "name": null,
+          "lat": 52.463665,
+          "lon": 16.6582617,
+          "distance_m": 2504,
+          "phone": null,
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 11872805733,
+          "category": "charging",
+          "name": null,
+          "lat": 52.459667,
+          "lon": 16.6552675,
+          "distance_m": 2605,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 11543794984,
+          "category": "tyres",
+          "name": "Auto Komplex. Szymkowiak A.",
+          "lat": 52.4687002,
+          "lon": 16.6598177,
+          "distance_m": 2638,
+          "phone": null,
+          "opening_hours": "Mo-Fr 08:00-17:00; Sa 09:00-14:00"
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 309776891,
+          "category": "fuel",
+          "name": "Orlen",
+          "lat": 52.4584703,
+          "lon": 16.6539856,
+          "distance_m": 2678,
+          "phone": "+48618164152",
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 1549171661,
+          "category": "charging",
+          "name": null,
+          "lat": 52.4614689,
+          "lon": 16.6532379,
+          "distance_m": 2772,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 12293760688,
+          "category": "fuel",
+          "name": "Port24",
+          "lat": 52.4519361,
+          "lon": 16.65077,
+          "distance_m": 2937,
+          "phone": null,
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 579017016,
+          "category": "fuel",
+          "name": "Shell",
+          "lat": 52.4577799,
+          "lon": 16.6440215,
+          "distance_m": 3348,
+          "phone": "+48 518 587 835",
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 11906704587,
+          "category": "tyres",
+          "name": null,
+          "lat": 52.4845999,
+          "lon": 16.7290353,
+          "distance_m": 3931,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 10781766497,
+          "category": "fuel",
+          "name": "Orlen",
+          "lat": 52.4744353,
+          "lon": 16.7446202,
+          "distance_m": 3991,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 12856346328,
+          "category": "charging",
+          "name": null,
+          "lat": 52.4415526,
+          "lon": 16.7603375,
+          "distance_m": 4839,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 13051000629,
+          "category": "charging",
+          "name": null,
+          "lat": 52.4408071,
+          "lon": 16.7619928,
+          "distance_m": 4973,
+          "phone": null,
+          "opening_hours": null
+        }
+      ],
+      "fetched_at": "2026-11-12T12:00:57.383Z",
+      "source": "https://maps.mail.ru/osm/tools/overpass/api/interpreter"
+    },
+    {
+      "radius_km": 25,
+      "places": [
+        {
+          "osm_type": "node",
+          "osm_id": 10917049012,
+          "category": "repair",
+          "name": "Aliwojtrans",
+          "lat": 52.4561203,
+          "lon": 16.6935164,
+          "distance_m": 65,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 5173020626,
+          "category": "repair",
+          "name": "AutoSzyk Wesołowski",
+          "lat": 52.4581689,
+          "lon": 16.6902963,
+          "distance_m": 266,
+          "phone": null,
+          "opening_hours": "Mo-Fr 08:00-18:00; Sa 08:00-14:00"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 12153497332,
+          "category": "charging",
+          "name": null,
+          "lat": 52.4595899,
+          "lon": 16.6857078,
+          "distance_m": 612,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 11685943431,
+          "category": "fuel",
+          "name": "Mikstol",
+          "lat": 52.4597482,
+          "lon": 16.6855803,
+          "distance_m": 629,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 487441506,
+          "category": "repair",
+          "name": "MAN Truck & Bus Center Poznań - sprzedaż",
+          "lat": 52.4529711,
+          "lon": 16.7105526,
+          "distance_m": 1234,
+          "phone": null,
+          "opening_hours": "Mo 08:00-20:00; Tu-Fr 07:00-22:00; Sa 07:00-15:00"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 12558589966,
+          "category": "repair",
+          "name": "Nowakowski",
+          "lat": 52.4659809,
+          "lon": 16.6733516,
+          "distance_m": 1706,
+          "phone": "+48603750863",
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 11547217467,
+          "category": "repair",
+          "name": null,
+          "lat": 52.4638191,
+          "lon": 16.6708238,
+          "distance_m": 1722,
+          "phone": "+48601571900",
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 1837511778,
+          "category": "fuel",
+          "name": "BP",
+          "lat": 52.4669376,
+          "lon": 16.6724172,
+          "distance_m": 1821,
+          "phone": "+48618146431",
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 13695551601,
+          "category": "charging",
+          "name": null,
+          "lat": 52.463665,
+          "lon": 16.6582617,
+          "distance_m": 2504,
+          "phone": null,
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 11872805733,
+          "category": "charging",
+          "name": null,
+          "lat": 52.459667,
+          "lon": 16.6552675,
+          "distance_m": 2605,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 11543794984,
+          "category": "tyres",
+          "name": "Auto Komplex. Szymkowiak A.",
+          "lat": 52.4687002,
+          "lon": 16.6598177,
+          "distance_m": 2638,
+          "phone": null,
+          "opening_hours": "Mo-Fr 08:00-17:00; Sa 09:00-14:00"
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 309776891,
+          "category": "fuel",
+          "name": "Orlen",
+          "lat": 52.4584703,
+          "lon": 16.6539856,
+          "distance_m": 2678,
+          "phone": "+48618164152",
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 1549171661,
+          "category": "charging",
+          "name": null,
+          "lat": 52.4614689,
+          "lon": 16.6532379,
+          "distance_m": 2772,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 12293760688,
+          "category": "fuel",
+          "name": "Port24",
+          "lat": 52.4519361,
+          "lon": 16.65077,
+          "distance_m": 2937,
+          "phone": null,
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 579017016,
+          "category": "fuel",
+          "name": "Shell",
+          "lat": 52.4577799,
+          "lon": 16.6440215,
+          "distance_m": 3348,
+          "phone": "+48 518 587 835",
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 11906704587,
+          "category": "tyres",
+          "name": null,
+          "lat": 52.4845999,
+          "lon": 16.7290353,
+          "distance_m": 3931,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 12856346328,
+          "category": "charging",
+          "name": null,
+          "lat": 52.4415526,
+          "lon": 16.7603375,
+          "distance_m": 4839,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 12856346317,
+          "category": "tyres",
+          "name": null,
+          "lat": 52.4543153,
+          "lon": 16.7703015,
+          "distance_m": 5218,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 535820613,
+          "category": "tyres",
+          "name": "WulMat",
+          "lat": 52.4992551,
+          "lon": 16.7349649,
+          "distance_m": 5506,
+          "phone": "+48668 345 850",
+          "opening_hours": "Mo-Fr 08:00-18:00; Sa 08:00-14:00; Su off"
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 909250673,
+          "category": "tyres",
+          "name": "Wulkanizacja Vito-Raf",
+          "lat": 52.4089173,
+          "lon": 16.7392716,
+          "distance_m": 6156,
+          "phone": null,
+          "opening_hours": null
+        }
+      ],
+      "fetched_at": "2026-11-12T12:01:22.734Z",
+      "source": "https://maps.mail.ru/osm/tools/overpass/api/interpreter"
+    }
+  ],
+  "recorded_at": "2026-11-12T12:00:01.405Z"
+}
