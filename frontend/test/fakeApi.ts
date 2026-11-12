@@ -129,6 +129,9 @@ export class FakeApi {
   loseNextCreateResponse = false
   /** Outcomes of the next AI turns, in order; when empty, a turn returns `ADVICE`. */
   turnScript: TurnScript[] = []
+  /** What reverse geocoding finds: like the server, the first AI turn stores it as the
+   * located incident's `location_label` (ADR 0004). */
+  geocodeLabel: string | null = null
   /** Every `POST /incidents/:id/ai-turns` with its body. */
   turnRequests: { incidentId: number; body: unknown }[] = []
   /** Outcomes of the next nearby lookups, in order; when empty, a lookup finds `PLACES`. */
@@ -171,6 +174,7 @@ export class FakeApi {
     this.loseNextCreateResponse = false
     this.turnScript = []
     this.turnRequests = []
+    this.geocodeLabel = null
     this.nearbyScript = []
     this.nearbyRequests = []
     this.config = { demo_mode: true, vision_enabled: false }
@@ -464,6 +468,12 @@ export class FakeApi {
         const open = incident.ai_turns.at(-1)?.kind === 'question'
         if (open && !body.reply) return problem(409, 'reply_required', 'Reply first')
         if (!open && body.reply) return problem(409, 'no_open_question', 'Nothing to reply to')
+        const label = this.geocodeLabel
+        if (label && incident.location && !incident.location_label) {
+          const located: IncidentRead = { ...incident, location_label: label }
+          this.incidents = this.incidents.map((i) => (i.id === incidentId ? located : i))
+          incident = located
+        }
         const append = (turn: AiTurnRead) => {
           const current = incident as IncidentRead
           const updated = {

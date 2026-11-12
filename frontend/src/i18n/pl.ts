@@ -49,9 +49,24 @@ export const pl: Localised<Translation> & {
       qrBody: 'Na poboczu korzystasz z telefonu, więc zeskanuj kod i otwórz aplikację tam.',
       qrLabel: 'Kod QR do {{url}}',
       tryHere: 'Albo wypróbuj tutaj',
-      soloHeading: 'Wypróbuj pomoc na poboczu',
-      soloBody:
-        'Aplikacja powstała z myślą o telefonie na poboczu, więc tutaj działa w wąskiej kolumnie, tak jak tam.',
+      howHeading: 'Jak to działa na poboczu',
+      howSteps: [
+        {
+          title: 'Wybierz, co się stało',
+          body: 'Opona, akumulator, paliwo, dziura w drodze albo coś innego. Zdjęcie i notatka są opcjonalne.',
+        },
+        {
+          title: 'Od razu widzisz, co robić',
+          body: 'Najpierw zasady bezpieczeństwa, od razu. Nie czekają na AI.',
+        },
+        {
+          title: 'Porady AI i prawdziwe miejsca w pobliżu',
+          body: 'Porady krok po kroku od AI oraz wulkanizacje, stacje paliw, ładowarki i warsztaty z danych mapy OpenStreetMap.',
+        },
+      ],
+      howHint:
+        'Na telefonie aplikacja zajmuje cały ekran. Wypróbuj tryb urządzenia w przeglądarce.',
+      tryHereSolo: 'Wypróbuj tutaj',
     },
   },
   location: {
@@ -61,6 +76,8 @@ export const pl: Localised<Translation> & {
     denied: 'Lokalizacja wyłączona',
     unavailable: 'Nie udało się ustalić lokalizacji',
     accuracy: 'Dokładność ok. {{meters}} m',
+    approximate: 'Przybliżona lokalizacja',
+    approximateWithin: 'W promieniu ok. {{km}} km',
     noFix: 'Pomoc działa także bez niej.',
     retry: 'Spróbuj ponownie',
     north: 'N',

@@ -28,6 +28,37 @@
 .result h1 svg {
   flex: none;
 }
+.result-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+/* Desktop's 112 (ADR 0012): a plain link while the incident is open, filled when urgent. */
+.head-sos {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--sos-line);
+  color: var(--sos-text);
+  font-weight: 800;
+  text-decoration: none;
+  transition: background 160ms var(--ease);
+}
+.head-sos:hover {
+  background: var(--sos-bg);
+}
+.head-sos-urgent {
+  background: var(--sos-line);
+  border-color: var(--sos-text);
+}
+.head-sos-urgent:hover {
+  background: var(--sos-line);
+}
 .topbar {
   display: flex;
   align-items: center;

@@ -1,3 +1,4 @@
+import { Smartphone } from 'lucide-react'
 import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useVehicles } from '../api/vehicles'
@@ -22,7 +23,7 @@ type FlowState = {
 /**
  * `/`. Mobile: the help flow. Desktop (ADR 0012): a QR code to open the app on a phone,
  * beside the same flow in a narrow column to try it here. Where a phone couldn't open this
- * address (localhost, a private IP) the column stands alone under a short explanation.
+ * address (localhost, a private IP) a short "how it works" takes the QR code's place.
  */
 export function Start() {
   const { t } = useTranslation()
@@ -37,30 +38,56 @@ export function Start() {
   if (!desktop) return <HelpFlow {...flow} />
 
   const origin = window.location.origin
-  if (!phoneReachable(window.location.hostname))
-    return (
-      <section className="start-desk start-solo" aria-labelledby={headingId}>
-        <div className="start-solo-head">
-          <h1 id={headingId}>{t('start.desktop.soloHeading')}</h1>
-          <p className="lede">{t('start.desktop.soloBody')}</p>
-        </div>
-        <TrialColumn {...flow} />
-      </section>
-    )
-
+  const qr = phoneReachable(window.location.hostname)
   return (
     <div className="start-desk">
-      <section className="start-phone">
-        <h1>{t('start.desktop.qrHeading')}</h1>
-        <p className="lede">{t('start.desktop.qrBody')}</p>
-        <QrCode value={origin} label={t('start.desktop.qrLabel', { url: origin })} />
-        <p className="start-origin">{window.location.host}</p>
-      </section>
+      {qr ? (
+        <section className="start-side">
+          <h1>{t('start.desktop.qrHeading')}</h1>
+          <p className="lede">{t('start.desktop.qrBody')}</p>
+          <QrCode value={origin} label={t('start.desktop.qrLabel', { url: origin })} />
+          <p className="start-origin">{window.location.host}</p>
+        </section>
+      ) : (
+        <HowItWorks />
+      )}
       <section className="start-try" aria-labelledby={headingId}>
-        <h2 id={headingId}>{t('start.desktop.tryHere')}</h2>
+        <h2 id={headingId}>{qr ? t('start.desktop.tryHere') : t('start.desktop.tryHereSolo')}</h2>
         <TrialColumn {...flow} />
       </section>
     </div>
+  )
+}
+
+/**
+ * Where a phone couldn't open this address (localhost, a private IP): what the flow does at
+ * the roadside, in the QR code's place, so the trial column has its context.
+ */
+function HowItWorks() {
+  const { t } = useTranslation()
+  const headingId = useId()
+  const steps = t('start.desktop.howSteps', { returnObjects: true })
+  return (
+    <section className="start-side" aria-labelledby={headingId}>
+      <h1 id={headingId}>{t('start.desktop.howHeading')}</h1>
+      <ol className="how-steps">
+        {steps.map((step, n) => (
+          <li key={step.title}>
+            <span className="how-n" aria-hidden="true">
+              {n + 1}
+            </span>
+            <span className="how-text">
+              <strong>{step.title}</strong>
+              <span>{step.body}</span>
+            </span>
+          </li>
+        ))}
+      </ol>
+      <p className="how-hint">
+        <Smartphone size={18} aria-hidden="true" />
+        {t('start.desktop.howHint')}
+      </p>
+    </section>
   )
 }
 

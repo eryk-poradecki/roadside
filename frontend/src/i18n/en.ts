@@ -40,9 +40,24 @@ export const en = {
       qrBody: "In a real roadside moment you'd use your phone, so scan to open it there.",
       qrLabel: 'QR code for {{url}}',
       tryHere: 'Or try it here',
-      soloHeading: 'Try the roadside flow',
-      soloBody:
-        "It's built for a phone at the roadside, so here it runs in a narrow column, as it would there.",
+      // Where a phone couldn't open this address: how the flow works, instead of the QR code.
+      howHeading: 'How it works at the roadside',
+      howSteps: [
+        {
+          title: 'Pick what happened',
+          body: 'Flat tyre, battery, fuel, a pothole or something else. A photo or a note is optional.',
+        },
+        {
+          title: 'Safety steps appear at once',
+          body: "What to do first, right away. They don't wait for the AI.",
+        },
+        {
+          title: 'AI advice and real places nearby',
+          body: 'Step-by-step advice from the AI, plus tyre shops, fuel, charging and repair from OpenStreetMap map data.',
+        },
+      ],
+      howHint: "On a phone it opens full screen. Try your browser's device mode.",
+      tryHereSolo: 'Try it here',
     },
   },
   location: {
@@ -52,6 +67,8 @@ export const en = {
     denied: 'Location is off',
     unavailable: "Can't find your location",
     accuracy: 'Accurate to ~{{meters}} m',
+    approximate: 'Approximate location',
+    approximateWithin: 'Within about {{km}} km',
     noFix: 'You can still get help without it.',
     retry: 'Try again',
     north: 'N',

@@ -76,23 +76,29 @@ describe('desktop shell (ADR 0012)', () => {
   it('shows 112 on Start only inside the trial column', async () => {
     asDesktop()
     renderApp('/')
-    const trial = await screen.findByRole('region', { name: 'Try the roadside flow' })
+    const trial = await screen.findByRole('region', { name: 'Try it here' })
     expect(screen.getAllByRole('link', { name: EMERGENCY })).toHaveLength(1)
     expect(within(trial).getByRole('link', { name: EMERGENCY })).toHaveAttribute('href', 'tel:112')
   })
 })
 
 // jsdom runs on localhost: a phone couldn't open it, so there is no QR code (ADR 0012).
+// The left side explains the roadside flow instead, beside the trial column.
 describe('desktop Start on localhost', () => {
-  it('shows the trial column alone under a heading and one line of explanation', async () => {
+  it('shows how it works at the roadside beside the trial column, with no QR code', async () => {
     asDesktop()
     renderApp('/')
-    const trial = await screen.findByRole('region', { name: 'Try the roadside flow' })
-    expect(within(trial).getByRole('heading', { level: 1 })).toHaveTextContent(
-      'Try the roadside flow',
-    )
-    expect(within(trial).getByText(/built for a phone/)).toBeInTheDocument()
+    const how = await screen.findByRole('region', { name: 'How it works at the roadside' })
+    expect(within(how).getByRole('heading', { level: 1 })).toBeInTheDocument()
+    const steps = within(how).getAllByRole('listitem')
+    expect(steps).toHaveLength(3)
+    expect(steps[0]).toHaveTextContent('Pick what happened')
+    expect(steps[1]).toHaveTextContent('Safety steps appear at once')
+    expect(steps[2]).toHaveTextContent('AI advice and real places nearby')
+    expect(within(how).getByText(/device mode/)).toBeInTheDocument()
     expect(screen.queryByRole('img', { name: /QR code/ })).not.toBeInTheDocument()
+
+    const trial = screen.getByRole('region', { name: 'Try it here' })
     expect(within(trial).getByRole('heading', { name: 'What happened?' })).toBeInTheDocument()
   })
 })
