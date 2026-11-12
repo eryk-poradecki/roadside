@@ -9,6 +9,7 @@ as a live answer.
 from collections.abc import Mapping
 from pathlib import Path
 
+from app.assist.replay_key import made_with_vision
 from app.integrations.llm.base import LLMRequest, LLMResult, ProviderError
 from app.integrations.llm.recording import Recording, load_recordings
 
@@ -32,10 +33,12 @@ class ReplayProvider:
         self.max_images = max_images if vision else 0
 
     @classmethod
-    def from_dir(
-        cls, directory: Path, *, vision: bool = False, max_images: int = 0
-    ) -> "ReplayProvider":
-        return cls(load_recordings(directory), vision=vision, max_images=max_images)
+    def from_dir(cls, directory: Path, *, max_images: int = 0) -> "ReplayProvider":
+        """`vision` comes from the recordings themselves (#63), so a demo needs no
+        `LLM_VISION`: on when any of them was made with the photos shown to the model."""
+        recordings = load_recordings(directory)
+        vision = any(made_with_vision(key) for key in recordings)
+        return cls(recordings, vision=vision, max_images=max_images)
 
     async def complete(self, request: LLMRequest) -> LLMResult:
         rec = self._recordings.get(request.replay_key) if request.replay_key else None

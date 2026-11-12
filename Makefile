@@ -6,7 +6,7 @@ FRONTEND := frontend
 
 .PHONY: help install dev-api dev-web migrate lint format typecheck test build openapi openapi-drift pre-commit requirements check-requirements check check-backend check-frontend \
 	lint-backend lint-frontend typecheck-backend typecheck-frontend test-backend test-frontend \
-	up down docker-smoke eval
+	up down docker-smoke eval record-replays demo-check
 
 help: ## List targets
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "%-20s %s\n", $$1, $$2}'
@@ -40,6 +40,15 @@ docker-smoke: ## Build and start the stack, check /health and demo mode through 
 # Pass ARGS, e.g. `make eval ARGS="--scenario smoke_pl --out evals.md"`.
 eval: ## Run the AI evals against the configured live model and print a Markdown report
 	cd $(BACKEND) && uv run python -m scripts.eval_assist $(ARGS)
+
+# Calls the live model, Nominatim and Overpass, so never part of `check` or CI. Use the
+# /record-replays skill: it sets the provider and reviews each recording before a commit.
+record-replays: ## Record the demo scenarios into backend/recordings (DEMO_MODE=false, LLM_RECORD=true)
+	cd $(BACKEND) && uv run python -m scripts.record_replays $(ARGS)
+
+# Needs a running demo stack (`make up`); the /demo-check skill starts and stops one.
+demo-check: ## Walk every demo scenario against the stack on :8080 and fail on any replay miss
+	cd $(BACKEND) && uv run python -m scripts.demo_check $(ARGS)
 
 migrate: ## Apply database migrations
 	cd $(BACKEND) && uv run python -m app.db migrate

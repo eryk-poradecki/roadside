@@ -18,7 +18,7 @@ import time
 import weakref
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from datetime import UTC, datetime
+from datetime import datetime
 from itertools import pairwise
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -48,6 +48,7 @@ from app.repositories.ai_turns import AiTurnRepository
 from app.repositories.incidents import IncidentRepository
 from app.repositories.photos import PhotoFiles, PhotoRepository
 from app.repositories.vehicles import VehicleRepository
+from app.services import clock
 from app.services.clock import utc_now
 from app.services.location import LocationResolver, refresh_location_context
 from app.services.model_call import InvalidOutputError, complete_validated, problem_for
@@ -174,10 +175,12 @@ class AssistantService:
         sample_ids = [p.sample_id for p in photos if p.sample_id is not None]
         seen, images = await self._shown_photos(photos)
         inputs = dataclasses.replace(
-            turn_inputs(incident, facts, datetime.now(UTC)),
+            turn_inputs(incident, facts, clock.now(), dark=self._location.recorded_dark(scenario)),
             photo_ids_seen=seen,
             photos_not_sent=len(photos) - len(seen),
         )
+        if incident.location is not None:
+            await self._location.record_dark(incident.location, scenario, dark=inputs.dark)
         return inputs, images, turns, sample_ids
 
     async def _shown_photos(
@@ -336,9 +339,12 @@ def _exchanges(turns: list[AiTurn]) -> tuple[Exchange, ...]:
     )
 
 
-def turn_inputs(incident: Incident, vehicle: VehicleFactBlock | None, at: datetime) -> TurnInputs:
+def turn_inputs(
+    incident: Incident, vehicle: VehicleFactBlock | None, at: datetime, *, dark: bool | None = None
+) -> TurnInputs:
     """The fact set the model is told, as of `at`: now for a turn, the incident's time for a
-    damage report."""
+    damage report. `dark` is computed for `at` and the incident's place unless given: demo mode
+    gives the scenario's recorded light."""
     lat, lon = (
         (incident.location.lat, incident.location.lon) if incident.location else POLAND_CENTRE
     )
@@ -351,7 +357,7 @@ def turn_inputs(incident: Incident, vehicle: VehicleFactBlock | None, at: dateti
         problem_type=incident.problem_type.value,
         note=incident.note,
         local_time=at.astimezone(LOCAL_TZ).isoformat(timespec="minutes"),
-        dark=is_dark(at, lat, lon),
+        dark=is_dark(at, lat, lon) if dark is None else dark,
     )
 
 

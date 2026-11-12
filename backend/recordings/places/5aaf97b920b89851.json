@@ -1,0 +1,312 @@
+{
+  "key": "{\"fuel_type\":\"diesel\",\"has_assistance\":false,\"problem_type\":\"other\",\"situation\":\"on_road\",\"spare_wheel\":\"space_saver\",\"transmission\":\"manual\"}",
+  "location": {
+    "road_class": "main_road",
+    "settlement": "village",
+    "label": "50, Rudzienko"
+  },
+  "dark": false,
+  "nearby": [
+    {
+      "radius_km": 5,
+      "places": [
+        {
+          "osm_type": "node",
+          "osm_id": 359822024,
+          "category": "fuel",
+          "name": "Circle K Express",
+          "lat": 52.1223764,
+          "lon": 21.5001793,
+          "distance_m": 2423,
+          "phone": "+48 22 255 22 55",
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 1442026899,
+          "category": "repair",
+          "name": null,
+          "lat": 52.0637467,
+          "lon": 21.4816547,
+          "distance_m": 4316,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 13618554798,
+          "category": "repair",
+          "name": "JaroCar VAG Serwis",
+          "lat": 52.1397042,
+          "lon": 21.5202667,
+          "distance_m": 4533,
+          "phone": "+48 502 064 738",
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 359821978,
+          "category": "fuel",
+          "name": "Avia",
+          "lat": 52.1423676,
+          "lon": 21.5031906,
+          "distance_m": 4646,
+          "phone": "+48 509 808 693",
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 567862002,
+          "category": "repair",
+          "name": null,
+          "lat": 52.0615212,
+          "lon": 21.4682725,
+          "distance_m": 4903,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 791533372,
+          "category": "fuel",
+          "name": "Orlen",
+          "lat": 52.0606098,
+          "lon": 21.4693725,
+          "distance_m": 4959,
+          "phone": null,
+          "opening_hours": null
+        }
+      ],
+      "fetched_at": "2026-11-12T12:04:10.933Z",
+      "source": "https://overpass-api.de/api/interpreter"
+    },
+    {
+      "radius_km": 25,
+      "places": [
+        {
+          "osm_type": "node",
+          "osm_id": 359822024,
+          "category": "fuel",
+          "name": "Circle K Express",
+          "lat": 52.1223764,
+          "lon": 21.5001793,
+          "distance_m": 2423,
+          "phone": "+48 22 255 22 55",
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 1442026899,
+          "category": "repair",
+          "name": null,
+          "lat": 52.0637467,
+          "lon": 21.4816547,
+          "distance_m": 4316,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 13618554798,
+          "category": "repair",
+          "name": "JaroCar VAG Serwis",
+          "lat": 52.1397042,
+          "lon": 21.5202667,
+          "distance_m": 4533,
+          "phone": "+48 502 064 738",
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 359821978,
+          "category": "fuel",
+          "name": "Avia",
+          "lat": 52.1423676,
+          "lon": 21.5031906,
+          "distance_m": 4646,
+          "phone": "+48 509 808 693",
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 567862002,
+          "category": "repair",
+          "name": null,
+          "lat": 52.0615212,
+          "lon": 21.4682725,
+          "distance_m": 4903,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 791533372,
+          "category": "fuel",
+          "name": "Orlen",
+          "lat": 52.0606098,
+          "lon": 21.4693725,
+          "distance_m": 4959,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 4549540872,
+          "category": "repair",
+          "name": "Arkadiusz Kobyliński",
+          "lat": 52.083669,
+          "lon": 21.5715425,
+          "distance_m": 5142,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 299567702,
+          "category": "repair",
+          "name": "Warsztat samochodowy",
+          "lat": 52.116237,
+          "lon": 21.5814055,
+          "distance_m": 5727,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 299517324,
+          "category": "repair",
+          "name": "Warsztat samochodowy AUTO CENTRUM Kołodziejczyk",
+          "lat": 52.1136648,
+          "lon": 21.5834976,
+          "distance_m": 5785,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 300259493,
+          "category": "fuel",
+          "name": "Stacja paliw Pogorzel",
+          "lat": 52.1090078,
+          "lon": 21.5950514,
+          "distance_m": 6457,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 931950252,
+          "category": "fuel",
+          "name": "BP",
+          "lat": 52.0393669,
+          "lon": 21.4943327,
+          "distance_m": 6826,
+          "phone": "+48257573646",
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 13114658346,
+          "category": "charging",
+          "name": null,
+          "lat": 52.1748664,
+          "lon": 21.5532169,
+          "distance_m": 8981,
+          "phone": null,
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 13114735445,
+          "category": "charging",
+          "name": null,
+          "lat": 52.1727451,
+          "lon": 21.5637803,
+          "distance_m": 9079,
+          "phone": null,
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 13115162507,
+          "category": "charging",
+          "name": null,
+          "lat": 52.1818053,
+          "lon": 21.5587202,
+          "distance_m": 9838,
+          "phone": null,
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 14020810380,
+          "category": "charging",
+          "name": "Car charger",
+          "lat": 52.1757336,
+          "lon": 21.5803597,
+          "distance_m": 9938,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 13125412442,
+          "category": "charging",
+          "name": "Allego",
+          "lat": 52.190114,
+          "lon": 21.5287565,
+          "distance_m": 10126,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 2765397296,
+          "category": "tyres",
+          "name": "Auto-Gumy. Wulkanizacja",
+          "lat": 52.1692676,
+          "lon": 21.2231643,
+          "distance_m": 20474,
+          "phone": "+48 507 584 086",
+          "opening_hours": "Mo-Fr 08:00-18:00; Sa 08:00-16:00"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 11987874035,
+          "category": "tyres",
+          "name": null,
+          "lat": 52.1908796,
+          "lon": 21.1829289,
+          "distance_m": 23944,
+          "phone": "+48 506 391 512",
+          "opening_hours": "Mo-Fr 08:00-18:00; 09:00-14:00"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 12556642492,
+          "category": "tyres",
+          "name": "Serwis Opon",
+          "lat": 51.9847403,
+          "lon": 21.2008174,
+          "distance_m": 24267,
+          "phone": "+48 604 839 743",
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 568523861,
+          "category": "tyres",
+          "name": "Wulkanizacja",
+          "lat": 51.9870985,
+          "lon": 21.1900562,
+          "distance_m": 24758,
+          "phone": "+48 531 931 889",
+          "opening_hours": "Mo-Fr 10:00-17:00; Sa 10:00-16:00"
+        }
+      ],
+      "fetched_at": "2026-11-12T12:07:45.268Z",
+      "source": "https://overpass-api.de/api/interpreter"
+    }
+  ],
+  "recorded_at": "2026-11-12T12:00:00.946Z"
+}

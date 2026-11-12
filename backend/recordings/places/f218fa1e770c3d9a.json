@@ -1,0 +1,301 @@
+{
+  "key": "{\"fuel_type\":\"petrol\",\"has_assistance\":false,\"problem_type\":\"flat_tyre\",\"situation\":\"on_road\",\"spare_wheel\":\"full_size\",\"transmission\":\"manual\"}",
+  "location": {
+    "road_class": "motorway_expressway",
+    "settlement": "countryside",
+    "label": "Autostrada Wolności"
+  },
+  "dark": true,
+  "nearby": [
+    {
+      "radius_km": 5,
+      "places": [
+        {
+          "osm_type": "node",
+          "osm_id": 13791931449,
+          "category": "tyres",
+          "name": null,
+          "lat": 52.3666604,
+          "lon": 15.8648301,
+          "distance_m": 4354,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 326561757,
+          "category": "fuel",
+          "name": "Seydak",
+          "lat": 52.3669381,
+          "lon": 15.8637237,
+          "distance_m": 4367,
+          "phone": null,
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 2319690070,
+          "category": "fuel",
+          "name": "BP",
+          "lat": 52.3140892,
+          "lon": 15.7835065,
+          "distance_m": 4786,
+          "phone": "+48 95 717 00 14",
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 13034934477,
+          "category": "charging",
+          "name": "Polenergia UFC",
+          "lat": 52.3138465,
+          "lon": 15.78119,
+          "distance_m": 4943,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 2319690068,
+          "category": "fuel",
+          "name": "BP",
+          "lat": 52.312024,
+          "lon": 15.7815097,
+          "distance_m": 4994,
+          "phone": "+48 95 729 96 06",
+          "opening_hours": "24/7"
+        }
+      ],
+      "fetched_at": "2026-11-12T22:00:30.533Z",
+      "source": "https://overpass-api.de/api/interpreter"
+    },
+    {
+      "radius_km": 25,
+      "places": [
+        {
+          "osm_type": "node",
+          "osm_id": 13791931449,
+          "category": "tyres",
+          "name": null,
+          "lat": 52.3666604,
+          "lon": 15.8648301,
+          "distance_m": 4354,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 326561757,
+          "category": "fuel",
+          "name": "Seydak",
+          "lat": 52.3669381,
+          "lon": 15.8637237,
+          "distance_m": 4367,
+          "phone": null,
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 2319690070,
+          "category": "fuel",
+          "name": "BP",
+          "lat": 52.3140892,
+          "lon": 15.7835065,
+          "distance_m": 4786,
+          "phone": "+48 95 717 00 14",
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 13034934477,
+          "category": "charging",
+          "name": "Polenergia UFC",
+          "lat": 52.3138465,
+          "lon": 15.78119,
+          "distance_m": 4943,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 2319690068,
+          "category": "fuel",
+          "name": "BP",
+          "lat": 52.312024,
+          "lon": 15.7815097,
+          "distance_m": 4994,
+          "phone": "+48 95 729 96 06",
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 5144684621,
+          "category": "fuel",
+          "name": "hurtpetrol",
+          "lat": 52.306288,
+          "lon": 15.7717593,
+          "distance_m": 5856,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 320362722,
+          "category": "fuel",
+          "name": "AMIC Energy",
+          "lat": 52.3422511,
+          "lon": 15.7517152,
+          "distance_m": 6835,
+          "phone": null,
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 13145772619,
+          "category": "charging",
+          "name": null,
+          "lat": 52.3421587,
+          "lon": 15.7514806,
+          "distance_m": 6848,
+          "phone": null,
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 12423150901,
+          "category": "charging",
+          "name": "Lutol Suchy AMIC Energy greenway 4x ccs",
+          "lat": 52.3422,
+          "lon": 15.7514541,
+          "distance_m": 6851,
+          "phone": null,
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 12188971885,
+          "category": "repair",
+          "name": null,
+          "lat": 52.253279,
+          "lon": 15.880856,
+          "distance_m": 8638,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 12188971886,
+          "category": "repair",
+          "name": null,
+          "lat": 52.2527071,
+          "lon": 15.880903,
+          "distance_m": 8700,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 1430075916,
+          "category": "repair",
+          "name": "Szron System - Serwis Agregatów Chłodniczych Carrier Thermo King Schmitz",
+          "lat": 52.3325543,
+          "lon": 15.7204191,
+          "distance_m": 8803,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 5010959483,
+          "category": "repair",
+          "name": "Auto Serwis",
+          "lat": 52.2503843,
+          "lon": 15.8204461,
+          "distance_m": 8923,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 5144629023,
+          "category": "repair",
+          "name": "Łodyga",
+          "lat": 52.2557782,
+          "lon": 15.9230008,
+          "distance_m": 9505,
+          "phone": null,
+          "opening_hours": "Mo-Fr 08:00-18:00; Sa 08:00-14:00"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 14134467403,
+          "category": "tyres",
+          "name": null,
+          "lat": 52.3767337,
+          "lon": 16.0599657,
+          "distance_m": 15244,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 13358344271,
+          "category": "tyres",
+          "name": "Bestdrive Nowotomyski Centrum Motoryzacji Sp. z o.o.",
+          "lat": 52.3050156,
+          "lon": 16.0899939,
+          "distance_m": 16536,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 6629697679,
+          "category": "charging",
+          "name": "CCS/Type2/CHAdeMO",
+          "lat": 52.3389792,
+          "lon": 16.1080445,
+          "distance_m": 17585,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 12986029806,
+          "category": "charging",
+          "name": "Elocity charging station",
+          "lat": 52.1619987,
+          "lon": 15.8381928,
+          "distance_m": 18542,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 12334762526,
+          "category": "tyres",
+          "name": null,
+          "lat": 52.2986651,
+          "lon": 16.1257264,
+          "distance_m": 19050,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 1206548653,
+          "category": "tyres",
+          "name": null,
+          "lat": 52.30824,
+          "lon": 16.128196,
+          "distance_m": 19058,
+          "phone": null,
+          "opening_hours": null
+        }
+      ],
+      "fetched_at": "2026-11-12T22:01:08.729Z",
+      "source": "https://overpass-api.de/api/interpreter"
+    }
+  ],
+  "recorded_at": "2026-11-12T22:00:00.511Z"
+}

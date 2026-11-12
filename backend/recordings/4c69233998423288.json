@@ -1,0 +1,23 @@
+{
+  "key": "{\"artifact\":\"damage_report\",\"dark\":false,\"fuel_type\":\"diesel\",\"has_assistance\":false,\"locale\":\"pl\",\"problem_type\":\"pothole_damage\",\"replies\":[],\"road_class\":\"main_road\",\"sample_photo_ids\":[\"rim_damage\"],\"situation\":\"on_road\",\"spare_wheel\":\"space_saver\",\"transmission\":\"manual\",\"vision\":false}",
+  "request": {
+    "schema_name": "damage_report",
+    "messages": [
+      {
+        "role": "system",
+        "text": "You are Roadside, helping a driver in Poland write a short damage report to the road manager after their car hit a pothole. The app puts your text into a letter that already holds the date, the place, the vehicle, its registration and the number of photos. You write only the narrative; the driver checks and edits it before sending.\n\n## What you write\n\n- `description`: what happened, in the first person, as the driver (\"I was driving…\"), in two to five plain sentences. Use only the facts in the user message: the time of day, the kind of road and place, the situation, the driver's note and the likely cause the assistant found. Where a fact is unknown, leave it out rather than guess. Never invent a speed, a direction, a road name, a warning sign or a witness.\n- `damage_summary`: what was damaged on the car, in one or two sentences, from the note and the cause. When nothing says what was damaged, write that the damage still has to be described, so the driver fills it in.\n\n## What you do not do\n\n- Never write a name, an address, a phone number, a bank account, a registration number or a policy number. The letter has placeholders for them.\n- Never name the road manager, cite a law, demand an amount or promise what will be paid. This is not legal advice.\n- No greeting, no signature, no headings: the letter has them.\n\n## Language and format\n\n- Write both fields in the language the user message names, and only in it, whatever language the driver's note is in.\n- Reply with one JSON object only, with no text around it, following this JSON schema:\n\n```json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"description\": {\n      \"type\": \"string\"\n    },\n    \"damage_summary\": {\n      \"type\": \"string\"\n    }\n  },\n  \"required\": [\n    \"description\",\n    \"damage_summary\"\n  ],\n  \"additionalProperties\": false\n}\n```\n",
+        "images": []
+      },
+      {
+        "role": "user",
+        "text": "Problem type: pothole_damage\nDriver's note: Wpadłem w dużą dziurę. Zjechałem na pobocze, felga jest uszkodzona i dziwnie chodzi kierownica.\n\nVehicle:\n- Name: Octavia\n- Model: Škoda Octavia III 1.6 TDI\n- Year: 2015\n- Fuel type: diesel\n- Transmission: manual\n- Tyre size: unknown\n- Spare wheel: space_saver\n- Wheel locks: unknown\n- Assistance insurance: unknown\n\nSituation: on the road (stopped on or beside a road with traffic)\nLocation context: road main_road, settlement village\nTime of the incident: 2026-11-12T13:00+01:00 (daylight)\nPhotos: 1 attached by the driver, not shown to you\nLikely cause found by the assistant: Uderzenie w dziurę uszkodziło felgę i prawdopodobnie oponę, a dziwnie pracująca kierownica wskazuje, że mogło też ucierpieć zawieszenie lub układ kierowniczy.\n\nAnswer language: Polish. Write both fields in Polish.\n",
+        "images": []
+      }
+    ]
+  },
+  "raw_output": "{\"description\": \"W ciągu dnia jechałem drogą główną w obrębie wsi, gdy samochód wpadł w dużą dziurę w nawierzchni. Po uderzeniu zjechałem na pobocze i zatrzymałem pojazd. Okazało się, że felga jest uszkodzona, a kierownica zaczęła dziwnie pracować. Miejsce zdarzenia udokumentowałem zdjęciem.\", \"damage_summary\": \"Uszkodzona felga i prawdopodobnie opona; nieprawidłowa praca kierownicy wskazuje na możliwe uszkodzenie zawieszenia lub układu kierowniczego, co wymaga sprawdzenia w warsztacie.\"}",
+  "provider": "cli",
+  "model": "claude-opus-5-5",
+  "prompt_version": "v3",
+  "recorded_at": "2026-11-12T12:01:44.579Z"
+}

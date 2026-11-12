@@ -200,3 +200,19 @@ def test_recording_keeps_the_live_providers_capabilities(tmp_path: Path) -> None
     inner.vision, inner.max_images = True, 3
     provider = RecordingProvider(inner, tmp_path, prompt_version="v1")
     assert (provider.name, provider.vision, provider.max_images) == ("fake", True, 3)
+
+
+def test_replay_shows_photos_when_the_recordings_were_made_with_vision(tmp_path: Path) -> None:
+    """`docker compose up` sets no LLM_VISION: the recordings say how they were made (#63)."""
+    key = json.dumps({"vision": True, "sample_photo_ids": ["flat_tyre"]})
+    (tmp_path / "a.json").write_text(json.dumps(recording(key, answer_json())))
+
+    replay = ReplayProvider.from_dir(tmp_path, max_images=3)
+
+    assert (replay.vision, replay.max_images) == (True, 3)
+
+
+def test_replay_without_vision_recordings_shows_none() -> None:
+    replay = ReplayProvider.from_dir(FIXTURES, max_images=3)
+
+    assert (replay.vision, replay.max_images) == (False, 0)

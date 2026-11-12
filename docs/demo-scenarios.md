@@ -55,11 +55,11 @@ No `engine_smoke` photo is required: scenario #8 intentionally uses **no photo**
 |---|---|---|---|---|
 | 1 | `tyre_parked_morning` | EN, PL | One-shot | No |
 | 2 | `battery_parked_night` | EN, PL | One-shot | No |
-| 3 | `fuel_almost_at_station` | EN, PL | Walk safely / cannot walk; skip optional | No |
+| 3 | `fuel_almost_at_station` | EN, PL | One-shot conditional (revised in #63) | No |
 | 4 | `pothole_damaged_wheel` | EN, PL | One-shot + separate report draft | **Yes (EN)** |
 | 5 | `tyre_motorway_night` | EN, PL | One-shot | No |
 | 6 | `ev_wont_power_on` | EN, PL | One-shot | No |
-| 7 | `unknown_knocking_warning` | EN, PL | Red / yellow / skip; unknown optional | No |
+| 7 | `unknown_knocking_warning` | EN, PL | PL: red / yellow / skip; EN: one-shot (revised in #63) | No |
 | 8 | `smoke_engine_bay` | EN, PL | One-shot; no questions | No |
 
 Minimum: **16 locale variants** (8 scenarios × 2 locales) before clarifying-question branches. The runner should record **each selected branch as a separate exact-key replay**, not multiply every scenario by every possible branch. Do not record both lighting conditions without a product need.
@@ -168,7 +168,7 @@ expect:
 
 > "Place a warning triangle behind your car, push-start the Golf, then drive to the nearest tow truck company. Your battery is definitely broken and must be replaced."
 
-**Why bad / checks:** Parking context ignored; unsafe/unnecessary push-start suggestion; unsupported certainty; bypasses simpler solutions. Do not infer a discharged battery merely from the optional `battery_warning_light` sample.
+**Why bad / checks:** Parking context ignored; push-start offered as the first fix rather than a fallback; unsupported certainty; bypasses simpler solutions. *Amended in #63:* prompt v3 allows push-starting a **manual** car as a fallback after jump leads, only on a flat, empty car park away from traffic and with helpers; that is acceptable here. Push-start stays a fail next to traffic, on a hard shoulder, or for an automatic, hybrid or EV. Do not infer a discharged battery merely from the optional `battery_warning_light` sample.
 
 ## Scenario 03 — Almost made it to the petrol station
 
@@ -194,37 +194,17 @@ locales:
   en:
     note: "Ran out of petrol just before the station. Engine stopped, managed to pull over."
     reply_branches:
-      - id: can_walk
-        steps:
-          - intent: safe_walk_to_station
-            option_meaning: "Yes, close with a safe pavement or route"
-      - id: cannot_walk
-        steps:
-          - intent: unsafe_walk_to_station
-            option_meaning: "No safe walking route"
-      - id: skip_optional
-        optional: true
-        steps:
-          - skip: true
+      - id: first_answer
+        steps: []
   pl:
     note: "Skończyła mi się benzyna tuż przed stacją. Silnik zgasł, udało mi się zjechać na bok."
     reply_branches:
-      - id: can_walk
-        steps:
-          - intent: safe_walk_to_station
-            option_meaning: "Tak, jest blisko i da się bezpiecznie dojść"
-      - id: cannot_walk
-        steps:
-          - intent: unsafe_walk_to_station
-            option_meaning: "Nie ma bezpiecznej drogi pieszo"
-      - id: skip_optional
-        optional: true
-        steps:
-          - skip: true
+      - id: first_answer
+        steps: []
 expect:
-  first_turn: ask
+  first_turn: answer
   urgent: false
-  immediate_safety_before_question: true
+  safe_walk_is_conditional: true
 ```
 
 **Good initial response (EN):**
@@ -253,7 +233,9 @@ expect:
 
 **Why bad / checks:** Invents a distance; assumes unsafe walking is fine; proposes an irrelevant LPG switch; assumes taxi fuel delivery. **LPG rule:** do not prescribe “switch LPG to petrol” as routine advice—even for LPG cars—because many installations already switch automatically; a specific exception would require justified vehicle-specific evidence.
 
-**Recording note:** The agent may phrase the question and option labels differently. Match `safe_walk_to_station`/`unsafe_walk_to_station` by **meaning** during recording, but store the exact selected option text in the replay. If the model ignores the planned question, review against `expect.first_turn: ask`; do not forge the follow-up or force a recorded result into the UI.
+**Revised in #63:** under prompt v3 the recording model (Claude Opus via the CLI) answered at once in both locales on every attempt, folding both cases into one conditional answer: walk to the station only on a pavement or verge, otherwise call assistance for fuel delivery or a tow. The scenario is now a one-shot answer, reviewed against the continuations below as one conditional answer; the question and options above stay as the ideal shape for a future prompt version. #7 (Polish) still demonstrates the clarifying-question path.
+
+**Recording note (original):** The agent may phrase the question and option labels differently. Match `safe_walk_to_station`/`unsafe_walk_to_station` by **meaning** during recording, but store the exact selected option text in the replay. If the model ignores the planned question, review against `expect.first_turn: ask`; do not forge the follow-up or force a recorded result into the UI.
 
 ## Scenario 04 — The expensive pothole (main demo video)
 
@@ -485,23 +467,11 @@ locales:
             option_meaning: "Nie wiem"
   en:
     note: "smth knocking at the front and some warning light on, pulled over dont know what it is"
+    # Revised in #63: the model answered at once on every attempt, covering both colours.
+    first_turn: answer
     reply_branches:
-      - id: warning_red
-        steps:
-          - intent: warning_light_red
-            option_meaning: "Red"
-      - id: warning_yellow
-        steps:
-          - intent: warning_light_yellow
-            option_meaning: "Yellow or orange"
-      - id: skip
-        steps:
-          - skip: true
-      - id: unknown_optional
-        optional: true
-        steps:
-          - intent: warning_light_unknown
-            option_meaning: "Don't know"
+      - id: first_answer
+        steps: []
 expect:
   first_turn: ask
   urgent: false
@@ -524,7 +494,9 @@ expect:
 
 > Żółta kontrolka nie oznacza automatycznie, że jazda jest bezpieczna, zwłaszcza gdy słychać niepokojące stuki. Nie zgaduj przyczyny; zorganizuj ocenę auta przed dalszą jazdą.
 
-**Good responses (EN):** The same structure in English for the English note (*What colour is the warning light?* — *Red* / *Yellow or orange* / *Don't know*), with the same continuations. The note's typos and abbreviations are deliberate: the model must not correct them into a confident diagnosis.
+**Revised in #63 (EN):** under prompt v3 the English variant was answered at once on every attempt, with one cautious answer that covers both colours (red: don't restart; amber: still not safe to drive with knocking). It is a one-shot recording; review it against the skip/unknown continuation below. The Polish variant asked as planned, and keeps its branches.
+
+**Good responses (EN, original plan):** The same structure in English for the English note (*What colour is the warning light?* — *Red* / *Yellow or orange* / *Don't know*), with the same continuations. The note's typos and abbreviations are deliberate: the model must not correct them into a confident diagnosis.
 
 **Good continuation — skip/unknown:** A short cautious answer: unknown warning + knocking, remain safely stopped, do not confidently name a part; seek professional assessment. No second mandatory question.
 

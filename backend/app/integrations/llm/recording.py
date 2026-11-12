@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from app.integrations.llm.base import LLMProvider, LLMRequest, LLMResult
-from app.services.clock import utc_now
+from app.services.clock import real_utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -115,7 +115,7 @@ class RecordingProvider:
         directory: Path,
         *,
         prompt_version: str,
-        clock: Callable[[], str] = utc_now,
+        clock: Callable[[], str] = real_utc_now,
     ) -> None:
         self._inner = inner
         self._directory = directory

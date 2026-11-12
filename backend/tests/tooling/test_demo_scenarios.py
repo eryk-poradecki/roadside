@@ -4,12 +4,9 @@ Each scenario's YAML block must use the domain's own values, cover what the list
 give every recording variant its own replay key, so no recording can replay in another's place.
 """
 
-import re
-from pathlib import Path
 from typing import Any
 
 import pytest
-import yaml
 
 from app.assist.prompt import TurnInputs, VehicleFactBlock
 from app.assist.replay_key import replay_key
@@ -17,16 +14,9 @@ from app.domain.incident import ProblemType, Situation
 from app.domain.location_context import RoadClass, Settlement
 from app.domain.sample_photo import find_sample
 from app.domain.vehicle import FuelType, SpareWheel, Transmission
+from scripts.demo.scenarios import PLACES, PROFILES, load_scenarios, raw_blocks
 
-DOC = Path(__file__).resolve().parents[3] / "docs" / "demo-scenarios.md"
-
-
-def _scenarios() -> list[dict[str, Any]]:
-    blocks = re.findall(r"^## Scenario .*?^```yaml\n(.*?)^```", DOC.read_text(), re.M | re.S)
-    return [yaml.safe_load(b) for b in blocks]
-
-
-SCENARIOS = _scenarios()
+SCENARIOS = raw_blocks()
 
 
 def _vehicle(s: dict[str, Any]) -> VehicleFactBlock | None:
@@ -115,3 +105,29 @@ def test_every_first_turn_has_its_own_replay_key() -> None:
     ]
     assert len(keys) == 16
     assert len(set(keys)) == len(keys)
+
+
+# --- what the recording run adds to the document (#63) -----------------------------------------
+
+
+@pytest.mark.parametrize("s", load_scenarios(), ids=lambda s: s.id)
+def test_every_scenario_has_a_place_and_a_time(s: Any) -> None:
+    assert s.id in PLACES
+    assert set(PLACES) == {x["id"] for x in SCENARIOS}
+
+
+@pytest.mark.parametrize("s", SCENARIOS, ids=lambda s: s["id"])
+def test_the_demo_vehicle_has_the_scenarios_facts(s: dict[str, Any]) -> None:
+    vehicle = s["vehicle"]
+    if vehicle is None:
+        return
+    body = PROFILES[vehicle["profile_id"]]
+    for fact in ("fuel_type", "transmission", "spare_wheel"):
+        assert body[fact] == vehicle[fact]
+    # `has_assistance` is set by a non-blank assistance phone.
+    assert bool(body.get("assistance_phone")) == vehicle["has_assistance"]
+
+
+def test_english_is_walked_last() -> None:
+    """The recorded location label is the last locale walked: the primary demo language."""
+    assert all(s.variants[-1].locale == "en" for s in load_scenarios())

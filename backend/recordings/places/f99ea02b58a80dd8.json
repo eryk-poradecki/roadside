@@ -1,0 +1,466 @@
+{
+  "key": "{\"fuel_type\":\"electric\",\"has_assistance\":true,\"problem_type\":\"flat_battery\",\"situation\":\"parked\",\"spare_wheel\":\"none\",\"transmission\":\"automatic\"}",
+  "location": {
+    "road_class": "local_street",
+    "settlement": "city",
+    "label": "Święty Marcin, Poznan"
+  },
+  "dark": false,
+  "nearby": [
+    {
+      "radius_km": 5,
+      "places": [
+        {
+          "osm_type": "node",
+          "osm_id": 11613051546,
+          "category": "charging",
+          "name": "Elocity",
+          "lat": 52.4081427,
+          "lon": 16.9275965,
+          "distance_m": 253,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 11613051545,
+          "category": "charging",
+          "name": "Elocity",
+          "lat": 52.4081832,
+          "lon": 16.9278626,
+          "distance_m": 268,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 332578984,
+          "category": "fuel",
+          "name": "Orlen",
+          "lat": 52.4006424,
+          "lon": 16.9215862,
+          "distance_m": 686,
+          "phone": "+48242560422",
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 13125578885,
+          "category": "charging",
+          "name": null,
+          "lat": 52.39943,
+          "lon": 16.9227373,
+          "distance_m": 793,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 287903098,
+          "category": "fuel",
+          "name": "Orlen",
+          "lat": 52.4113914,
+          "lon": 16.9338956,
+          "distance_m": 810,
+          "phone": "+48242560008",
+          "opening_hours": "Mo-Su 06:00-22:00"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 13556617312,
+          "category": "charging",
+          "name": null,
+          "lat": 52.4028747,
+          "lon": 16.9142765,
+          "distance_m": 838,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 12115074601,
+          "category": "charging",
+          "name": null,
+          "lat": 52.4127111,
+          "lon": 16.9123303,
+          "distance_m": 1120,
+          "phone": null,
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 11831872028,
+          "category": "fuel",
+          "name": "MOL",
+          "lat": 52.3983537,
+          "lon": 16.9360521,
+          "distance_m": 1159,
+          "phone": "+48519075627",
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 2519622951,
+          "category": "repair",
+          "name": "PHU Micar",
+          "lat": 52.4172208,
+          "lon": 16.9124769,
+          "distance_m": 1481,
+          "phone": "+48 608 298 825",
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 506827024,
+          "category": "repair",
+          "name": "Promyk Serwis Beyer",
+          "lat": 52.4167322,
+          "lon": 16.9102591,
+          "distance_m": 1532,
+          "phone": "+48 61 847 93 39",
+          "opening_hours": "Mo-Fr 07:30-19:00; Sa 08:00-13:00"
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 506827021,
+          "category": "repair",
+          "name": "Jassu Motors",
+          "lat": 52.4171385,
+          "lon": 16.9098656,
+          "distance_m": 1584,
+          "phone": "+48 600 366 055",
+          "opening_hours": "Mo-Fr 10:00-18:00; Sa-Su off"
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 506827020,
+          "category": "repair",
+          "name": "Classic Cars Technology",
+          "lat": 52.4169802,
+          "lon": 16.9094513,
+          "distance_m": 1589,
+          "phone": "+48 502 332 642",
+          "opening_hours": "Mo-Fr 07:30-17:00; Sa-Su off"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 12925774681,
+          "category": "repair",
+          "name": "Auto-Szlif",
+          "lat": 52.4197097,
+          "lon": 16.9074728,
+          "distance_m": 1907,
+          "phone": "+48 604 785 211",
+          "opening_hours": "Mo-Fr 08:00-16:00"
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 38132625,
+          "category": "fuel",
+          "name": "BP",
+          "lat": 52.3965922,
+          "lon": 16.9486383,
+          "distance_m": 1928,
+          "phone": "+48618773577",
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 11831849559,
+          "category": "fuel",
+          "name": "Orlen",
+          "lat": 52.4096883,
+          "lon": 16.9555577,
+          "distance_m": 2091,
+          "phone": null,
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 14063900309,
+          "category": "tyres",
+          "name": "Gumar. Serwis Ogumienia.",
+          "lat": 52.3872742,
+          "lon": 16.9581296,
+          "distance_m": 3085,
+          "phone": "+48 790 439 262",
+          "opening_hours": "Mo-Fr 08:00-17:00; Sa 08:00-14:00"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 9416353276,
+          "category": "tyres",
+          "name": "Euromaster Malta",
+          "lat": 52.3995467,
+          "lon": 16.9699399,
+          "distance_m": 3129,
+          "phone": null,
+          "opening_hours": "Mo-Fr 08:00-18:00; Sa 08:00-16:00; PH off"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 2713197911,
+          "category": "tyres",
+          "name": null,
+          "lat": 52.3779502,
+          "lon": 16.9425017,
+          "distance_m": 3374,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 244054882,
+          "category": "tyres",
+          "name": "Wulkanizacja",
+          "lat": 52.4091052,
+          "lon": 16.8724885,
+          "distance_m": 3588,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 361124860,
+          "category": "tyres",
+          "name": "Pneuhage",
+          "lat": 52.4264876,
+          "lon": 16.9706329,
+          "distance_m": 3806,
+          "phone": "+48 61 27 97 120",
+          "opening_hours": "Mo-Fr 08:00-18:00; Sa 09:00-13:00"
+        }
+      ],
+      "fetched_at": "2026-11-12T09:00:27.766Z",
+      "source": "https://overpass-api.de/api/interpreter"
+    },
+    {
+      "radius_km": 25,
+      "places": [
+        {
+          "osm_type": "node",
+          "osm_id": 11613051546,
+          "category": "charging",
+          "name": "Elocity",
+          "lat": 52.4081427,
+          "lon": 16.9275965,
+          "distance_m": 253,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 11613051545,
+          "category": "charging",
+          "name": "Elocity",
+          "lat": 52.4081832,
+          "lon": 16.9278626,
+          "distance_m": 268,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 332578984,
+          "category": "fuel",
+          "name": "Orlen",
+          "lat": 52.4006424,
+          "lon": 16.9215862,
+          "distance_m": 686,
+          "phone": "+48242560422",
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 13125578885,
+          "category": "charging",
+          "name": null,
+          "lat": 52.39943,
+          "lon": 16.9227373,
+          "distance_m": 793,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 287903098,
+          "category": "fuel",
+          "name": "Orlen",
+          "lat": 52.4113914,
+          "lon": 16.9338956,
+          "distance_m": 810,
+          "phone": "+48242560008",
+          "opening_hours": "Mo-Su 06:00-22:00"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 13556617312,
+          "category": "charging",
+          "name": null,
+          "lat": 52.4028747,
+          "lon": 16.9142765,
+          "distance_m": 838,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 12115074601,
+          "category": "charging",
+          "name": null,
+          "lat": 52.4127111,
+          "lon": 16.9123303,
+          "distance_m": 1120,
+          "phone": null,
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 11831872028,
+          "category": "fuel",
+          "name": "MOL",
+          "lat": 52.3983537,
+          "lon": 16.9360521,
+          "distance_m": 1159,
+          "phone": "+48519075627",
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 2519622951,
+          "category": "repair",
+          "name": "PHU Micar",
+          "lat": 52.4172208,
+          "lon": 16.9124769,
+          "distance_m": 1481,
+          "phone": "+48 608 298 825",
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 506827024,
+          "category": "repair",
+          "name": "Promyk Serwis Beyer",
+          "lat": 52.4167322,
+          "lon": 16.9102591,
+          "distance_m": 1532,
+          "phone": "+48 61 847 93 39",
+          "opening_hours": "Mo-Fr 07:30-19:00; Sa 08:00-13:00"
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 506827021,
+          "category": "repair",
+          "name": "Jassu Motors",
+          "lat": 52.4171385,
+          "lon": 16.9098656,
+          "distance_m": 1584,
+          "phone": "+48 600 366 055",
+          "opening_hours": "Mo-Fr 10:00-18:00; Sa-Su off"
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 506827020,
+          "category": "repair",
+          "name": "Classic Cars Technology",
+          "lat": 52.4169802,
+          "lon": 16.9094513,
+          "distance_m": 1589,
+          "phone": "+48 502 332 642",
+          "opening_hours": "Mo-Fr 07:30-17:00; Sa-Su off"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 12925774681,
+          "category": "repair",
+          "name": "Auto-Szlif",
+          "lat": 52.4197097,
+          "lon": 16.9074728,
+          "distance_m": 1907,
+          "phone": "+48 604 785 211",
+          "opening_hours": "Mo-Fr 08:00-16:00"
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 38132625,
+          "category": "fuel",
+          "name": "BP",
+          "lat": 52.3965922,
+          "lon": 16.9486383,
+          "distance_m": 1928,
+          "phone": "+48618773577",
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 11831849559,
+          "category": "fuel",
+          "name": "Orlen",
+          "lat": 52.4096883,
+          "lon": 16.9555577,
+          "distance_m": 2091,
+          "phone": null,
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 14063900309,
+          "category": "tyres",
+          "name": "Gumar. Serwis Ogumienia.",
+          "lat": 52.3872742,
+          "lon": 16.9581296,
+          "distance_m": 3085,
+          "phone": "+48 790 439 262",
+          "opening_hours": "Mo-Fr 08:00-17:00; Sa 08:00-14:00"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 9416353276,
+          "category": "tyres",
+          "name": "Euromaster Malta",
+          "lat": 52.3995467,
+          "lon": 16.9699399,
+          "distance_m": 3129,
+          "phone": null,
+          "opening_hours": "Mo-Fr 08:00-18:00; Sa 08:00-16:00; PH off"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 2713197911,
+          "category": "tyres",
+          "name": null,
+          "lat": 52.3779502,
+          "lon": 16.9425017,
+          "distance_m": 3374,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 244054882,
+          "category": "tyres",
+          "name": "Wulkanizacja",
+          "lat": 52.4091052,
+          "lon": 16.8724885,
+          "distance_m": 3588,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 361124860,
+          "category": "tyres",
+          "name": "Pneuhage",
+          "lat": 52.4264876,
+          "lon": 16.9706329,
+          "distance_m": 3806,
+          "phone": "+48 61 27 97 120",
+          "opening_hours": "Mo-Fr 08:00-18:00; Sa 09:00-13:00"
+        }
+      ],
+      "fetched_at": "2026-11-12T09:01:27.532Z",
+      "source": "https://maps.mail.ru/osm/tools/overpass/api/interpreter"
+    }
+  ],
+  "recorded_at": "2026-11-12T09:00:01.345Z"
+}
