@@ -6,7 +6,7 @@ FRONTEND := frontend
 
 .PHONY: help install dev-api dev-web migrate lint format typecheck test build openapi openapi-drift pre-commit requirements check-requirements check check-backend check-frontend \
 	lint-backend lint-frontend typecheck-backend typecheck-frontend test-backend test-frontend \
-	up down docker-smoke eval record-replays demo-check
+	up down deploy-pi docker-smoke eval record-replays demo-check
 
 help: ## List targets
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "%-20s %s\n", $$1, $$2}'
@@ -27,6 +27,9 @@ up: ## Build and run the compose stack on http://localhost:8080 (demo mode, no .
 
 down: ## Stop the compose stack (the data volume is kept; add -v by hand to drop it)
 	docker compose down
+
+deploy-pi: ## Build and start the public demo (set TUNNEL_NETWORK in the root .env)
+	docker compose -f compose.yaml -f compose.pi.yaml up -d --build --wait
 
 # On a failed check the stack is left running, for `docker compose logs`.
 docker-smoke: ## Build and start the stack, check /health and demo mode through nginx, stop it
