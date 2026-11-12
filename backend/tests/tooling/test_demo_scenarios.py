@@ -20,9 +20,6 @@ from app.domain.vehicle import FuelType, SpareWheel, Transmission
 
 DOC = Path(__file__).resolve().parents[3] / "docs" / "demo-scenarios.md"
 
-# Named in the list but not bundled yet: no licensed source found (see the doc's photo table).
-UNBUNDLED_SAMPLES = {"rim_damage"}
-
 
 def _scenarios() -> list[dict[str, Any]]:
     blocks = re.findall(r"^## Scenario .*?^```yaml\n(.*?)^```", DOC.read_text(), re.M | re.S)
@@ -81,9 +78,9 @@ def test_scenario_has_both_locales_with_a_note_and_a_branch(s: dict[str, Any]) -
         assert variant["reply_branches"]
 
 
-def test_samples_are_bundled_or_known_to_be_missing() -> None:
+def test_every_sample_photo_is_bundled() -> None:
     used = {sid for s in SCENARIOS for sid in s["sample_photos"]}
-    assert {sid for sid in used if find_sample(sid) is None} == UNBUNDLED_SAMPLES
+    assert {sid for sid in used if find_sample(sid) is None} == set()
 
 
 def test_covers_what_the_list_promises() -> None:

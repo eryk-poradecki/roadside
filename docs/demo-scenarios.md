@@ -41,13 +41,13 @@ The app's demo mode accepts **bundled sample IDs** (`backend/app/domain/sample_p
 |---|---|---|---|---|
 | `flat_tyre` | A VW wheel with a visibly deflated tyre (Pujanak, public domain) | Yes | #1, #5 | Flat tyre visible; no definitive cause |
 | `empty_fuel_gauge` | Fuel gauge on E with the low-fuel light on (BrokenSphere, CC BY-SA 3.0) | Yes | #3 | Supports low fuel; doesn't prove cause of engine shutdown |
-| `rim_damage` | Damaged alloy rim and scuffed sidewall | **No — source and licence not yet found** | #4 | Visible wheel damage; does **not** prove the pothole caused it or establish internal damage |
+| `rim_damage` | Chipped alloy rim edge and a deflated tyre (Hazel Nicholson, CC BY 2.0) | Yes | #4 | Visible rim damage and a low/flat tyre; does **not** prove the pothole caused it or establish internal damage |
 | `screw_in_tread` | Screw in the tyre tread (Godstar23, CC0) | Yes | Optional future variant | Visible metal object; cannot certify repairability |
 | `pothole` | A deep pothole in the road (Роман Рябенко, CC0) | Yes | Not used | Shows the road, not the car |
 | `shredded_tyre` | Catastrophic tyre failure | No — source unknown, looks like stock photography | Optional severe-damage variant | Obviously unsafe to drive; do not assume mechanism |
 | `battery_warning_light` | Red battery symbol on the dashboard | No — source unknown, looks like stock photography | Optional ambiguity evaluation | A lit warning lamp alone does **not** prove a discharged 12V battery |
 
-No `engine_smoke` photo is required: scenario #8 intentionally uses **no photo** because asking the driver to approach a smoking vehicle is undesirable. A photo is bundled only once its source page, author and licence are recorded in `docs/ATTRIBUTION.md`. The brainstorm's AI-generated VW flat-tyre image is **not** the bundled `flat_tyre`; the bundled one is a real, public-domain photo. **`rim_damage` blocks the vision recording of #4**, the video scenario: bundle it (or a licensed substitute, with the photo observations re-checked) before #63 records that scenario.
+No `engine_smoke` photo is required: scenario #8 intentionally uses **no photo** because asking the driver to approach a smoking vehicle is undesirable. A photo is bundled only once its source page, author and licence are recorded in `docs/ATTRIBUTION.md`. The brainstorm's AI-generated VW flat-tyre image is **not** the bundled `flat_tyre`; the bundled one is a real, public-domain photo. The brainstorm's rim photo had no traceable licence (reposted widely, no original found), so `rim_damage` is a licensed substitute: it shows a chipped rim with a **deflated** tyre rather than a scuffed but inflated one, and #4's expected photo observations say so.
 
 ### Recording matrix (minimal planned set)
 
@@ -298,12 +298,12 @@ expect:
 
 > **Most likely:** The pothole impact may have damaged your wheel and tyre. Unusual steering also raises concern about steering, alignment or suspension damage.\
 > **Could also be:** Hidden tyre damage or another component affected by the impact.\
-> **Photo:** The rim has visible damage and the tyre sidewall looks damaged/scuffed. A photo cannot show internal damage or prove what caused it.\
-> **What to do:** (1) Stay safely stopped; **don't continue driving with unusual steering**. (2) If safe, photograph the damaged wheel, pothole and surrounding road; keep the location and time saved with the incident. (3) Although you have a space-saver spare, changing the tyre would **not** rule out steering or suspension damage. (4) Arrange recovery and inspection of the wheel, tyre, steering and suspension before returning to the road.
+> **Photo:** The rim edge is visibly chipped and the tyre looks deflated. A photo cannot show internal damage or prove what caused it.\
+> **What to do:** (1) Stay safely stopped; **don't continue driving with unusual steering or on a deflated tyre**. (2) If safe, photograph the damaged wheel, pothole and surrounding road; keep the location and time saved with the incident. (3) Although you have a space-saver spare, changing the tyre would **not** rule out steering or suspension damage. (4) Arrange recovery and inspection of the wheel, tyre, steering and suspension before returning to the road.
 
 **Good roadside answer (PL):**
 
-> **Najbardziej prawdopodobne:** Uderzenie w dziurę mogło uszkodzić koło lub oponę. Nietypowe zachowanie kierownicy może wskazywać również na problem z układem kierowniczym albo zawieszeniem. **Zdjęcie:** Widać uszkodzenie felgi i możliwe uszkodzenie boku opony; zdjęcie nie potwierdza stanu elementów wewnętrznych. **Co zrobić:** Zostań w bezpiecznym miejscu i nie kontynuuj jazdy z nieprawidłowym kierowaniem. Jeśli to bezpieczne, udokumentuj koło, dziurę i otoczenie oraz zachowaj datę i lokalizację. Koło zapasowe nie wyklucza innych usterek — zorganizuj pomoc i kontrolę w warsztacie.
+> **Najbardziej prawdopodobne:** Uderzenie w dziurę mogło uszkodzić koło lub oponę. Nietypowe zachowanie kierownicy może wskazywać również na problem z układem kierowniczym albo zawieszeniem. **Zdjęcie:** Widać wyszczerbioną krawędź felgi i sflaczałą oponę; zdjęcie nie potwierdza stanu elementów wewnętrznych. **Co zrobić:** Zostań w bezpiecznym miejscu i nie kontynuuj jazdy z nieprawidłowym kierowaniem. Jeśli to bezpieczne, udokumentuj koło, dziurę i otoczenie oraz zachowaj datę i lokalizację. Koło zapasowe nie wyklucza innych usterek — zorganizuj pomoc i kontrolę w warsztacie.
 
 **Bad roadside example:**
 
@@ -321,7 +321,7 @@ After the driver has returned home, the report generator should use the **saved 
 > On **[incident date]** at approximately **[incident time]**, while driving a Škoda Octavia III near **[recorded location, if available]**, I encountered a pothole and experienced an impact. I stopped the vehicle when I noticed visible wheel damage and unusual steering behaviour.\
 >
 > **Observed damage**\
-> The attached photograph shows visible damage to the wheel rim and possible tyre-sidewall damage. The driver reported abnormal steering after the impact. The extent of any steering or suspension damage **has not yet been confirmed** by inspection.\
+> The attached photograph shows visible damage to the wheel rim and a deflated tyre. The driver reported abnormal steering after the impact. The extent of any steering or suspension damage **has not yet been confirmed** by inspection.\
 >
 > **Evidence to preserve**\
 > Original photographs, incident timestamp and location, photographs of the pothole and road surroundings **if taken safely**, mechanic's findings, repair quotation/invoices, and any relevant correspondence.\
@@ -629,6 +629,6 @@ Use as a **human review checklist**; it describes the conditions for committing 
 1. **YAML parser/interface:** this is the approved content format, but #63 must implement or adapt its own loader; `expect` and semantic `intent` are review/recording metadata, not guaranteed production fields.
 2. **`situation` in the key (#93):** resolved. `situation` is part of both the scenario key and the replay key.
 3. **`dark` override:** still open. `dark` comes from the real clock at the incident's location; the demo runner must control it independently of a viewer's actual clock.
-4. **Photo bundle and licensing:** `rim_damage` (#4, the video scenario) is not bundled yet: its source and licence are unknown. `shredded_tyre` and `battery_warning_light` are optional and also unbundled. Do not substitute another image under the same ID without reconsidering expected photo observations.
+4. **Photo bundle and licensing:** every sample the scenarios use is bundled and credited. `shredded_tyre` and `battery_warning_light` are optional and unbundled: their sources look like stock photography with no free licence. Do not substitute another image under the same ID without reconsidering expected photo observations.
 5. **Damage-report replay:** resolved by ADR 0009: a recorded draft under `damage_report_key`.
 6. **External safety/legal rules:** verify any Poland-specific motorway procedures, warning-triangle/vest duties, or pothole-claim requirements using official sources before publishing them as assertions. The static safety checklist remains separate from the AI examples.

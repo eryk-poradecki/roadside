@@ -117,6 +117,7 @@ export const pl: Localised<Translation> & {
       screw_in_tread: 'Wkręt w bieżniku opony',
       pothole: 'Głęboka dziura w jezdni',
       empty_fuel_gauge: 'Wskaźnik paliwa na rezerwie',
+      rim_damage: 'Wyszczerbiona felga i sflaczała opona',
     },
   },
   history: {

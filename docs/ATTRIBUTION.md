@@ -36,16 +36,17 @@ This repo vendors a few third-party agent skills so reviewers can see exactly wh
 
 ## Sample photos
 
-Demo mode refuses uploads and offers these bundled photos instead (ADR 0002). Each is from Wikimedia Commons, downloaded as the 1280 px rendition and re-encoded as JPEG without metadata. None shows a number plate or a face.
+Demo mode refuses uploads and offers these bundled photos instead (ADR 0002). Each is from Wikimedia Commons (the 1280 px rendition) or Flickr (the largest public size, 1024 px), re-encoded as JPEG without metadata. None shows a number plate or a face.
 
 **Location in this repo:** `backend/app/assets/sample_photos/`
 
-| File                   | Shows                                            | Original                                                                                                                 | Author        | License                                                         |
-| ---------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ | ------------- | --------------------------------------------------------------- |
-| `flat_tyre.jpg`        | A flat front tyre                                | [Flat Tyre.jpg](https://commons.wikimedia.org/wiki/File:Flat_Tyre.jpg)                                                   | Pujanak       | Public domain (as marked on its Commons page)                   |
-| `screw_in_tread.jpg`   | A screw in a tyre tread                          | [Flat Tire.jpg](https://commons.wikimedia.org/wiki/File:Flat_Tire.jpg)                                                   | Godstar23     | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)   |
-| `pothole.jpg`          | A deep pothole                                   | [A pothole in Dilova Street in Kyiv.jpg](https://commons.wikimedia.org/wiki/File:A_pothole_in_Dilova_Street_in_Kyiv.jpg) | Роман Рябенко | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)   |
-| `empty_fuel_gauge.jpg` | A fuel gauge on empty with the low-fuel light on | [2003 Honda Civic fuel gauge empty.JPG](https://commons.wikimedia.org/wiki/File:2003_Honda_Civic_fuel_gauge_empty.JPG)   | BrokenSphere  | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| File                   | Shows                                            | Original                                                                                                                 | Author          | License                                                         |
+| ---------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ | --------------- | --------------------------------------------------------------- |
+| `flat_tyre.jpg`        | A flat front tyre                                | [Flat Tyre.jpg](https://commons.wikimedia.org/wiki/File:Flat_Tyre.jpg)                                                   | Pujanak         | Public domain (as marked on its Commons page)                   |
+| `screw_in_tread.jpg`   | A screw in a tyre tread                          | [Flat Tire.jpg](https://commons.wikimedia.org/wiki/File:Flat_Tire.jpg)                                                   | Godstar23       | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)   |
+| `pothole.jpg`          | A deep pothole                                   | [A pothole in Dilova Street in Kyiv.jpg](https://commons.wikimedia.org/wiki/File:A_pothole_in_Dilova_Street_in_Kyiv.jpg) | Роман Рябенко   | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)   |
+| `empty_fuel_gauge.jpg` | A fuel gauge on empty with the low-fuel light on | [2003 Honda Civic fuel gauge empty.JPG](https://commons.wikimedia.org/wiki/File:2003_Honda_Civic_fuel_gauge_empty.JPG)   | BrokenSphere    | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| `rim_damage.jpg`       | A chipped alloy rim and a deflated tyre          | [Flat tyre and minor damage to alloy wheel](https://www.flickr.com/photos/10515323@N08/48546235531)                      | Hazel Nicholson | [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/)       |
 
 The API also returns each photo's credit in `GET /api/v1/config` (`sample_photos[].credit`).
 

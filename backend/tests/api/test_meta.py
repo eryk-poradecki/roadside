@@ -28,6 +28,7 @@ async def test_config_defaults_to_demo_mode(client: httpx.AsyncClient) -> None:
         "screw_in_tread",
         "pothole",
         "empty_fuel_gauge",
+        "rim_damage",
     ]
 
 
