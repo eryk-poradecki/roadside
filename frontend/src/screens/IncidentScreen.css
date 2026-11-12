@@ -18,7 +18,7 @@
     gap: 24px;
     align-items: start;
   }
-  .result-col > .panel {
+  .result-col:first-child > .panel {
     max-width: 75ch;
   }
 }
