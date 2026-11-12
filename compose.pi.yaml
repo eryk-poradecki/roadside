@@ -1,0 +1,26 @@
+# Public demo on the owner's Pi (ADR 0011). Requires Docker Compose 2.24.4+.
+# TUNNEL_NETWORK is the existing cloudflared container's Docker network.
+services:
+  backend:
+    environment:
+      DEMO_MODE: "true"
+      PUBLIC_DEPLOY: "true"
+      FRONTEND_ORIGINS: ""
+    volumes: !reset []
+    tmpfs:
+      - /data:size=256m,uid=10001,gid=10001,mode=0700
+    restart: unless-stopped
+
+  web:
+    ports: !reset []
+    networks:
+      default:
+      tunnel:
+        aliases:
+          - roadside-web
+    restart: unless-stopped
+
+networks:
+  tunnel:
+    external: true
+    name: ${TUNNEL_NETWORK:?Set TUNNEL_NETWORK to the existing tunnel Docker network}

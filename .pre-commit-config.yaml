@@ -13,6 +13,12 @@ repos:
       - id: end-of-file-fixer
       - id: trailing-whitespace
       - id: check-yaml
+        exclude: ^compose\.pi\.yaml$
+      - id: check-yaml
+        name: check yaml (Compose custom tags)
+        files: ^compose\.pi\.yaml$
+        # Parse Compose's !reset without trying to construct it as ordinary YAML.
+        args: [--unsafe]
       - id: check-toml
       - id: check-json
         exclude: ^frontend/tsconfig\.json$ # JSONC (comments)
