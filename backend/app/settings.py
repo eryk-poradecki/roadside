@@ -27,7 +27,7 @@ class Settings(BaseSettings):
 
     # The live model (ADR 0004, 0007). Read only when demo mode is off; then the first three
     # are required and startup fails without them, never falling back to replay.
-    llm_provider: Literal["openai_compatible"] = "openai_compatible"
+    llm_provider: Literal["openai_compatible", "cli"] = "openai_compatible"
     llm_base_url: str | None = None
     llm_api_key: SecretStr | None = None
     llm_model: str | None = None
@@ -88,7 +88,9 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _public_deploy_is_demo_only(self) -> Self:
-        if self.public_deploy and (not self.demo_mode or self.llm_record):
+        if self.public_deploy and (
+            not self.demo_mode or self.llm_record or self.llm_provider == "cli"
+        ):
             raise ValueError(
                 "PUBLIC_DEPLOY=true needs DEMO_MODE=true and LLM_RECORD=false (ADR 0011)"
             )
@@ -102,6 +104,10 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _live_model_is_configured(self) -> Self:
+        if self.llm_provider == "cli":
+            if self.demo_mode or not self.llm_record:
+                raise ValueError("LLM_PROVIDER=cli needs DEMO_MODE=false and LLM_RECORD=true")
+            return self
         if self.demo_mode:
             return self
         key = self.llm_api_key.get_secret_value() if self.llm_api_key else ""
