@@ -68,6 +68,20 @@ class LocationResolver:
         )
         return ResolvedLocation(context, label)
 
+    def recorded_dark(self, scenario_key: str) -> bool | None:
+        """Demo mode: whether the scenario was recorded in the dark, which stands in for the
+        visitor's clock, since `dark` is in the replay key (#63). None when live, or when
+        nothing recorded says."""
+        if self._geocoder is not None:
+            return None
+        rec = self._recorded.get(scenario_key)
+        return rec.dark if rec else None
+
+    async def record_dark(self, location: Location, scenario_key: str, *, dark: bool) -> None:
+        """Record the light a live turn was given (recording runs only)."""
+        if self._recorder is not None and self._geocoder is not None:
+            await self._recorder.record_dark(scenario_key, location, dark=dark)
+
     @property
     def keyed_by_scenario(self) -> bool:
         """Whether the context depends on the incident's scenario: replayed or recorded."""

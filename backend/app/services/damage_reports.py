@@ -113,15 +113,18 @@ class DamageReportService:
                 raise _exists()
 
             facts = VehicleFactBlock.from_facts(vehicle.facts) if vehicle else None
+            scenario = scenario_key(incident.problem_type.value, incident.situation.value, facts)
             if incident.location_context is None:
-                scenario = scenario_key(
-                    incident.problem_type.value, incident.situation.value, facts
-                )
                 incident = await refresh_location_context(
                     self._conn, self._incidents, self._location, incident, locale, scenario
                 )
             # The letter tells the story of the incident's moment, not of now.
-            inputs = turn_inputs(incident, facts, datetime.fromisoformat(incident.created_at))
+            inputs = turn_inputs(
+                incident,
+                facts,
+                datetime.fromisoformat(incident.created_at),
+                dark=self._location.recorded_dark(scenario),
+            )
             advice = next((t for t in turns if t.kind is AiTurnKind.ADVICE), None)
             cause = advice.payload["answer"]["cause"] if advice else None
             rendered = prompt.render_report(inputs, locale, photo_count=len(photos), cause=cause)

@@ -1,0 +1,411 @@
+{
+  "key": "{\"fuel_type\":\"diesel\",\"has_assistance\":false,\"problem_type\":\"pothole_damage\",\"situation\":\"on_road\",\"spare_wheel\":\"space_saver\",\"transmission\":\"manual\"}",
+  "location": {
+    "road_class": "main_road",
+    "settlement": "village",
+    "label": "Warszawska, Góra"
+  },
+  "dark": false,
+  "nearby": [
+    {
+      "radius_km": 5,
+      "places": [
+        {
+          "osm_type": "way",
+          "osm_id": 151470496,
+          "category": "fuel",
+          "name": "Orlen",
+          "lat": 52.4158761,
+          "lon": 20.749395,
+          "distance_m": 1623,
+          "phone": null,
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 10696834365,
+          "category": "fuel",
+          "name": "Moya",
+          "lat": 52.4315851,
+          "lon": 20.7524517,
+          "distance_m": 1835,
+          "phone": null,
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 1199597627,
+          "category": "fuel",
+          "name": "Circle K",
+          "lat": 52.4196383,
+          "lon": 20.7385537,
+          "distance_m": 2283,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 170077733,
+          "category": "repair",
+          "name": "Janusz Wiechowicz",
+          "lat": 52.4299843,
+          "lon": 20.7368121,
+          "distance_m": 2630,
+          "phone": null,
+          "opening_hours": "Mo-Fr 08:00-18:00"
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 267642827,
+          "category": "fuel",
+          "name": "BP Mazowsze",
+          "lat": 52.4195649,
+          "lon": 20.7288679,
+          "distance_m": 2940,
+          "phone": "+48 22 7752368",
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 151216966,
+          "category": "repair",
+          "name": "Stacja Diagnostyczna DEKRA",
+          "lat": 52.4230162,
+          "lon": 20.7271181,
+          "distance_m": 3072,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 1798258554,
+          "category": "fuel",
+          "name": null,
+          "lat": 52.4231573,
+          "lon": 20.7264694,
+          "distance_m": 3117,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 221263533,
+          "category": "fuel",
+          "name": null,
+          "lat": 52.4237579,
+          "lon": 20.7258278,
+          "distance_m": 3168,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 193142060,
+          "category": "repair",
+          "name": "Luk Auto",
+          "lat": 52.4251471,
+          "lon": 20.722466,
+          "distance_m": 3415,
+          "phone": "+48516122299",
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 265719507,
+          "category": "repair",
+          "name": null,
+          "lat": 52.4235303,
+          "lon": 20.7158603,
+          "distance_m": 3837,
+          "phone": null,
+          "opening_hours": "Mo-Fr 08:30-16:00"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 13950200631,
+          "category": "charging",
+          "name": "Powerdot",
+          "lat": 52.3909685,
+          "lon": 20.733005,
+          "distance_m": 4208,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 413145454,
+          "category": "repair",
+          "name": "Auto Bochenko",
+          "lat": 52.4336419,
+          "lon": 20.7139618,
+          "distance_m": 4218,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 1531482762,
+          "category": "fuel",
+          "name": "AXAN",
+          "lat": 52.3932259,
+          "lon": 20.7227635,
+          "distance_m": 4507,
+          "phone": "+48 533 393 071",
+          "opening_hours": "Mo-Sa 06:00-22:00; Su,PH 08:00-22:00"
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 635213760,
+          "category": "tyres",
+          "name": "Wulkanizacja",
+          "lat": 52.4244722,
+          "lon": 20.7043978,
+          "distance_m": 4621,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 5992589645,
+          "category": "fuel",
+          "name": null,
+          "lat": 52.424558,
+          "lon": 20.7041623,
+          "distance_m": 4638,
+          "phone": null,
+          "opening_hours": null
+        }
+      ],
+      "fetched_at": "2026-11-12T12:00:31.732Z",
+      "source": "https://overpass-api.de/api/interpreter"
+    },
+    {
+      "radius_km": 25,
+      "places": [
+        {
+          "osm_type": "way",
+          "osm_id": 151470496,
+          "category": "fuel",
+          "name": "Orlen",
+          "lat": 52.4158761,
+          "lon": 20.749395,
+          "distance_m": 1623,
+          "phone": null,
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 10696834365,
+          "category": "fuel",
+          "name": "Moya",
+          "lat": 52.4315851,
+          "lon": 20.7524517,
+          "distance_m": 1835,
+          "phone": null,
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 1199597627,
+          "category": "fuel",
+          "name": "Circle K",
+          "lat": 52.4196383,
+          "lon": 20.7385537,
+          "distance_m": 2283,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 170077733,
+          "category": "repair",
+          "name": "Janusz Wiechowicz",
+          "lat": 52.4299843,
+          "lon": 20.7368121,
+          "distance_m": 2630,
+          "phone": null,
+          "opening_hours": "Mo-Fr 08:00-18:00"
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 267642827,
+          "category": "fuel",
+          "name": "BP Mazowsze",
+          "lat": 52.4195649,
+          "lon": 20.7288679,
+          "distance_m": 2940,
+          "phone": "+48 22 7752368",
+          "opening_hours": "24/7"
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 151216966,
+          "category": "repair",
+          "name": "Stacja Diagnostyczna DEKRA",
+          "lat": 52.4230162,
+          "lon": 20.7271181,
+          "distance_m": 3072,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 1798258554,
+          "category": "fuel",
+          "name": null,
+          "lat": 52.4231573,
+          "lon": 20.7264694,
+          "distance_m": 3117,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 193142060,
+          "category": "repair",
+          "name": "Luk Auto",
+          "lat": 52.4251471,
+          "lon": 20.722466,
+          "distance_m": 3415,
+          "phone": "+48516122299",
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 265719507,
+          "category": "repair",
+          "name": null,
+          "lat": 52.4235303,
+          "lon": 20.7158603,
+          "distance_m": 3837,
+          "phone": null,
+          "opening_hours": "Mo-Fr 08:30-16:00"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 13950200631,
+          "category": "charging",
+          "name": "Powerdot",
+          "lat": 52.3909685,
+          "lon": 20.733005,
+          "distance_m": 4208,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 413145454,
+          "category": "repair",
+          "name": "Auto Bochenko",
+          "lat": 52.4336419,
+          "lon": 20.7139618,
+          "distance_m": 4218,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "way",
+          "osm_id": 635213760,
+          "category": "tyres",
+          "name": "Wulkanizacja",
+          "lat": 52.4244722,
+          "lon": 20.7043978,
+          "distance_m": 4621,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 14229163124,
+          "category": "charging",
+          "name": null,
+          "lat": 52.4382572,
+          "lon": 20.6691709,
+          "distance_m": 7265,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 12110827333,
+          "category": "tyres",
+          "name": "Hybrydy A&K Serwis",
+          "lat": 52.3593504,
+          "lon": 20.8598429,
+          "distance_m": 9017,
+          "phone": null,
+          "opening_hours": "Mo-Fr 08:00-17:00"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 2031081204,
+          "category": "tyres",
+          "name": null,
+          "lat": 52.4084603,
+          "lon": 20.9182643,
+          "distance_m": 9994,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 4673401300,
+          "category": "tyres",
+          "name": null,
+          "lat": 52.3490418,
+          "lon": 20.8655832,
+          "distance_m": 10146,
+          "phone": "+48 22 751 44 89",
+          "opening_hours": "08:00-19:00"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 2089313019,
+          "category": "tyres",
+          "name": null,
+          "lat": 52.3977287,
+          "lon": 20.9175085,
+          "distance_m": 10171,
+          "phone": null,
+          "opening_hours": "Mo-Fr 09:00-17:00"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 5993889831,
+          "category": "charging",
+          "name": null,
+          "lat": 52.4094285,
+          "lon": 20.9400387,
+          "distance_m": 11447,
+          "phone": null,
+          "opening_hours": null
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 4885099254,
+          "category": "charging",
+          "name": null,
+          "lat": 52.37846,
+          "lon": 20.9291692,
+          "distance_m": 11622,
+          "phone": "+48 783 043 133",
+          "opening_hours": "Mo-Fr 08:00-16:00"
+        },
+        {
+          "osm_type": "node",
+          "osm_id": 5818953357,
+          "category": "charging",
+          "name": "GreenWay - Auchan Łomianki",
+          "lat": 52.324253,
+          "lon": 20.9010628,
+          "distance_m": 13806,
+          "phone": "+48 58 325 10 77",
+          "opening_hours": "24/7"
+        }
+      ],
+      "fetched_at": "2026-11-12T12:02:12.670Z",
+      "source": "https://overpass-api.de/api/interpreter"
+    }
+  ],
+  "recorded_at": "2026-11-12T12:00:00.970Z"
+}

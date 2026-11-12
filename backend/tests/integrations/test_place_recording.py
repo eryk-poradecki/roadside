@@ -32,9 +32,9 @@ def recorder(directory: Path) -> PlaceRecorder:
 def test_the_fixtures_load_by_scenario_key() -> None:
     recordings = load_place_recordings(FIXTURES)
 
-    assert len(recordings) == 2
+    assert len(recordings) == 3
     for key, rec in recordings.items():
-        assert json.loads(key)["problem_type"] in {"flat_tyre", "out_of_fuel"}
+        assert json.loads(key)["problem_type"] in {"flat_tyre", "out_of_fuel", "pothole_damage"}
         assert all(radius == s.radius_km for radius, s in rec.nearby.items())
 
 
@@ -121,3 +121,25 @@ def test_two_recordings_of_one_key_fail_startup(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError, match="two place recordings"):
         load_place_recordings(tmp_path)
+
+
+async def test_the_scenario_light_merges_into_the_file(tmp_path: Path) -> None:
+    """`dark` belongs to the scenario, so demo mode can replay it at any hour (#63)."""
+    rec = recorder(tmp_path)
+    await rec.record_nearby(KEY, POINT, snapshot(5))
+
+    await rec.record_dark(KEY, POINT, dark=True)
+
+    [saved] = load_place_recordings(tmp_path).values()
+    assert saved.dark is True
+    assert saved.nearby == {5: snapshot(5)}
+    assert json.loads(files(tmp_path)[0].read_text())["dark"] is True
+
+
+def test_a_recording_without_the_light_leaves_it_unknown(tmp_path: Path) -> None:
+    data: dict[str, object] = {"key": KEY, "location": None, "nearby": [], "recorded_at": "t"}
+    (tmp_path / "old.json").write_text(json.dumps(data))
+
+    [saved] = load_place_recordings(tmp_path).values()
+
+    assert saved.dark is None

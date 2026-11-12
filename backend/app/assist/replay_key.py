@@ -80,6 +80,15 @@ def replay_key(
     )
 
 
+def made_with_vision(key: str) -> bool:
+    """Whether a recording under `key` was made with the photos shown to the model."""
+    try:
+        parts = json.loads(key)
+    except ValueError:
+        return False
+    return isinstance(parts, dict) and parts.get("vision") is True
+
+
 def damage_report_key(
     inputs: TurnInputs,
     *,

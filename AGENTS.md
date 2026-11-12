@@ -12,6 +12,13 @@ Prototype branches (`prototype/*`) are reference-only: they get a **draft** PR m
 
 Issues live in GitHub Issues for `eryk-poradecki/roadside`, driven via the `gh` CLI. See `docs/agents/issue-tracker.md`.
 
+### Demo recordings
+
+What demo mode replays lives in `backend/recordings/`, made from `docs/demo-scenarios.md`. Two user-invoked project skills cover it:
+
+- `/record-replays` records the scenarios against a live model on the owner's machine, reviews every recording against its good/bad examples, and commits only approved ones. Run it after any change to the prompt, the replay key or a scenario.
+- `/demo-check` starts the stack in demo mode and walks every scenario, failing on any replay miss.
+
 ### Domain docs
 
 Single-context: one `CONTEXT.md` plus `docs/adr/` at the repo root. See `docs/agents/domain.md`.

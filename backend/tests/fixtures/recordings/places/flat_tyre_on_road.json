@@ -5,6 +5,7 @@
     "settlement": "village",
     "label": "A2, Wola"
   },
+  "dark": false,
   "nearby": [
     {
       "radius_km": 5,

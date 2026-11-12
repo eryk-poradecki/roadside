@@ -307,6 +307,47 @@ async def test_a_change_outside_the_scenario_keeps_the_places_and_context(
     assert r.json()["nearby"]["status"] == "found"
 
 
+# --- the recorded light (#63) ------------------------------------------------------------------
+
+
+async def test_the_recorded_light_beats_the_visitors_clock(
+    client: httpx.AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A visitor at night still replays the scenario recorded in daylight."""
+    monkeypatch.setattr(assistant, "is_dark", lambda *_: True)
+    incident_id = await make_incident(client, location=LOCATION)
+
+    r = await turn(client, incident_id)
+
+    assert r.status_code == 201, r.text
+    assert r.json()["inputs"]["dark"] is False
+    assert r.json()["advice"]["cause"] == "A blowout on the motorway"
+
+
+async def test_the_recorded_light_picks_the_damage_report_draft(
+    client: httpx.AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(assistant, "is_dark", lambda *_: True)
+    incident_id = await make_incident(client, "pothole_damage", location=LOCATION)
+
+    r = await client.post(f"{INC}/{incident_id}/damage-report", json={"locale": "pl"})
+
+    assert r.status_code == 201, r.text
+
+
+async def test_the_recorded_light_needs_no_location(
+    client: httpx.AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """It belongs to the scenario, not to a point: a visitor who shares none replays it too."""
+    monkeypatch.setattr(assistant, "is_dark", lambda *_: True)
+    incident_id = await make_incident(client)
+
+    r = await turn(client, incident_id)
+
+    assert r.status_code == 201, r.text
+    assert r.json()["inputs"]["dark"] is False
+
+
 # --- recording a live run --------------------------------------------------------------------
 
 
@@ -394,6 +435,8 @@ async def test_recording_captures_the_places_and_the_context_that_replay(tmp_pat
     assert saved.location is not None
     assert saved.location.label == "A2, Wola"
     assert sorted(saved.nearby) == [5, 25]
+    # The light the turn was given, which demo mode replays in place of the clock (#63).
+    assert saved.dark is False
 
     # The same help request in demo mode, from another point, replays all of it.
     demo = Settings(
