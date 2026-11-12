@@ -18,4 +18,5 @@ styles: cursor `text`, user-select `auto`, touch-action `auto`; select-all and d
 selection verified in Chrome. Desktop is two columns; 1023px is stacked with the mobile dock.
 
 Critique found and fixed a textarea height cascade conflict, a clipped desktop filter,
-and unsettled screenshot content. A minor wide-screen gap is retained for text measure.
+and unsettled screenshot content. After manual review, both incident columns fill their
+grid tracks with a 24px gutter, also verified at 2560px.
