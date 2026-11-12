@@ -107,7 +107,7 @@ export function Vehicles() {
   const { data: vehicles, isPending, isError, error } = useVehicles()
 
   return (
-    <>
+    <div className="vehicles-page">
       <div className="vehicles-head">
         <h1>{t('vehicles.heading')}</h1>
         {vehicles && vehicles.length > 0 && (
@@ -141,6 +141,6 @@ export function Vehicles() {
         <Plus size={22} aria-hidden="true" />
         {t('vehicles.add')}
       </Link>
-    </>
+    </div>
   )
 }

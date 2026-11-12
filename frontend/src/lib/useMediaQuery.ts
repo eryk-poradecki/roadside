@@ -1,14 +1,17 @@
 import { useCallback, useSyncExternalStore } from 'react'
 
-/** The desktop breakpoint, the same width as the shell's `@media (min-width: 900px)`. */
-export const DESKTOP_QUERY = '(min-width: 900px)'
+/**
+ * The one desktop breakpoint (ADR 0012), the same width as every `@media (min-width: 1024px)`
+ * in the CSS. Below it, tablets included, the app is the mobile layout.
+ */
+export const DESKTOP_QUERY = '(min-width: 1024px)'
 
 const media = (query: string): MediaQueryList | null =>
   typeof window.matchMedia === 'function' ? window.matchMedia(query) : null
 
 /**
  * Whether a media query matches, kept live. Only for structure that CSS alone can't change
- * (ADR 0008: the map beside the History list); layout otherwise stays in CSS. Without
+ * (ADR 0012: the desktop shell, the map beside the History list); layout otherwise stays in CSS. Without
  * `matchMedia` (jsdom) it reads false, the mobile layout.
  */
 export function useMediaQuery(query: string): boolean {

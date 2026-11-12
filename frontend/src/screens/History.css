@@ -111,12 +111,12 @@
   align-self: flex-start;
 }
 
-/* Desktop (ADR 0008): the list beside a map of the loaded page. The list scrolls with the
-   shell; the map stays put beside it. */
+/* Desktop (ADR 0008, ADR 0012): the list beside a map of the loaded page. The list scrolls
+   with the screen; the map stays put beside it, the height of the window. */
 .history-split {
   display: grid;
-  grid-template-columns: minmax(320px, 2fr) 3fr;
-  gap: 20px;
+  grid-template-columns: minmax(360px, 440px) minmax(0, 1fr);
+  gap: 32px;
   align-items: start;
 }
 .history-list {
@@ -128,7 +128,7 @@
 .history-map {
   position: sticky;
   top: 0;
-  height: clamp(360px, calc(100dvh - 260px), 760px);
+  height: max(420px, calc(100dvh - 96px));
   overflow: hidden;
   border-radius: var(--r);
   border: 1px solid var(--line);

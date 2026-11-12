@@ -46,7 +46,7 @@ Both are **the same app**: same visual language, same components. Desktop change
 - **One app shell, bottom tab bar with three tabs:** Help (Start), History, Vehicles. Not a hamburger menu: hidden navigation costs an extra tap and hurts discoverability.
 - **The tab bar shows only on top-level screens** (Start, History, Vehicles). Flow screens (the help sheet, Result, Incident detail, the vehicle form) hide it and use Back plus their own bottom dock. **The 112 control stays on every screen.**
 - **On Start, 112 must not become a second full-height bottom row.** Put it either in a compact bar directly above the tab bar or in the content above the tiles. Pick one, and show both in the prototype only if it's unclear.
-- **Desktop:** same routes. The tabs become a sidebar or top navigation, with the same components in a different layout (one app, two moments).
+- **Desktop (≥1024 px):** same routes. The tabs become a sidebar shown on every route, with the same components in a different layout (one app, two moments). Desktop has no dock and **no global 112**: 112 shows only in the open incident's header and in the Start screen's trial column. This is a deliberate exception to the rule above; see [ADR 0012](docs/adr/0012-desktop-experience.md).
 - **Result and Incident detail are the same route** (`/incidents/:id`): Result is the incident viewed right after creation, and History links to the same place.
 - **Routes:** `/` (Start), `/incidents` (History), `/incidents/:id` (Result / detail), `/vehicles`, `/vehicles/new`, `/vehicles/:id`. See ADR 0008.
 - **Map attribution** ("© OpenStreetMap contributors", linked) stays fully visible on the inline and the full-screen map, never under the sheet or the dock.

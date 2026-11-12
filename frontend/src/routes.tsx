@@ -9,7 +9,10 @@ import { Start } from './screens/Start'
 import { VehicleForm } from './screens/VehicleForm'
 import { Vehicles } from './screens/Vehicles'
 
-/** Top-level screens get the tab bar. Flow screens use Back. Both keep the 112 control. */
+/**
+ * Mobile: top-level screens get the tab bar, flow screens use Back, and both keep the 112
+ * control. Desktop: the sidebar on every route and no global 112 (ADR 0012).
+ */
 export function AppRoutes() {
   return (
     <Routes>

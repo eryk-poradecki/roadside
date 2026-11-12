@@ -95,7 +95,8 @@ _Avoid_: production, live version, staging
 ### Screens
 
 **Start screen**:
-The mobile first screen: problem-type quick picks, optional photo and note, detected location.
+The first screen, behind the Help tab: problem-type quick picks, optional photo and note, detected location. On desktop it shows a QR code to open the app on a phone, beside the same flow in a narrow column to try it here.
+_Avoid_: Help screen (Help is the tab's label)
 
 **Result screen**:
 The Incident viewed right after "Get help now": safety checklist first, then the AI answer, nearby places and "Mark resolved". It is the same place as Incident detail, seen at the moment of need.

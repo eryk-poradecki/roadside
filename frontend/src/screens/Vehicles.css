@@ -1,3 +1,9 @@
+/* Page wrappers: no box on mobile, where the shell lays the screen out. */
+.vehicles-page,
+.vform-page {
+  display: contents;
+}
+
 .vehicles-head {
   display: flex;
   align-items: baseline;
@@ -93,4 +99,60 @@
   width: 24px;
   height: 24px;
   accent-color: var(--amber);
+}
+
+/* Desktop (ADR 0012): one column, the same width for the list and the form, each card on one
+   row. The form's field groups lay their fields out in two columns. */
+@media (min-width: 1024px) {
+  .vehicles-page,
+  .vform-page {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+    max-width: 52rem;
+  }
+  .vform-page > .back {
+    align-self: flex-start;
+    margin: -12px 0 -12px;
+  }
+  .vehicle {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 24px;
+    padding: 16px 16px 16px 20px;
+  }
+  .vehicle-head {
+    flex: 1 1 16rem;
+    justify-content: flex-start;
+    align-items: center;
+  }
+  .vehicle-confirm {
+    flex: 1 1 100%;
+  }
+  .vehicles-page > .btn-primary,
+  .vform .btn-primary {
+    width: auto;
+    align-self: flex-start;
+    min-width: 14rem;
+  }
+  .vform {
+    gap: 32px;
+  }
+  .vform fieldset {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 18px 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+  }
+  .vform legend {
+    float: left;
+    grid-column: 1 / -1;
+    width: 100%;
+    margin-bottom: 0;
+  }
 }

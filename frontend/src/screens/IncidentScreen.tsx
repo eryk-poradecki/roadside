@@ -23,7 +23,7 @@ import {
 import { useVehicles, type VehicleRead } from '../api/vehicles'
 import { findAdvice } from '../api/aiTurns'
 import { AiPanel } from '../components/AiPanel'
-import { DockAction, EmergencyFirst, useDockUrgent } from '../components/AppShell'
+import { DockAction, EmergencyFirst, EmergencyLink, useDockUrgent } from '../components/AppShell'
 import { DamageReportCard, PotholeHint } from '../components/DamageReportCard'
 import { ErrorNotice } from '../components/ErrorNotice'
 import { NearbyPanel } from '../components/NearbyPanel'
@@ -32,6 +32,7 @@ import { SafetyChecklist } from '../components/SafetyChecklist'
 import { TILE_ICONS } from '../components/tiles'
 import { formatCoords } from '../lib/place'
 import { problemKey } from '../lib/problemType'
+import { useDesktop } from '../lib/useMediaQuery'
 import './IncidentScreen.css'
 
 /**
@@ -114,6 +115,7 @@ function Result({
   back: React.ReactNode
 }) {
   const { t } = useTranslation()
+  const desktop = useDesktop()
   const key = problemKey(incident.problem_type, vehicle?.fuel_type)
   const Icon = TILE_ICONS[key]
   const resolved = incident.status === 'resolved'
@@ -137,10 +139,19 @@ function Result({
       </div>
 
       <header className="result-head">
-        <h1>
-          <Icon size={30} strokeWidth={1.75} aria-hidden="true" />
-          {t(`start.tiles.${key}`)}
-        </h1>
+        <div className="result-title">
+          <h1>
+            <Icon size={30} strokeWidth={1.75} aria-hidden="true" />
+            {t(`start.tiles.${key}`)}
+          </h1>
+          {/* Desktop has no global 112 (ADR 0012): the open incident carries its own. */}
+          {desktop && !resolved && (
+            <EmergencyLink className={urgent ? 'head-sos head-sos-urgent' : 'head-sos'}>
+              <Phone size={18} strokeWidth={2.25} aria-hidden="true" />
+              112
+            </EmergencyLink>
+          )}
+        </div>
         <p className="result-meta">
           {vehicle && (
             <span>

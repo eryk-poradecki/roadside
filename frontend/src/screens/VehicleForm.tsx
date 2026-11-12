@@ -292,14 +292,14 @@ function VehicleEditor({ vehicle, initial }: { vehicle?: VehicleRead; initial: V
 function Frame({ heading, children }: { heading: string; children: ReactNode }) {
   const { t } = useTranslation()
   return (
-    <>
+    <div className="vform-page">
       <Link to="/vehicles" className="back">
         <ArrowLeft size={20} aria-hidden="true" />
         {t('common.back')}
       </Link>
       <h1>{heading}</h1>
       {children}
-    </>
+    </div>
   )
 }
 

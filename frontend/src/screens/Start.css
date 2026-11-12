@@ -67,3 +67,130 @@
   align-items: center;
   justify-content: flex-start;
 }
+
+/* Desktop (ADR 0012): two parts. Left, the QR code to the phone or, where a phone couldn't
+   open this address, how the flow works; right, the trial column. */
+.start-desk {
+  display: grid;
+  grid-template-columns: minmax(0, 28rem) 400px;
+  justify-content: center;
+  align-items: center;
+  gap: 40px clamp(56px, 6vw, 96px);
+  flex: 1 0 auto;
+}
+.start-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+}
+.start-side .lede {
+  max-width: 34ch;
+}
+.qr {
+  display: block;
+  width: 216px;
+  height: 216px;
+  margin-top: 16px;
+  border-radius: var(--r-sm);
+  box-shadow: 0 12px 32px oklch(0.05 0.01 255 / 0.5);
+}
+.qr-plate {
+  fill: var(--text);
+}
+.qr-modules {
+  fill: var(--bg);
+}
+.start-origin {
+  color: var(--muted);
+  font-size: 0.9375rem;
+  overflow-wrap: anywhere;
+}
+
+/* How it works: three numbered steps, the number styled like the checklist's first step. */
+.how-steps {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.how-steps li {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.how-n {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-weight: 800;
+}
+.how-steps li:first-child .how-n {
+  background: var(--amber);
+  color: var(--on-amber);
+}
+.how-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 4px;
+  max-width: 38ch;
+}
+.how-text strong {
+  font-size: 1.125rem;
+  line-height: 1.25;
+}
+.how-text span {
+  color: var(--muted);
+  text-wrap: pretty;
+}
+.how-hint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px 16px;
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+.how-hint svg {
+  flex: none;
+  color: var(--text);
+}
+
+.start-try {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.start-try > h2 {
+  padding-left: 4px;
+  color: var(--muted);
+  font-size: 1rem;
+}
+/* The mobile flow at phone width, framed so it reads as the phone, not as page content. */
+.trial {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px var(--gutter) var(--gutter);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+}
+.trial .intro-heading {
+  font-size: 2.25rem;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}

@@ -153,6 +153,29 @@
     border-radius: 24px;
   }
 }
+/* Desktop (ADR 0012): a centred modal, not a sheet from the bottom edge. */
+@media (min-width: 1024px) {
+  .sheet {
+    inset: 0;
+    margin: auto;
+    height: fit-content;
+    max-height: min(88dvh, 860px);
+    box-shadow: 0 24px 64px oklch(0.05 0.01 255 / 0.55);
+  }
+  .sheet[open] {
+    animation-name: modal-in;
+  }
+  @keyframes modal-in {
+    from {
+      transform: translateY(12px) scale(0.985);
+      opacity: 0;
+    }
+    to {
+      transform: none;
+      opacity: 1;
+    }
+  }
+}
 
 .sheet-photos {
   display: flex;

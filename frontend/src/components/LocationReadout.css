@@ -1,4 +1,5 @@
 .readout {
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -34,13 +35,17 @@
   margin: -12px -6px -12px 0;
   padding: 0 6px;
 }
+/* Two equal columns while both numbers fit; latitude over longitude when they don't. */
 .coords {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px 16px;
 }
 .coord {
-  font-size: clamp(1.5rem, 7.6vw, 2rem);
+  flex: 1 1 0;
+  min-width: max-content;
+  /* Sized to the card, not the window, so a narrow column (desktop Start) doesn't overflow. */
+  font-size: clamp(1.375rem, 8.2cqi, 2rem);
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.02em;
