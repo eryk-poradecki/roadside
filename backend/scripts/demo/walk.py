@@ -16,6 +16,7 @@ from typing import Any, Protocol
 import httpx
 
 from app.domain.ai_turn import Locale
+from app.schemas.incident import LocationRead
 from scripts.demo.scenarios import PROFILES, Branch, Scenario, Variant
 
 API = "/api/v1"
@@ -98,6 +99,7 @@ async def walk(
     *,
     vehicle_id: int | None,
     choices: Choices,
+    location: LocationRead | None = None,
     radii: tuple[int, ...] = (),
     report_locales: tuple[Locale, ...] = (),
     hook: StepHook | None = None,
@@ -112,6 +114,7 @@ async def walk(
         w,
         vehicle_id=vehicle_id,
         choices=choices,
+        location=location,
         radii=radii,
         nearby_attempts=nearby_attempts,
         retry_wait_s=retry_wait_s,
@@ -131,6 +134,7 @@ async def _steps(
     *,
     vehicle_id: int | None,
     choices: Choices,
+    location: LocationRead | None = None,
     radii: tuple[int, ...] = (),
     report_locales: tuple[Locale, ...] = (),
     hook: StepHook,
@@ -146,7 +150,9 @@ async def _steps(
             "vehicle_id": vehicle_id,
             "note": variant.note,
             "situation": scenario.situation,
-            "location": {"lat": place.lat, "lon": place.lon, "accuracy_m": place.accuracy_m},
+            "location": location.model_dump(mode="json")
+            if location
+            else {"lat": place.lat, "lon": place.lon, "accuracy_m": place.accuracy_m},
         },
     )
     if r.status_code != 201:

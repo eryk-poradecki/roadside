@@ -4,7 +4,9 @@ description: "Start the stack in demo mode and walk every demo scenario, reporti
 disable-model-invocation: true
 ---
 
-Proves `docker compose up` replays every scenario in `docs/demo-scenarios.md` with no `no_recording` fallback: every locale, every recorded branch, both nearby radii, and the pothole report in both letter languages. The walker is `backend/scripts/demo_check.py`; it refuses an app that is not in demo mode, walks the demo vehicles demo mode seeds (#122) as a visitor picks them, and deletes the incidents it creates.
+Proves `docker compose up` replays the Start screen scenarios from `GET /config`: each offered locale and recorded branch, both nearby radii, and the pothole report in both letter languages. The walker (`backend/scripts/demo_check.py`) sends the catalogue's location, note, situation, photos and vehicle, found by `demo_profile`. It checks every documented scenario and locale is offered, so missing recordings cannot silently shrink the check.
+
+It also verifies each demo vehicle refuses fact changes and deletion with 403 `demo_vehicle_read_only`, accepts changing only `is_default`, and restores the original default (including no default or a visitor's vehicle). It refuses an app outside demo mode and deletes the incidents it creates.
 
 ## 1. Start the stack in demo mode
 
@@ -23,7 +25,7 @@ Done when `curl -fsS http://localhost:8080/api/v1/config` shows `"demo_mode":tru
 make demo-check
 ```
 
-Done when it exits 0: every row reads `ok`. Exit 2 with "the demo vehicles are not seeded or were edited" means the stack didn't start on a fresh volume. A row with a reason (`no_recording`, `nearby_not_recorded`, `invalid_output`, an option not offered) names the walk to fix with `/record-replays`.
+Done when it exits 0: every row reads `ok`. Exit 2 with "the demo vehicles are not seeded or were edited" means the stack didn't start on a fresh volume. A `/config is missing scenario` or `missing locales` error means first-turn recordings are missing; restore them with `/record-replays`. A vehicle error names the forbidden mutation or default change that failed. A row with a reason (`no_recording`, `nearby_not_recorded`, `invalid_output`, an option not offered) names the walk to fix with `/record-replays`.
 
 ## 3. Stop
 
