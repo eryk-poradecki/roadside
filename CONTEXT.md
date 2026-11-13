@@ -85,8 +85,16 @@ A draft letter to the road manager describing pothole damage from an incident, w
 _Avoid_: claim, complaint
 
 **Demo mode**:
-The app running on pre-recorded real AI answers, so it always works without a model or key; the public deploy runs only in this mode.
+The app running on pre-recorded real AI answers, so it always works without a model or key; the public deploy runs only in this mode. The driver doesn't describe their own situation: they pick a demo scenario, and their own location is never asked for.
 _Avoid_: replay mode, mock mode, offline mode
+
+**Demo scenario**:
+One of the fixed roadside situations recorded for demo mode, such as a flat tyre on the motorway at night. It brings everything the help request needs: problem type, vehicle, situation, sample photos, note and a place on a public road. The driver picks it as a whole and can't change its details. A scenario is offered only in the languages it was recorded in.
+_Avoid_: case, preset, example, template
+
+**Demo vehicle**:
+One of the three fixed vehicles that demo scenarios use, present whenever demo mode runs. In demo mode it can't be edited or removed, only made the default; the driver's own vehicles can.
+_Avoid_: sample car, seeded car, test vehicle
 
 **Public demo**:
 The one public instance reviewers can try, always in demo mode; anything entered there is temporary and wiped nightly.
