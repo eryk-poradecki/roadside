@@ -3,12 +3,14 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import type { DemoScenario } from '../api/generated'
+import { isApiError } from '../api/client'
+import { SafetyChecklist } from './SafetyChecklist'
 import { useConfig } from '../api/config'
-import { useCreateIncident } from '../api/incidents'
+import { useCreateIncident, type IncidentCreate } from '../api/incidents'
 import { photoSrc, useAddPhoto, type PhotoSource } from '../api/photos'
 import type { VehicleRead } from '../api/vehicles'
 import type { GeoState } from '../lib/geolocation'
-import { problemKey, type ProblemType } from '../lib/problemType'
+import { problemKey, type ProblemType, type ProblemKey } from '../lib/problemType'
 import { EmergencyLink } from './AppShell'
 import { ErrorNotice } from './ErrorNotice'
 import { SituationPick, type Situation } from './SituationPick'
@@ -69,6 +71,13 @@ export function HelpSheet({
   const titleRef = useRef<HTMLHeadingElement>(null)
   // A request that finishes after the driver closed the sheet must not navigate them away.
   const mounted = useRef(true)
+  const [offlineResult, setOfflineResult] = useState<{
+    body: IncidentCreate
+    label: ProblemKey
+  } | null>(null)
+  useEffect(() => {
+    if (offlineResult) titleRef.current?.focus()
+  }, [offlineResult])
   const [note, setNote] = useState(
     scenario?.locales[i18n.resolvedLanguage ?? i18n.language]?.note ?? '',
   )
@@ -123,17 +132,15 @@ export function HelpSheet({
     const location =
       scenario?.location ??
       (geo.status === 'found' ? { lat: geo.lat, lon: geo.lon, accuracy_m: geo.accuracy } : null)
+    const body = offlineResult?.body ?? {
+      problem_type: problemType,
+      vehicle_id: vehicleId,
+      note: note.trim() || null,
+      location,
+      situation,
+    }
     try {
-      const incident = await create.create(
-        {
-          problem_type: problemType,
-          vehicle_id: vehicleId,
-          note: note.trim() || null,
-          location,
-          situation,
-        },
-        idempotencyKey,
-      )
+      const incident = await create.create(body, idempotencyKey)
       // Into the mutation cache, so they keep going after the sheet closes and the Result
       // screen can wait for them before the first AI turn.
       for (const photo of photos) addPhoto.mutate({ incidentId: incident.id, source: photo.source })
@@ -142,7 +149,9 @@ export function HelpSheet({
       onCreated()
       if (mounted.current)
         void navigate(`/incidents/${String(incident.id)}`, { state: { fromHelp: true } })
-    } catch {
+    } catch (error) {
+      if (mounted.current && isApiError(error) && error.reason === 'offline')
+        setOfflineResult({ body, label })
       // Shown below from `create.error`. A re-tap reuses the key, so it can't duplicate.
     }
   }
@@ -150,7 +159,7 @@ export function HelpSheet({
   return (
     <dialog
       ref={ref}
-      className="sheet"
+      className={offlineResult ? 'sheet sheet-result' : 'sheet'}
       aria-labelledby={titleId}
       onCancel={(e) => {
         e.preventDefault()
@@ -171,85 +180,97 @@ export function HelpSheet({
         </button>
       </header>
       <div className="sheet-body">
-        {!scenario && <p className="sheet-intro">{t('sheet.intro')}</p>}
+        {offlineResult ? (
+          <>
+            <p role="status">{t('sheet.notSaved')}</p>
+            <SafetyChecklist
+              problem={offlineResult.label}
+              situation={offlineResult.body.situation ?? 'on_road'}
+            />
+          </>
+        ) : (
+          <>
+            {!scenario && <p className="sheet-intro">{t('sheet.intro')}</p>}
 
-        <label className="note-label" htmlFor={noteId}>
-          {t('sheet.noteLabel')}
-        </label>
-        <textarea
-          id={noteId}
-          className="field sheet-note"
-          rows={3}
-          maxLength={NOTE_MAX}
-          placeholder={t('sheet.notePlaceholder')}
-          readOnly={!!scenario}
-          value={note}
-          onChange={(e) => {
-            setNote(e.target.value)
-          }}
-        />
-        {note.length > 0 && (
-          <p className="note-count" aria-hidden="true">
-            {note.length}/{NOTE_MAX}
-          </p>
-        )}
-
-        <div className="sheet-photos" role="group" aria-label={t('photos.sheetLabel')}>
-          <p className="note-label">{t('photos.sheetLabel')}</p>
-          <PhotoGrid
-            items={photos.map((photo) => ({
-              key: photo.key,
-              src: photo.preview,
-              onRemove: scenario
-                ? undefined
-                : () => {
-                    revoke(photo)
-                    setPhotos((list) => list.filter((p) => p.key !== photo.key))
-                  },
-            }))}
-          />
-          {!scenario && photos.length < maxPhotos && (
-            <AddPhotos
-              remaining={maxPhotos - photos.length}
-              onPick={(sources) => {
-                const added = sources.slice(0, maxPhotos - photos.length).map((source) => ({
-                  key: nextPickKey++,
-                  source,
-                  preview: previewOf(source, sampleUrl),
-                }))
-                setPhotos([...photos, ...added])
+            <label className="note-label" htmlFor={noteId}>
+              {t('sheet.noteLabel')}
+            </label>
+            <textarea
+              id={noteId}
+              className="field sheet-note"
+              rows={3}
+              maxLength={NOTE_MAX}
+              placeholder={t('sheet.notePlaceholder')}
+              readOnly={!!scenario}
+              value={note}
+              onChange={(e) => {
+                setNote(e.target.value)
               }}
             />
-          )}
-          <VisionNote />
-        </div>
+            {note.length > 0 && (
+              <p className="note-count" aria-hidden="true">
+                {note.length}/{NOTE_MAX}
+              </p>
+            )}
 
-        <fieldset disabled={!!scenario} className="scenario-fields">
-          <SituationPick value={situation} onChange={setSituation} />
+            <div className="sheet-photos" role="group" aria-label={t('photos.sheetLabel')}>
+              <p className="note-label">{t('photos.sheetLabel')}</p>
+              <PhotoGrid
+                items={photos.map((photo) => ({
+                  key: photo.key,
+                  src: photo.preview,
+                  onRemove: scenario
+                    ? undefined
+                    : () => {
+                        revoke(photo)
+                        setPhotos((list) => list.filter((p) => p.key !== photo.key))
+                      },
+                }))}
+              />
+              {!scenario && photos.length < maxPhotos && (
+                <AddPhotos
+                  remaining={maxPhotos - photos.length}
+                  onPick={(sources) => {
+                    const added = sources.slice(0, maxPhotos - photos.length).map((source) => ({
+                      key: nextPickKey++,
+                      source,
+                      preview: previewOf(source, sampleUrl),
+                    }))
+                    setPhotos([...photos, ...added])
+                  }}
+                />
+              )}
+              <VisionNote />
+            </div>
 
-          {(vehicles.length > 0 || scenario) && (
-            <fieldset className="vehicle-pick">
-              <legend className="note-label">{t('sheet.vehicleLabel')}</legend>
-              {[...vehicles, null].map((v) => (
-                <label key={v?.id ?? 'none'} className="choice">
-                  <input
-                    type="radio"
-                    name="vehicle"
-                    checked={vehicleId === (v?.id ?? null)}
-                    onChange={() => {
-                      setPicked(v?.id ?? null)
-                    }}
-                  />
-                  <span>{v ? v.name : t('sheet.noVehicle')}</span>
-                </label>
-              ))}
+            <fieldset disabled={!!scenario} className="scenario-fields">
+              <SituationPick value={situation} onChange={setSituation} />
+
+              {(vehicles.length > 0 || scenario) && (
+                <fieldset className="vehicle-pick">
+                  <legend className="note-label">{t('sheet.vehicleLabel')}</legend>
+                  {[...vehicles, null].map((v) => (
+                    <label key={v?.id ?? 'none'} className="choice">
+                      <input
+                        type="radio"
+                        name="vehicle"
+                        checked={vehicleId === (v?.id ?? null)}
+                        onChange={() => {
+                          setPicked(v?.id ?? null)
+                        }}
+                      />
+                      <span>{v ? v.name : t('sheet.noVehicle')}</span>
+                    </label>
+                  ))}
+                </fieldset>
+              )}
             </fieldset>
-          )}
-        </fieldset>
-        {create.isError && <ErrorNotice error={create.error} />}
+          </>
+        )}
       </div>
 
       <div className="sheet-actions">
+        {create.isError && <ErrorNotice error={create.error} />}
         {scenario && (
           <button type="button" className="btn btn-quiet" onClick={onClose}>
             {t('demo.changeScenario')}
@@ -261,7 +282,11 @@ export function HelpSheet({
           disabled={create.isPending}
           onClick={() => void submit()}
         >
-          {create.isPending ? t('sheet.sending') : t('sheet.getHelp')}
+          {create.isPending
+            ? t('sheet.sending')
+            : offlineResult
+              ? t('common.retry')
+              : t('sheet.getHelp')}
         </button>
       </div>
     </dialog>

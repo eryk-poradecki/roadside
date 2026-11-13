@@ -183,6 +183,8 @@
 
 /* At least three lines to write in; the sheet scrolls, so no resize handle. */
 .sheet-note {
+  flex-shrink: 0;
+  height: calc(3lh + 26px);
   min-height: calc(3lh + 26px);
   resize: none;
 }
@@ -238,4 +240,12 @@
   .sheet[open] {
     animation-name: fade-in;
   }
+}
+
+.sheet-head,
+.sheet-actions {
+  flex-shrink: 0;
+}
+.sheet-result {
+  height: min(92dvh, 900px);
 }

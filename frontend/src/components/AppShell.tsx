@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from 'react'
 import { createPortal } from 'react-dom'
-import { Outlet } from 'react-router'
+import { Link, Outlet, useLocation } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { useOffline } from '../api/offline'
 import { useDesktop } from '../lib/useMediaQuery'
@@ -30,8 +30,8 @@ export function EmergencyLink({ className, children }: { className: string; chil
 }
 
 /**
- * The 112 control. On mobile it renders on every screen, inside the shell, so no route can
- * omit it. Desktop has no global 112 (ADR 0012).
+ * The 112 control for roadside screens. At-home screens omit it on mobile; desktop has
+ * no global 112 (ADR 0012 and its #146 amendment).
  */
 export function EmergencyBar({ urgent = false }: { urgent?: boolean }) {
   const { t } = useTranslation()
@@ -111,10 +111,10 @@ export const useDockUrgent = () => useContext(DockSlotContext)?.urgent ?? false
 function Wordmark() {
   const { t } = useTranslation()
   return (
-    <p className="wordmark">
+    <Link className="wordmark" to="/">
       <RoadMark />
       <span>{t('appName')}</span>
-    </p>
+    </Link>
   )
 }
 
@@ -126,6 +126,8 @@ function Wordmark() {
  */
 export function AppShell({ dock }: { dock?: ReactNode }) {
   const desktop = useDesktop()
+  const { pathname } = useLocation()
+  const emergency = !pathname.startsWith('/vehicles') && !pathname.endsWith('/report')
   const [claimed, claim] = useCounter()
   const [urgent, claimUrgent] = useCounter()
   const [node, setNode] = useState<HTMLElement | null>(null)
@@ -156,21 +158,22 @@ export function AppShell({ dock }: { dock?: ReactNode }) {
           </main>
           {!desktop && (
             <div className="shell-dock">
-              {claimed ? (
-                // Fixed child positions keep the slot node mounted when `urgent` flips.
-                <div className={urgent ? 'dock dock-urgent' : 'dock'}>
-                  {urgent && <EmergencyBar urgent />}
-                  <div className="dock-main" ref={setNode} />
-                  {!urgent && (
-                    <EmergencyLink className="sos-compact">
-                      <Phone size={20} strokeWidth={2.25} aria-hidden="true" />
-                      112
-                    </EmergencyLink>
-                  )}
-                </div>
-              ) : (
-                <EmergencyBar urgent={urgent} />
-              )}
+              {emergency &&
+                (claimed ? (
+                  // Fixed child positions keep the slot node mounted when `urgent` flips.
+                  <div className={urgent ? 'dock dock-urgent' : 'dock'}>
+                    {urgent && <EmergencyBar urgent />}
+                    <div className="dock-main" ref={setNode} />
+                    {!urgent && (
+                      <EmergencyLink className="sos-compact">
+                        <Phone size={20} strokeWidth={2.25} aria-hidden="true" />
+                        112
+                      </EmergencyLink>
+                    )}
+                  </div>
+                ) : (
+                  <EmergencyBar urgent={urgent} />
+                ))}
               {dock}
             </div>
           )}

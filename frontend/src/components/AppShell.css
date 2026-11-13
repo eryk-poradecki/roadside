@@ -288,3 +288,8 @@
   padding: 0;
   gap: 24px;
 }
+
+.wordmark {
+  color: var(--text);
+  text-decoration: none;
+}

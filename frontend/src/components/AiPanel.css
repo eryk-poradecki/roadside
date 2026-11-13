@@ -349,3 +349,10 @@
 .ask-skip {
   align-self: flex-start;
 }
+
+.ai-loading .ai-line,
+.ai-loading .ai-line svg,
+.in-progress,
+.in-progress svg {
+  color: var(--in-progress);
+}

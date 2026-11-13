@@ -155,3 +155,28 @@
   background: var(--text);
   color: var(--bg);
 }
+
+.history-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+@media (min-width: 1024px) {
+  .history-controls {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--bg);
+    padding-bottom: 12px;
+  }
+  /* Cover the scroll container's top padding so rows do not peek above the heading. */
+  .history-controls::before {
+    content: '';
+    position: absolute;
+    inset: -40px 0 100%;
+    background: var(--bg);
+  }
+  .incident-row {
+    scroll-margin-top: 160px;
+  }
+}

@@ -232,12 +232,12 @@ describe('incident upkeep', () => {
     const gone = fakeApi.seedIncident({ problem_type: 'flat_tyre' })
     const { user } = renderApp(`/incidents/${String(gone.id)}`)
 
-    await user.click(await screen.findByRole('button', { name: 'Delete incident' }))
-    const confirm = screen.getByRole('group', { name: 'Delete incident' })
+    await user.click(await screen.findByRole('button', { name: 'Delete' }))
+    const confirm = screen.getByRole('group', { name: 'Delete' })
     await user.click(within(confirm).getByRole('button', { name: 'Cancel' }))
     expect(fakeApi.incidents).toHaveLength(2)
 
-    await user.click(screen.getByRole('button', { name: 'Delete incident' }))
+    await user.click(screen.getByRole('button', { name: 'Delete' }))
     await user.click(screen.getByRole('button', { name: 'Yes, delete' }))
 
     expect(await screen.findByRole('heading', { level: 1, name: 'History' })).toBeInTheDocument()
@@ -282,7 +282,7 @@ describe('incident upkeep', () => {
     })
     const { user } = renderApp(`/incidents/${String(incident.id)}`)
 
-    await user.click(await screen.findByRole('link', { name: 'Edit details' }))
+    await user.click(await screen.findByRole('link', { name: 'Edit' }))
     await screen.findByRole('heading', { level: 1, name: 'Edit incident' })
     const note = screen.getByLabelText('Note')
     expect(note).toHaveValue('Rear left')

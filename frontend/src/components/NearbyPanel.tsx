@@ -134,7 +134,7 @@ export function NearbyPanel({
           </>
         ) : searching ? (
           <>
-            <p className="ai-line">
+            <p className="ai-line in-progress">
               <Loader size={20} className="spin" aria-hidden="true" />
               {t('nearby.searching')}
             </p>

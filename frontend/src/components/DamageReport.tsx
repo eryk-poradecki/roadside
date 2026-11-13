@@ -1,4 +1,14 @@
-import { Copy, ExternalLink, FileText, Info, Printer, RotateCw, Send, Sparkles } from 'lucide-react'
+import {
+  Copy,
+  ExternalLink,
+  FileText,
+  Info,
+  Printer,
+  Share2,
+  RotateCw,
+  Send,
+  Sparkles,
+} from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
@@ -18,6 +28,7 @@ import {
   rememberClaimant,
   type Claimant,
 } from '../lib/claimant'
+import { useMediaQuery } from '../lib/useMediaQuery'
 import { ErrorNotice, useErrorMessage } from './ErrorNotice'
 import { Fold } from './Fold'
 import './DamageReport.css'
@@ -207,6 +218,18 @@ export function ReportEditor({
   const update = useUpdateDamageReport(incidentId)
   const [body, setBody] = useState(report.body)
   const [stored, setStored] = useState(report.body)
+  const standalone =
+    useMediaQuery('(display-mode: standalone)') ||
+    ('standalone' in navigator && navigator.standalone === true)
+  const [shareFailed, setShareFailed] = useState(false)
+  const share = async () => {
+    setShareFailed(false)
+    try {
+      await navigator.share({ text: fillClaimant(body, claimant) })
+    } catch (error) {
+      if (!(error instanceof DOMException && error.name === 'AbortError')) setShareFailed(true)
+    }
+  }
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle')
   const [confirming, setConfirming] = useState(false)
   const [locale, setLocale] = useState<Locale>(report.locale)
@@ -324,11 +347,17 @@ export function ReportEditor({
               type="button"
               className="btn btn-secondary"
               disabled={busy || printState === 'loading'}
-              onClick={() => void print()}
+              onClick={() => void (standalone ? share() : print())}
             >
-              <Printer size={18} aria-hidden="true" />
-              {t('report.print')}
+              {standalone ? (
+                <Share2 size={18} aria-hidden="true" />
+              ) : (
+                <Printer size={18} aria-hidden="true" />
+              )}
+              {t(standalone ? 'report.share' : 'report.print')}
             </button>
+            {standalone && <p className="muted">{t('report.shareHint')}</p>}
+            {shareFailed && <p role="alert">{t('report.shareFailed')}</p>}
             {printState === 'loading' && <p role="status">{t('report.printLoading')}</p>}
             {printState === 'failed' && <p role="alert">{t('report.printFailed')}</p>}
             <button

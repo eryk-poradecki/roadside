@@ -30,7 +30,7 @@ export const pl: Localised<Translation> & {
     notice:
       'To demo działa bez modelu AI na żywo. Odpowiedzi dla poniższych scenariuszy zostały nagrane wcześniej. Rozejrzyj się po aplikacji.',
     publicNotice:
-      'Wszystko, co tu wpiszesz, jest widoczne dla innych odwiedzających do nocnego resetu.',
+      'Wszystko, co tu wpiszesz, jest widoczne dla innych odwiedzających i usuwane codziennie w nocy.',
     scenariosHeading: 'Wybierz scenariusz',
     changeScenario: 'Zmień scenariusz',
     noScenarios: 'Nie ma jeszcze nagranych scenariuszy w tym języku.',
@@ -98,6 +98,7 @@ export const pl: Localised<Translation> & {
     west: 'W',
   },
   sheet: {
+    notSaved: 'Nie zapisano — spróbuj ponownie, gdy odzyskasz zasięg',
     close: 'Zamknij',
     intro: 'Jeśli chcesz, dopisz kilka słów. Możesz też to pominąć.',
     noteLabel: 'Coś jeszcze, co warto wiedzieć?',
@@ -163,9 +164,9 @@ export const pl: Localised<Translation> & {
     open: 'Otwarte',
     markResolved: 'Oznacz jako rozwiązane',
     reopen: 'Otwórz ponownie',
-    edit: 'Edytuj szczegóły',
+    edit: 'Edytuj',
     manageLabel: 'Zarządzaj zdarzeniem',
-    delete: 'Usuń zdarzenie',
+    delete: 'Usuń',
     confirmDelete: 'Usunąć to zdarzenie? Tego nie da się cofnąć.',
     confirmDeleteYes: 'Tak, usuń',
   },
@@ -191,8 +192,8 @@ export const pl: Localised<Translation> & {
     unavailableSub: 'Kroki powyżej nadal działają.',
     earlier: 'Pokazujemy miejsca znalezione wcześniej.',
     retry: 'Spróbuj ponownie',
-    noLocation: 'Ustaw lokalizację, aby zobaczyć miejsca w pobliżu.',
-    setLocation: 'Ustaw lokalizację',
+    noLocation: 'To zdarzenie nie ma lokalizacji. Miejsca w pobliżu wymagają lokalizacji.',
+    setLocation: 'Użyj bieżącej lokalizacji',
     within: 'W promieniu {{radius}} km, od najbliższych',
     openMap: 'Otwórz mapę',
     showAll: 'Pokaż wszystkie na mapie',
@@ -250,6 +251,9 @@ export const pl: Localised<Translation> & {
     skipped: 'Pominięto, od razu kroki',
   },
   report: {
+    share: 'Udostępnij',
+    shareHint: 'Aby wydrukować lub zapisać jako PDF, otwórz aplikację w Safari',
+    shareFailed: 'Nie udało się udostępnić. Skopiuj treść pisma.',
     title: 'Zgłoszenie szkody',
     intro:
       'Zamień to zdarzenie w pismo do zarządcy drogi. Asystent przygotuje szkic z tego, co wpisałeś; Ty go sprawdzasz, dodajesz swoje dane i sam wysyłasz.',
