@@ -1,5 +1,7 @@
 # AI where it adds value: one schema-constrained turn, no tools in the help request
 
+> **Amended by [ADR 0013](0013-demo-mode-follows-the-scenario.md):** in demo mode the visitor picks a demo scenario, and the help request sends the scenario's public-road point as the location, so the recorded context, label, nearby places and `dark` always apply. The visitor's geolocation is never requested. The seeded demo vehicles are read-only, because their facts are in the replay key.
+
 > **Amended by #70:** the local stdio entry point is `python -m app.mcp`.
 > `find_nearby(incident_id, radius_km=5)` uses the incident's location and the existing nearby
 > service without saving its snapshot or recordings. This replaces the coordinate/category

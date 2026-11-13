@@ -87,9 +87,10 @@ answers, then verify the demo scenarios. See [demo scenarios](docs/demo-scenario
 
 **URL: to be added before deployment.** Available during the review period.
 
-- AI answers are pre-recorded and follow fixed scenarios.
+- There is no live AI model. You pick one of the demo scenarios, its details are filled in for you, and the AI answers are pre-recorded for it. The app never asks for your location.
+- The three demo vehicles can't be edited or deleted, because the recordings depend on them. Cars you add yourself can.
 - Photo uploads are refused; only bundled sample photos can be attached.
-- Anything entered is held in memory only and wiped nightly. This is a shared demo.
+- Anything entered is held in memory only and wiped nightly. This is a shared demo: other visitors can see your incidents and vehicles until then.
 - In demo mode, the server calls neither Overpass nor Nominatim. The browser loads
   map tiles directly from OpenStreetMap's standard tile servers, so the OpenStreetMap
   Foundation sees your IP address and the map area you view.

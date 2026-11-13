@@ -1,5 +1,7 @@
 # The public demo runs in memory, in demo mode only, behind the existing Cloudflare Tunnel
 
+> **Amended by [ADR 0013](0013-demo-mode-follows-the-scenario.md):** visitors pick demo scenarios instead of typing their own request, demo mode never asks for geolocation, and the seeded demo vehicles are read-only (403). What visitors still share until the nightly wipe is what they entered; the Start screen and the README say so.
+
 The public demo is the base compose stack (ADR 0007) on the author's Raspberry Pi 5, published as one more hostname on a Cloudflare Tunnel that already serves other apps. A committed `compose.pi.yaml` override changes four things. It fixes demo mode, which the server itself enforces. It keeps all data in a `tmpfs` that a nightly restart wipes. It attaches `web` to the tunnel's Docker network instead of publishing a port. It sets restart policies. The demo is meant to run for about a week so reviewers can try it live, then it is stopped, so each choice is the simplest one that is still safe for strangers to use.
 
 ## Considered Options
