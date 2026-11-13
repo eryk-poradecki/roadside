@@ -22,6 +22,31 @@ async function findQuestion(text = QUESTION.question) {
 }
 
 describe('clarifying questions', () => {
+  beforeEach(() => {
+    fakeApi.config.demo_mode = false
+  })
+
+  it.each(['option', 'skip'])('demo mode hides Other and accepts a %s reply', async (kind) => {
+    fakeApi.config.demo_mode = true
+    const incident = fakeApi.seedIncident({ problem_type: 'flat_tyre' })
+    incident.ai_turns = [fakeApi.questionTurn()]
+    const { user } = renderApp(`/incidents/${String(incident.id)}`)
+    const options = await findQuestion()
+    expect(within(aiPanel()).queryByRole('textbox')).not.toBeInTheDocument()
+    expect(within(aiPanel()).queryByRole('button', { name: 'Send reply' })).not.toBeInTheDocument()
+    expect(within(options).getAllByRole('button')).toHaveLength(QUESTION.options.length)
+    await user.click(
+      within(aiPanel()).getByRole('button', {
+        name: kind === 'skip' ? 'Just give me the steps' : 'No, off the road',
+      }),
+    )
+    expect(await within(aiPanel()).findByText(ADVICE.cause)).toBeInTheDocument()
+    expect(fakeApi.turnRequests[0]?.body).toEqual({
+      locale: 'en',
+      reply: kind === 'skip' ? { skip: true } : { option: 'No, off the road' },
+    })
+  })
+
   it('shows the "Right now" step, the options, Other and "Just give me the steps"', async () => {
     fakeApi.turnScript = [{ ask: QUESTION }]
     await getHelp()

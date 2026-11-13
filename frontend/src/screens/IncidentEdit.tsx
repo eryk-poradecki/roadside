@@ -9,6 +9,7 @@ import {
   type IncidentRead,
   type LocationIn,
 } from '../api/incidents'
+import { useConfig } from '../api/config'
 import { useVehicles, type VehicleRead } from '../api/vehicles'
 import { ErrorNotice } from '../components/ErrorNotice'
 import { NOTE_MAX } from '../components/HelpSheet'
@@ -26,6 +27,7 @@ export function IncidentEdit() {
   const id = Number(useParams().id)
   const incident = useIncident(id)
   const vehicles = useVehicles()
+  const config = useConfig()
 
   const back = (
     <Link to={`/incidents/${String(id)}`} className="back">
@@ -34,8 +36,8 @@ export function IncidentEdit() {
     </Link>
   )
 
-  if (!incident.data || !vehicles.data) {
-    const error = incident.error ?? vehicles.error
+  if (!incident.data || !vehicles.data || !config.data) {
+    const error = incident.error ?? vehicles.error ?? config.error
     return (
       <>
         {back}
@@ -56,7 +58,12 @@ export function IncidentEdit() {
     <>
       {back}
       <h1>{t('incidentForm.heading')}</h1>
-      <EditForm key={incident.data.id} incident={incident.data} vehicles={vehicles.data} />
+      <EditForm
+        key={incident.data.id}
+        incident={incident.data}
+        vehicles={vehicles.data}
+        demoMode={config.data.demo_mode}
+      />
     </>
   )
 }
@@ -95,7 +102,15 @@ function changes(
   return patch
 }
 
-function EditForm({ incident, vehicles }: { incident: IncidentRead; vehicles: VehicleRead[] }) {
+function EditForm({
+  incident,
+  vehicles,
+  demoMode,
+}: {
+  incident: IncidentRead
+  vehicles: VehicleRead[]
+  demoMode: boolean
+}) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const update = useUpdateIncident(incident.id)
@@ -149,25 +164,28 @@ function EditForm({ incident, vehicles }: { incident: IncidentRead; vehicles: Ve
 
   return (
     <form className="vform" onSubmit={(e) => void onSubmit(e)} noValidate>
-      <fieldset className="vehicle-pick">
-        <legend className="note-label">{t('incidentForm.problemType')}</legend>
-        {PROBLEM_TYPES.map((type) => (
-          <label key={type} className="choice">
-            <input
-              type="radio"
-              name="problem_type"
-              checked={problemType === type}
-              onChange={() => {
-                setProblemType(type)
-              }}
-            />
-            <span>{t(`start.tiles.${problemKey(type, vehicle?.fuel_type)}`)}</span>
-          </label>
-        ))}
-      </fieldset>
+      {!demoMode && (
+        <>
+          <fieldset className="vehicle-pick">
+            <legend className="note-label">{t('incidentForm.problemType')}</legend>
+            {PROBLEM_TYPES.map((type) => (
+              <label key={type} className="choice">
+                <input
+                  type="radio"
+                  name="problem_type"
+                  checked={problemType === type}
+                  onChange={() => {
+                    setProblemType(type)
+                  }}
+                />
+                <span>{t(`start.tiles.${problemKey(type, vehicle?.fuel_type)}`)}</span>
+              </label>
+            ))}
+          </fieldset>
 
-      <SituationPick value={situation} onChange={setSituation} />
-
+          <SituationPick value={situation} onChange={setSituation} />
+        </>
+      )}
       <div className="vform-field">
         <label htmlFor={noteId}>{t('incidentForm.note')}</label>
         <textarea
@@ -182,7 +200,7 @@ function EditForm({ incident, vehicles }: { incident: IncidentRead; vehicles: Ve
         />
       </div>
 
-      {(vehicles.length > 0 || vehicleId !== null) && (
+      {!demoMode && (vehicles.length > 0 || vehicleId !== null) && (
         <fieldset className="vehicle-pick">
           <legend className="note-label">{t('incidentForm.vehicle')}</legend>
           {[...vehicles, null].map((v) => (
@@ -201,42 +219,43 @@ function EditForm({ incident, vehicles }: { incident: IncidentRead; vehicles: Ve
         </fieldset>
       )}
 
-      <fieldset className="vehicle-pick">
-        <legend className="note-label">{t('incidentForm.location')}</legend>
-        <p className="edit-place">
-          <MapPin size={18} aria-hidden="true" />
-          <span>{placeText ?? t('incident.noLocation')}</span>
-        </p>
-        {geo?.status === 'denied' && <p className="notice">{t('location.denied')}</p>}
-        {geo?.status === 'unavailable' && <p className="notice">{t('location.unavailable')}</p>}
-        <div className="upkeep-row">
-          <button
-            type="button"
-            className="btn btn-quiet"
-            disabled={geo?.status === 'detecting'}
-            onClick={() => void locate()}
-          >
-            <Crosshair size={18} aria-hidden="true" />
-            {geo?.status === 'detecting'
-              ? t('incidentForm.detecting')
-              : t('incidentForm.useCurrent')}
-          </button>
-          {place && (
+      {!demoMode && (
+        <fieldset className="vehicle-pick">
+          <legend className="note-label">{t('incidentForm.location')}</legend>
+          <p className="edit-place">
+            <MapPin size={18} aria-hidden="true" />
+            <span>{placeText ?? t('incident.noLocation')}</span>
+          </p>
+          {geo?.status === 'denied' && <p className="notice">{t('location.denied')}</p>}
+          {geo?.status === 'unavailable' && <p className="notice">{t('location.unavailable')}</p>}
+          <div className="upkeep-row">
             <button
               type="button"
               className="btn btn-quiet"
-              onClick={() => {
-                setPlace(null)
-                setGeo(null)
-              }}
+              disabled={geo?.status === 'detecting'}
+              onClick={() => void locate()}
             >
-              <X size={18} aria-hidden="true" />
-              {t('incidentForm.removeLocation')}
+              <Crosshair size={18} aria-hidden="true" />
+              {geo?.status === 'detecting'
+                ? t('incidentForm.detecting')
+                : t('incidentForm.useCurrent')}
             </button>
-          )}
-        </div>
-      </fieldset>
-
+            {place && (
+              <button
+                type="button"
+                className="btn btn-quiet"
+                onClick={() => {
+                  setPlace(null)
+                  setGeo(null)
+                }}
+              >
+                <X size={18} aria-hidden="true" />
+                {t('incidentForm.removeLocation')}
+              </button>
+            )}
+          </div>
+        </fieldset>
+      )}
       {update.isError && <ErrorNotice error={update.error} />}
       <button type="submit" className="btn btn-primary" disabled={update.isPending}>
         {update.isPending ? t('incidentForm.saving') : t('incidentForm.save')}

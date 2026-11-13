@@ -212,7 +212,30 @@ describe('incident upkeep', () => {
     expect(within(list()).queryByText('Flat tyre')).not.toBeInTheDocument()
   })
 
+  it('keeps demo scenario fields hidden while allowing a note edit', async () => {
+    const vehicle = fakeApi.seed({ name: 'Golf' })
+    const incident = fakeApi.seedIncident({
+      problem_type: 'flat_tyre',
+      vehicle_id: vehicle.id,
+      note: 'Rear left',
+      location: { lat: 52, lon: 21 },
+    })
+    const { user } = renderApp(`/incidents/${String(incident.id)}/edit`)
+    const note = await screen.findByLabelText('Note')
+    expect(screen.queryByRole('radio')).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Use my current location' }),
+    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Remove location' })).not.toBeInTheDocument()
+    await user.clear(note)
+    await user.type(note, 'Front right')
+    await user.click(screen.getByRole('button', { name: 'Save changes' }))
+    await screen.findByRole('heading', { level: 1, name: 'Flat tyre' })
+    expect(fakeApi.requests).toContainEqual({ method: 'PATCH', body: { note: 'Front right' } })
+  })
+
   it('edits the note, problem type and vehicle, sending only what changed', async () => {
+    fakeApi.config.demo_mode = false
     const golf = fakeApi.seed({ name: 'Golf' })
     const yaris = fakeApi.seed({ name: 'Yaris' })
     const incident = fakeApi.seedIncident({
@@ -243,6 +266,7 @@ describe('incident upkeep', () => {
   })
 
   it('changes where the car is, which switches the checklist', async () => {
+    fakeApi.config.demo_mode = false
     const incident = fakeApi.seedIncident({ problem_type: 'flat_battery' })
     const { user } = renderApp(`/incidents/${String(incident.id)}/edit`)
 
@@ -256,6 +280,7 @@ describe('incident upkeep', () => {
   })
 
   it('removes and replaces the location', async () => {
+    fakeApi.config.demo_mode = false
     Object.defineProperty(navigator, 'geolocation', {
       configurable: true,
       value: {

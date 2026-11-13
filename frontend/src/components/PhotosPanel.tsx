@@ -23,7 +23,9 @@ import { AddPhotos, DEFAULT_MAX_PHOTOS, PhotoGrid, VisionNote } from './PhotoPic
 export function PhotosPanel({ incident }: { incident: IncidentRead }) {
   const { t } = useTranslation()
   const titleId = useId()
-  const max = useConfig().data?.max_photos ?? DEFAULT_MAX_PHOTOS
+  const config = useConfig().data
+  const editable = config?.demo_mode === false
+  const max = config?.max_photos ?? DEFAULT_MAX_PHOTOS
   const add = useAddPhoto()
   const remove = useDeletePhoto(incident.id)
   const uploads = useUploads(incident.id)
@@ -36,11 +38,13 @@ export function PhotosPanel({ incident }: { incident: IncidentRead }) {
     ...photos.map((photo) => ({
       key: photo.id,
       src: photoSrc(photo.url),
-      onRemove: () => {
-        remove.remove(photo.id).catch(() => {
-          // Shown below from `remove.error`.
-        })
-      },
+      onRemove: editable
+        ? () => {
+            remove.remove(photo.id).catch(() => {
+              // Shown below from `remove.error`.
+            })
+          }
+        : undefined,
     })),
     ...pending.map((u) => ({ key: `upload-${String(u.mutationId)}`, src: '', pending: true })),
   ]
@@ -54,20 +58,22 @@ export function PhotosPanel({ incident }: { incident: IncidentRead }) {
       <VisionNote />
       {thumbs.length === 0 && <p className="muted">{t('photos.empty')}</p>}
       <PhotoGrid items={thumbs} removing={remove.isPending} />
-      {failed.map((upload) => (
-        <FailedUpload key={upload.mutationId} upload={upload} onRetry={add.mutate} />
-      ))}
+      {editable &&
+        failed.map((upload) => (
+          <FailedUpload key={upload.mutationId} upload={upload} onRetry={add.mutate} />
+        ))}
       {remove.isError && <ErrorNotice error={remove.error} />}
-      {remaining > 0 ? (
-        <AddPhotos
-          remaining={remaining}
-          onPick={(sources) => {
-            for (const source of sources) add.mutate({ incidentId: incident.id, source })
-          }}
-        />
-      ) : (
-        <p className="muted">{t('photos.full')}</p>
-      )}
+      {editable &&
+        (remaining > 0 ? (
+          <AddPhotos
+            remaining={remaining}
+            onPick={(sources) => {
+              for (const source of sources) add.mutate({ incidentId: incident.id, source })
+            }}
+          />
+        ) : (
+          <p className="muted">{t('photos.full')}</p>
+        ))}
     </section>
   )
 }

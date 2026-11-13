@@ -302,6 +302,7 @@ describe('Nearby in the help flow', () => {
   })
 
   it('a location edit clears the places and looks up again around the new point', async () => {
+    fakeApi.config.demo_mode = false
     stubGeolocation({ latitude: 50.06, longitude: 19.94, accuracy: 9 })
     const stored = { status: 'found' as const, places: PLACES, radius_km: 5, fetched_at: 'x' }
     const incident = fakeApi.seedIncident(
