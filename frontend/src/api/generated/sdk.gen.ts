@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AddPhotoData, AddPhotoErrors, AddPhotoResponses, CreateDamageReportData, CreateDamageReportErrors, CreateDamageReportResponses, CreateIncidentData, CreateIncidentErrors, CreateIncidentResponses, CreateVehicleData, CreateVehicleErrors, CreateVehicleResponses, DeleteDamageReportData, DeleteDamageReportErrors, DeleteDamageReportResponses, DeleteIncidentData, DeleteIncidentErrors, DeleteIncidentResponses, DeletePhotoData, DeletePhotoErrors, DeletePhotoResponses, DeleteVehicleData, DeleteVehicleErrors, DeleteVehicleResponses, FindNearbyData, FindNearbyErrors, FindNearbyResponses, GetDamageReportData, GetDamageReportErrors, GetDamageReportResponses, GetIncidentData, GetIncidentErrors, GetIncidentResponses, GetPhotoData, GetPhotoErrors, GetPhotoResponses, GetSamplePhotoData, GetSamplePhotoErrors, GetSamplePhotoResponses, GetVehicleData, GetVehicleErrors, GetVehicleResponses, HealthData, HealthResponses, ListIncidentsData, ListIncidentsErrors, ListIncidentsResponses, ListVehiclesData, ListVehiclesResponses, ReadConfigData, ReadConfigResponses, ReplaceVehicleData, ReplaceVehicleErrors, ReplaceVehicleResponses, TakeAiTurnData, TakeAiTurnErrors, TakeAiTurnResponses, UpdateDamageReportData, UpdateDamageReportErrors, UpdateDamageReportResponses, UpdateIncidentData, UpdateIncidentErrors, UpdateIncidentResponses } from './types.gen';
+import type { AddPhotoData, AddPhotoErrors, AddPhotoResponses, CreateDamageReportData, CreateDamageReportErrors, CreateDamageReportResponses, CreateIncidentData, CreateIncidentErrors, CreateIncidentResponses, CreateVehicleData, CreateVehicleErrors, CreateVehicleResponses, DeleteDamageReportData, DeleteDamageReportErrors, DeleteDamageReportResponses, DeleteIncidentData, DeleteIncidentErrors, DeleteIncidentResponses, DeletePhotoData, DeletePhotoErrors, DeletePhotoResponses, DeleteVehicleData, DeleteVehicleErrors, DeleteVehicleResponses, FindNearbyData, FindNearbyErrors, FindNearbyResponses, GetDamageReportData, GetDamageReportErrors, GetDamageReportLocalesData, GetDamageReportLocalesErrors, GetDamageReportLocalesResponses, GetDamageReportResponses, GetIncidentData, GetIncidentErrors, GetIncidentResponses, GetPhotoData, GetPhotoErrors, GetPhotoResponses, GetSamplePhotoData, GetSamplePhotoErrors, GetSamplePhotoResponses, GetVehicleData, GetVehicleErrors, GetVehicleResponses, HealthData, HealthResponses, ListIncidentsData, ListIncidentsErrors, ListIncidentsResponses, ListVehiclesData, ListVehiclesResponses, ReadConfigData, ReadConfigResponses, ReplaceVehicleData, ReplaceVehicleErrors, ReplaceVehicleResponses, TakeAiTurnData, TakeAiTurnErrors, TakeAiTurnResponses, UpdateDamageReportData, UpdateDamageReportErrors, UpdateDamageReportResponses, UpdateIncidentData, UpdateIncidentErrors, UpdateIncidentResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -135,6 +135,16 @@ export const createDamageReport = <ThrowOnError extends boolean = false>(options
         ...options.headers
     }
 });
+
+/**
+ * Get Damage Report Locales
+ *
+ * The letter languages `POST` can draft in now; 404 when the incident doesn't exist.
+ *
+ * Both for a pothole incident with a live model; in demo mode only those with a recorded
+ * draft for the incident as it stands, so the app offers no draft that can only fail.
+ */
+export const getDamageReportLocales = <ThrowOnError extends boolean = false>(options: Options<GetDamageReportLocalesData, ThrowOnError>): RequestResult<GetDamageReportLocalesResponses, GetDamageReportLocalesErrors, ThrowOnError> => (options.client ?? client).get<GetDamageReportLocalesResponses, GetDamageReportLocalesErrors, ThrowOnError>({ url: '/api/v1/incidents/{incident_id}/damage-report/locales', ...options });
 
 /**
  * Find Nearby

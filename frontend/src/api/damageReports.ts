@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { isApiError } from './client'
-import { getDamageReport } from './generated/sdk.gen'
+import { getDamageReport, getDamageReportLocales } from './generated/sdk.gen'
 import {
   createDamageReportMutation,
   getDamageReportQueryKey,
@@ -9,7 +9,7 @@ import {
 } from './generated/@tanstack/react-query.gen'
 import type { DamageReportPatch, DamageReportRead } from './generated/types.gen'
 import type { Locale } from './aiTurns'
-import { useInvalidateLists } from './incidents'
+import { useInvalidateLists, type IncidentRead } from './incidents'
 
 export type { DamageReportPatch, DamageReportRead, DamageReportStatus } from './generated/types.gen'
 
@@ -33,6 +33,31 @@ export const useDamageReport = (incidentId: number, enabled: boolean) =>
         if (isApiError(error) && error.reason === 'not_found') return null
         throw error
       }
+    },
+  })
+
+/**
+ * The letter languages a draft can be made in now, Polish first: both with a live model, in
+ * demo mode only those recorded for the incident (#143). Asked again whenever the incident,
+ * its photos or its answers change, since they pick the recording.
+ */
+export const useDamageReportLocales = (incident: IncidentRead | undefined, enabled: boolean) =>
+  useQuery({
+    queryKey: [
+      'damageReportLocales',
+      incident?.id,
+      incident?.updated_at,
+      incident?.photos.map((p) => p.id).join(','),
+      incident?.ai_turns.length,
+    ],
+    enabled: enabled && incident !== undefined,
+    queryFn: async ({ signal }): Promise<Locale[]> => {
+      const { data } = await getDamageReportLocales({
+        path: { incident_id: incident?.id ?? 0 },
+        signal,
+        throwOnError: true,
+      })
+      return data.locales
     },
   })
 

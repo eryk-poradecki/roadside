@@ -14,7 +14,10 @@ def build_provider(settings: Settings) -> LLMProvider:
     """
     if settings.demo_mode:
         return ReplayProvider.from_dir(
-            settings.llm_recordings_dir, max_images=settings.llm_max_images
+            settings.llm_recordings_dir,
+            max_images=settings.llm_max_images,
+            thinking_s=settings.demo_thinking_s,
+            reply_thinking_s=settings.demo_reply_thinking_s,
         )
     if settings.llm_provider == "cli":
         from app.integrations.llm.cli import CLIProvider

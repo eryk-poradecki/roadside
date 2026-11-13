@@ -3,8 +3,8 @@
 import { type DefaultError, type InfiniteData, infiniteQueryOptions, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { addPhoto, createDamageReport, createIncident, createVehicle, deleteDamageReport, deleteIncident, deletePhoto, deleteVehicle, findNearby, getDamageReport, getIncident, getPhoto, getSamplePhoto, getVehicle, health, listIncidents, listVehicles, type Options, readConfig, replaceVehicle, takeAiTurn, updateDamageReport, updateIncident } from '../sdk.gen';
-import type { AddPhotoData, AddPhotoError, AddPhotoResponse, CreateDamageReportData, CreateDamageReportError, CreateDamageReportResponse, CreateIncidentData, CreateIncidentError, CreateIncidentResponse, CreateVehicleData, CreateVehicleError, CreateVehicleResponse, DeleteDamageReportData, DeleteDamageReportError, DeleteDamageReportResponse, DeleteIncidentData, DeleteIncidentError, DeleteIncidentResponse, DeletePhotoData, DeletePhotoError, DeletePhotoResponse, DeleteVehicleData, DeleteVehicleError, DeleteVehicleResponse, FindNearbyData, FindNearbyError, FindNearbyResponse, GetDamageReportData, GetDamageReportError, GetDamageReportResponse, GetIncidentData, GetIncidentError, GetIncidentResponse, GetPhotoData, GetPhotoError, GetPhotoResponse, GetSamplePhotoData, GetSamplePhotoError, GetVehicleData, GetVehicleError, GetVehicleResponse, HealthData, HealthResponse, ListIncidentsData, ListIncidentsError, ListIncidentsResponse, ListVehiclesData, ListVehiclesResponse, ReadConfigData, ReadConfigResponse, ReplaceVehicleData, ReplaceVehicleError, ReplaceVehicleResponse, TakeAiTurnData, TakeAiTurnError, TakeAiTurnResponse, UpdateDamageReportData, UpdateDamageReportError, UpdateDamageReportResponse, UpdateIncidentData, UpdateIncidentError, UpdateIncidentResponse } from '../types.gen';
+import { addPhoto, createDamageReport, createIncident, createVehicle, deleteDamageReport, deleteIncident, deletePhoto, deleteVehicle, findNearby, getDamageReport, getDamageReportLocales, getIncident, getPhoto, getSamplePhoto, getVehicle, health, listIncidents, listVehicles, type Options, readConfig, replaceVehicle, takeAiTurn, updateDamageReport, updateIncident } from '../sdk.gen';
+import type { AddPhotoData, AddPhotoError, AddPhotoResponse, CreateDamageReportData, CreateDamageReportError, CreateDamageReportResponse, CreateIncidentData, CreateIncidentError, CreateIncidentResponse, CreateVehicleData, CreateVehicleError, CreateVehicleResponse, DeleteDamageReportData, DeleteDamageReportError, DeleteDamageReportResponse, DeleteIncidentData, DeleteIncidentError, DeleteIncidentResponse, DeletePhotoData, DeletePhotoError, DeletePhotoResponse, DeleteVehicleData, DeleteVehicleError, DeleteVehicleResponse, FindNearbyData, FindNearbyError, FindNearbyResponse, GetDamageReportData, GetDamageReportError, GetDamageReportLocalesData, GetDamageReportLocalesError, GetDamageReportLocalesResponse, GetDamageReportResponse, GetIncidentData, GetIncidentError, GetIncidentResponse, GetPhotoData, GetPhotoError, GetPhotoResponse, GetSamplePhotoData, GetSamplePhotoError, GetVehicleData, GetVehicleError, GetVehicleResponse, HealthData, HealthResponse, ListIncidentsData, ListIncidentsError, ListIncidentsResponse, ListVehiclesData, ListVehiclesResponse, ReadConfigData, ReadConfigResponse, ReplaceVehicleData, ReplaceVehicleError, ReplaceVehicleResponse, TakeAiTurnData, TakeAiTurnError, TakeAiTurnResponse, UpdateDamageReportData, UpdateDamageReportError, UpdateDamageReportResponse, UpdateIncidentData, UpdateIncidentError, UpdateIncidentResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -318,6 +318,29 @@ export const createDamageReportMutation = (options?: Partial<Options<CreateDamag
     };
     return mutationOptions;
 };
+
+export const getDamageReportLocalesQueryKey = (options: Options<GetDamageReportLocalesData>) => createQueryKey('getDamageReportLocales', options);
+
+/**
+ * Get Damage Report Locales
+ *
+ * The letter languages `POST` can draft in now; 404 when the incident doesn't exist.
+ *
+ * Both for a pothole incident with a live model; in demo mode only those with a recorded
+ * draft for the incident as it stands, so the app offers no draft that can only fail.
+ */
+export const getDamageReportLocalesOptions = (options: Options<GetDamageReportLocalesData>) => queryOptions<GetDamageReportLocalesResponse, GetDamageReportLocalesError, GetDamageReportLocalesResponse, ReturnType<typeof getDamageReportLocalesQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getDamageReportLocales({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getDamageReportLocalesQueryKey(options)
+});
 
 /**
  * Find Nearby

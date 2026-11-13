@@ -263,6 +263,7 @@ export const en = {
     confirmRegenerateYes: 'Yes, draft again',
     errorTitle: "The report couldn't be drafted",
     errorBody: 'Nothing was saved.',
+    notInDemo: 'Not available in this demo scenario.',
     noRecordingTitle: 'No recorded report for this case — demo mode',
     noRecordingBody:
       'The demo replays reports recorded for fixed scenarios, and this case is not one of them.',

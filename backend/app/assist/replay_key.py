@@ -8,7 +8,7 @@ recording file and stable across runs.
 
 import json
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, Literal
 
 from app.assist.prompt import TurnInputs, VehicleFactBlock
 from app.domain.ai_turn import Locale, Reply
@@ -80,13 +80,29 @@ def replay_key(
     )
 
 
-def made_with_vision(key: str) -> bool:
-    """Whether a recording under `key` was made with the photos shown to the model."""
+def _parts_of(key: str) -> dict[str, Any]:
     try:
         parts = json.loads(key)
     except ValueError:
-        return False
-    return isinstance(parts, dict) and parts.get("vision") is True
+        return {}
+    return parts if isinstance(parts, dict) else {}
+
+
+def made_with_vision(key: str) -> bool:
+    """Whether a recording under `key` was made with the photos shown to the model."""
+    return _parts_of(key).get("vision") is True
+
+
+KeyStage = Literal["first_turn", "after_reply", "artifact"]
+
+
+def key_stage(key: str) -> KeyStage:
+    """Which step a key replays: the first turn, a turn after the driver's reply, or an
+    artifact such as the damage report draft."""
+    parts = _parts_of(key)
+    if "artifact" in parts:
+        return "artifact"
+    return "after_reply" if parts.get("replies") else "first_turn"
 
 
 def damage_report_key(

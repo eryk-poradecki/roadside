@@ -161,6 +161,19 @@ export type DamageReportCreate = {
 };
 
 /**
+ * DamageReportLocales
+ *
+ * The letter languages a draft can be made in now, Polish first. Empty for an incident
+ * that isn't a pothole, and in demo mode for one with no recorded draft (#143).
+ */
+export type DamageReportLocales = {
+    /**
+     * Locales
+     */
+    locales: Array<'pl' | 'en'>;
+};
+
+/**
  * DamageReportPatch
  *
  * Send only the fields to change; neither can be null. Only the driver marks it sent.
@@ -1330,6 +1343,36 @@ export type CreateDamageReportResponses = {
 };
 
 export type CreateDamageReportResponse = CreateDamageReportResponses[keyof CreateDamageReportResponses];
+
+export type GetDamageReportLocalesData = {
+    body?: never;
+    path: {
+        /**
+         * Incident Id
+         */
+        incident_id: number;
+    };
+    query?: never;
+    url: '/api/v1/incidents/{incident_id}/damage-report/locales';
+};
+
+export type GetDamageReportLocalesErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetDamageReportLocalesError = GetDamageReportLocalesErrors[keyof GetDamageReportLocalesErrors];
+
+export type GetDamageReportLocalesResponses = {
+    /**
+     * Successful Response
+     */
+    200: DamageReportLocales;
+};
+
+export type GetDamageReportLocalesResponse = GetDamageReportLocalesResponses[keyof GetDamageReportLocalesResponses];
 
 export type FindNearbyData = {
     body: NearbyRequest;

@@ -18,6 +18,9 @@ def _no_developer_env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setitem(Settings.model_config, "env_file", None)
     for name in Settings.model_fields:
         monkeypatch.delenv(name.upper(), raising=False)
+    # Demo mode's simulated thinking (#143) would only slow the tests down.
+    monkeypatch.setenv("DEMO_THINKING_S", "0")
+    monkeypatch.setenv("DEMO_REPLY_THINKING_S", "0")
 
 
 @pytest.fixture

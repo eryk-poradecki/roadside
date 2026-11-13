@@ -216,3 +216,69 @@ def test_replay_without_vision_recordings_shows_none() -> None:
     replay = ReplayProvider.from_dir(FIXTURES, max_images=3)
 
     assert (replay.vision, replay.max_images) == (False, 0)
+
+
+# --- simulated thinking (#143) -----------------------------------------------------------------
+
+
+class Sleeps:
+    """Records the waits instead of sleeping."""
+
+    def __init__(self) -> None:
+        self.waits: list[float] = []
+
+    async def __call__(self, seconds: float) -> None:
+        self.waits.append(seconds)
+
+
+def thinking_replay(directory: Path, sleeps: Sleeps) -> ReplayProvider:
+    return ReplayProvider.from_dir(directory, thinking_s=7, reply_thinking_s=4, sleep=sleeps)
+
+
+async def test_a_first_turn_is_replayed_after_the_thinking_time(tmp_path: Path) -> None:
+    key = json.dumps({"locale": "en", "replies": []})
+    write(tmp_path, "a.json", recording(key, answer_json()))
+    sleeps = Sleeps()
+
+    await thinking_replay(tmp_path, sleeps).complete(request(key))
+
+    assert sleeps.waits == [7]
+
+
+async def test_an_answer_after_a_reply_thinks_for_less(tmp_path: Path) -> None:
+    key = json.dumps({"locale": "en", "replies": [{"option": "Yes"}]})
+    write(tmp_path, "a.json", recording(key, answer_json()))
+    sleeps = Sleeps()
+
+    await thinking_replay(tmp_path, sleeps).complete(request(key))
+
+    assert sleeps.waits == [4]
+
+
+async def test_a_report_draft_and_a_key_miss_do_not_wait(tmp_path: Path) -> None:
+    key = json.dumps({"locale": "pl", "replies": [], "artifact": "damage_report"})
+    write(tmp_path, "a.json", recording(key, answer_json()))
+    sleeps = Sleeps()
+    provider = thinking_replay(tmp_path, sleeps)
+
+    await provider.complete(request(key))
+    with pytest.raises(NoRecordingError):
+        await provider.complete(request("miss"))
+
+    assert sleeps.waits == []
+
+
+async def test_replay_does_not_wait_by_default(tmp_path: Path) -> None:
+    key = json.dumps({"locale": "en", "replies": []})
+    write(tmp_path, "a.json", recording(key, answer_json()))
+
+    result = await ReplayProvider.from_dir(tmp_path).complete(request(key))
+
+    assert result.text == answer_json()
+
+
+def test_replay_knows_which_keys_it_holds(tmp_path: Path) -> None:
+    write(tmp_path, "a.json", recording("k", answer_json()))
+    provider = ReplayProvider.from_dir(tmp_path)
+
+    assert (provider.has_recording("k"), provider.has_recording("other")) == (True, False)

@@ -7,6 +7,7 @@ the location context and nearby places of a flat tyre and of running out of fuel
 """
 
 import json
+import shutil
 from collections.abc import AsyncIterator
 from pathlib import Path
 from typing import Any
@@ -32,6 +33,7 @@ from tests.fakes import (
     nominatim_result,
     osm_node,
 )
+from tests.running import running
 
 INC = "/api/v1/incidents"
 FIXTURES = Path(__file__).parents[1] / "fixtures" / "recordings"
@@ -479,3 +481,47 @@ async def test_an_unrecorded_damage_report_is_a_labelled_fallback(
     assert r.status_code == 503
     assert r.json()["reason"] == "no_recording"
     assert (await client.get(f"{INC}/{incident_id}/damage-report")).status_code == 404
+
+
+async def test_a_failed_damage_report_keeps_the_places(settings: Settings, tmp_path: Path) -> None:
+    """#143: a draft with no recording stores nothing, the incident's places included."""
+    recordings = tmp_path / "with-places"
+    shutil.copytree(FIXTURES, recordings)
+    places_dir = recordings / "places"
+    pothole = json.loads((places_dir / "pothole_on_road.json").read_text())
+    tyre = json.loads((places_dir / "flat_tyre_on_road.json").read_text())
+    pothole["nearby"] = tyre["nearby"]
+    (places_dir / "pothole_on_road.json").write_text(json.dumps(pothole))
+    settings.llm_recordings_dir = recordings
+
+    async with running(settings) as c:
+        incident_id = await make_incident(c, problem_type="pothole_damage", location=LOCATION)
+        places = await nearby(c, incident_id)
+        assert places.status_code == 200, places.text
+
+        r = await c.post(f"{INC}/{incident_id}/damage-report", json={"locale": "en"})
+
+        assert r.json()["reason"] == "no_recording"
+        incident = (await c.get(f"{INC}/{incident_id}")).json()
+        assert incident["nearby"] == places.json()
+
+
+async def test_only_recorded_letter_languages_are_offered(client: httpx.AsyncClient) -> None:
+    """#143: demo mode offers a draft only where one is recorded (here: Polish)."""
+    incident_id = await make_incident(client, problem_type="pothole_damage", location=LOCATION)
+
+    r = await client.get(f"{INC}/{incident_id}/damage-report/locales")
+
+    assert r.status_code == 200, r.text
+    assert r.json() == {"locales": ["pl"]}
+    # Asking writes nothing: the context is still looked up by the first turn or draft.
+    incident = (await client.get(f"{INC}/{incident_id}")).json()
+    assert incident["location_label"] is None
+
+
+async def test_a_scenario_with_no_recorded_report_offers_none(client: httpx.AsyncClient) -> None:
+    incident_id = await make_incident(client, problem_type="pothole_damage", situation="parked")
+
+    r = await client.get(f"{INC}/{incident_id}/damage-report/locales")
+
+    assert r.json() == {"locales": []}

@@ -121,6 +121,41 @@ describe('damage report (ADR 0009)', () => {
       expect(fakeApi.reports.has(incident.id)).toBe(true)
     })
 
+    it('offers only the letter languages a draft is recorded in (#143)', async () => {
+      fakeApi.reportLocales = ['en']
+      const { user } = await openPothole()
+
+      expect(within(card()).queryByRole('button', { name: 'Polish' })).not.toBeInTheDocument()
+      await draft(user)
+
+      expect(fakeApi.reportRequests[0]?.body).toEqual({ locale: 'en', replace: false })
+    })
+
+    it('says the report is not part of a demo scenario with none recorded (#143)', async () => {
+      fakeApi.reportLocales = []
+      await openPothole()
+
+      expect(await within(card()).findByText(en.report.notInDemo)).toBeInTheDocument()
+      expect(
+        within(card()).queryByRole('button', { name: en.report.draft }),
+      ).not.toBeInTheDocument()
+      expect(within(card()).queryByRole('group')).not.toBeInTheDocument()
+    })
+
+    it('does not ask about a pothole in demo mode, where the scenario is fixed', async () => {
+      fakeApi.config = { demo_mode: true, vision_enabled: false }
+      const incident = fakeApi.seedIncident({ problem_type: 'flat_tyre' })
+      renderApp(`/incidents/${String(incident.id)}`)
+
+      await screen.findByRole('heading', { level: 1, name: 'Flat tyre' })
+      await waitFor(() => {
+        expect(screen.queryByText(en.report.potholeHint)).not.toBeInTheDocument()
+      })
+      expect(
+        screen.queryByRole('button', { name: en.report.potholeSwitch }),
+      ).not.toBeInTheDocument()
+    })
+
     it('shows the card for a report the incident kept after its type changed', async () => {
       const incident = fakeApi.seedIncident({ problem_type: 'other' })
       fakeApi.reports.set(incident.id, { ...STORED, status: 'sent' })
@@ -240,6 +275,23 @@ describe('damage report (ADR 0009)', () => {
       expect(await screen.findByText(en.report.noRecordingTitle)).toBeInTheDocument()
       expect(screen.getByText(en.report.noRecordingBody)).toBeInTheDocument()
       expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+    })
+
+    it('keeps the places found after a draft fails (#143)', async () => {
+      fakeApi.reportScript = [{ status: 503, reason: 'no_recording' }]
+      const incident = fakeApi.seedIncident({
+        problem_type: 'pothole_damage',
+        location: { lat: 52.2297, lon: 21.0122, accuracy_m: 12 },
+      })
+      const { user } = renderApp(`/incidents/${String(incident.id)}`)
+      expect(await screen.findByText('Wulkanizacja Nowa')).toBeInTheDocument()
+
+      await user.click(await within(card()).findByRole('button', { name: en.report.draft }))
+      await screen.findByText(en.report.noRecordingTitle)
+      await user.click(screen.getByRole('link', { name: en.common.back }))
+
+      expect(await screen.findByText('Wulkanizacja Nowa')).toBeInTheDocument()
+      expect(fakeApi.nearbyRequests).toHaveLength(1)
     })
 
     it('redirects a direct link for an incident that cannot have a report', async () => {
@@ -479,6 +531,30 @@ describe('damage report (ADR 0009)', () => {
 
       await user.click(screen.getByLabelText(en.report.details.remember))
       expect(localStorage.getItem('roadside.claimant')).toBeNull()
+    })
+
+    it('drafts again only in a recorded language, and not at all with none (#143)', async () => {
+      fakeApi.reportLocales = ['pl']
+      const { user } = await openReport()
+
+      await user.click(await screen.findByRole('button', { name: en.report.regenerate }))
+      const confirm = screen.getByRole('group', { name: en.report.regenerate })
+      expect(within(confirm).queryByRole('button', { name: 'English' })).not.toBeInTheDocument()
+      await user.click(
+        within(confirm).getByRole('button', { name: en.report.confirmRegenerateYes }),
+      )
+      await waitFor(() => {
+        expect(fakeApi.reportRequests[0]?.body).toEqual({ locale: 'pl', replace: true })
+      })
+    })
+
+    it('offers no "Draft again" where demo mode recorded no draft (#143)', async () => {
+      fakeApi.reportLocales = []
+      await openReport()
+
+      await waitFor(() => {
+        expect(screen.queryByRole('button', { name: en.report.regenerate })).not.toBeInTheDocument()
+      })
     })
 
     it('drafts again in place only after a confirmation, back to draft', async () => {

@@ -543,3 +543,16 @@ async def test_the_incident_shows_its_report_status(
 
     await client.patch(report_url(incident_id), json={"status": "sent"})
     assert (await client.get(f"{INC}/{incident_id}")).json()["damage_report_status"] == "sent"
+
+
+async def test_a_live_model_drafts_a_pothole_report_in_either_language(
+    client: httpx.AsyncClient, install: Install
+) -> None:
+    install()
+    pothole = await make_incident(client, problem_type="pothole_damage")
+    tyre = await make_incident(client, problem_type="flat_tyre")
+
+    assert (await client.get(f"{report_url(pothole)}/locales")).json() == {"locales": ["pl", "en"]}
+    # The draft would be 422 `not_pothole_damage`.
+    assert (await client.get(f"{report_url(tyre)}/locales")).json() == {"locales": []}
+    assert (await client.get(f"{report_url(9999)}/locales")).status_code == 404

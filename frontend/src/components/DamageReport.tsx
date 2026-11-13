@@ -4,7 +4,12 @@ import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import type { Locale } from '../api/aiTurns'
 import { isApiError } from '../api/client'
-import { useUpdateDamageReport, type DamageReportRead } from '../api/damageReports'
+import {
+  useDamageReportLocales,
+  useUpdateDamageReport,
+  type DamageReportRead,
+} from '../api/damageReports'
+import type { IncidentRead } from '../api/incidents'
 import { photoSrc, type PhotoRead } from '../api/photos'
 import {
   fillClaimant,
@@ -68,13 +73,21 @@ export function GenerateError({ error }: { error: unknown }) {
 }
 
 /** The letter's language: Polish by default, because it goes to a Polish road manager. */
-function LanguagePick({ value, onChange }: { value: Locale; onChange: (l: Locale) => void }) {
+function LanguagePick({
+  value,
+  onChange,
+  options = LOCALES,
+}: {
+  value: Locale
+  onChange: (l: Locale) => void
+  options?: Locale[]
+}) {
   const { t } = useTranslation()
   return (
     <div className="report-language">
       <span className="muted">{t('report.languageLabel')}</span>
       <div className="segmented" role="group" aria-label={t('report.languageLabel')}>
-        {LOCALES.map((locale) => (
+        {options.map((locale) => (
           <button
             key={locale}
             type="button"
@@ -91,14 +104,48 @@ function LanguagePick({ value, onChange }: { value: Locale; onChange: (l: Locale
   )
 }
 
-/** What the report is, the letter's language and "Draft the report". */
-export function StartReport({ onDraft }: { onDraft: (locale: Locale) => void }) {
+/**
+ * The letter languages to offer, Polish first, or null while they load (#143). If asking
+ * fails, both: a draft that then fails says why.
+ */
+export function useOfferedLocales(
+  incident: IncidentRead | undefined,
+  enabled: boolean,
+): Locale[] | null {
+  const query = useDamageReportLocales(incident, enabled)
+  if (query.isError) return LOCALES
+  return query.data ?? null
+}
+
+/**
+ * What the report is, the letter's language and "Draft the report", in the languages a
+ * draft can be made in. Demo mode with none recorded says so instead of offering one.
+ */
+export function StartReport({
+  locales,
+  onDraft,
+}: {
+  locales: Locale[] | null
+  onDraft: (locale: Locale) => void
+}) {
   const { t } = useTranslation()
-  const [locale, setLocale] = useState<Locale>('pl')
+  const [picked, setPicked] = useState<Locale>('pl')
+  if (locales === null) return <p className="muted">{t('common.loading')}</p>
+  // Polish unless only English is offered.
+  const first = locales[0]
+  if (first === undefined) {
+    return (
+      <p className="ai-line muted">
+        <Info size={20} aria-hidden="true" />
+        {t('report.notInDemo')}
+      </p>
+    )
+  }
+  const locale = locales.includes(picked) ? picked : first
   return (
     <>
       <p className="muted">{t('report.intro')}</p>
-      <LanguagePick value={locale} onChange={setLocale} />
+      <LanguagePick value={locale} onChange={setPicked} options={locales} />
       <button
         type="button"
         className="btn btn-quiet"
@@ -132,6 +179,7 @@ export function ReportEditor({
   photos,
   busy,
   canRegenerate,
+  locales,
   claimant,
   onClaimantChange,
   onSaved,
@@ -143,6 +191,8 @@ export function ReportEditor({
   /** A new draft is being written. */
   busy: boolean
   canRegenerate: boolean
+  /** The languages it can be drafted again in (#143); null while they load. */
+  locales: Locale[] | null
   claimant: Claimant
   onClaimantChange: (c: Claimant) => void
   /** A save succeeded: an old drafting error no longer applies. */
@@ -169,6 +219,9 @@ export function ReportEditor({
   }
   // The server trims the body, so whitespace at the ends is not an edit.
   const dirty = body.trim() !== report.body
+  // Demo mode drafts again only in a recorded language; none recorded, no "Draft again".
+  const offered = locales ?? LOCALES
+  const regenLocale = offered.includes(locale) ? locale : offered[0]
   const sent = report.status === 'sent'
 
   const save = (patch: Parameters<typeof update.update>[0]) => {
@@ -289,10 +342,10 @@ export function ReportEditor({
             </button>
             {update.isError && <ErrorNotice error={update.error} />}
 
-            {!canRegenerate ? null : confirming ? (
+            {!canRegenerate || regenLocale === undefined ? null : confirming ? (
               <div className="report-confirm" role="group" aria-label={t('report.regenerate')}>
                 <p>{t('report.confirmRegenerate')}</p>
-                <LanguagePick value={locale} onChange={setLocale} />
+                <LanguagePick value={regenLocale} onChange={setLocale} options={offered} />
                 <div className="upkeep-row">
                   <button
                     type="button"
@@ -300,7 +353,7 @@ export function ReportEditor({
                     disabled={busy}
                     onClick={() => {
                       setConfirming(false)
-                      onRegenerate(locale)
+                      onRegenerate(regenLocale)
                     }}
                   >
                     {t('report.confirmRegenerateYes')}

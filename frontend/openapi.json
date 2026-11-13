@@ -316,6 +316,27 @@
         "title": "DamageReportCreate",
         "type": "object"
       },
+      "DamageReportLocales": {
+        "description": "The letter languages a draft can be made in now, Polish first. Empty for an incident\nthat isn't a pothole, and in demo mode for one with no recorded draft (#143).",
+        "properties": {
+          "locales": {
+            "items": {
+              "enum": [
+                "pl",
+                "en"
+              ],
+              "type": "string"
+            },
+            "title": "Locales",
+            "type": "array"
+          }
+        },
+        "required": [
+          "locales"
+        ],
+        "title": "DamageReportLocales",
+        "type": "object"
+      },
       "DamageReportPatch": {
         "additionalProperties": false,
         "description": "Send only the fields to change; neither can be null. Only the driver marks it sent.",
@@ -2606,6 +2627,51 @@
           }
         },
         "summary": "Create Damage Report",
+        "tags": [
+          "damage-report"
+        ]
+      }
+    },
+    "/api/v1/incidents/{incident_id}/damage-report/locales": {
+      "get": {
+        "description": "The letter languages `POST` can draft in now; 404 when the incident doesn't exist.\n\nBoth for a pothole incident with a live model; in demo mode only those with a recorded\ndraft for the incident as it stands, so the app offers no draft that can only fail.",
+        "operationId": "get_damage_report_locales",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "maximum": 9223372036854775807,
+              "minimum": 1,
+              "title": "Incident Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DamageReportLocales"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Damage Report Locales",
         "tags": [
           "damage-report"
         ]

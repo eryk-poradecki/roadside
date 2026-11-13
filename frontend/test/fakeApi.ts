@@ -150,6 +150,8 @@ export class FakeApi {
   reportGets = 0
   /** While set, every report draft waits for it before answering. */
   reportGate: Promise<void> | null = null
+  /** The letter languages offered for a pothole incident: both, unless demo mode recorded fewer. */
+  reportLocales: ('pl' | 'en')[] = ['pl', 'en']
   /** Outcomes of the next photo uploads, in order; when empty, an upload is stored. */
   photoScript: PhotoScript[] = []
   /** While set, every photo upload waits for it before answering. */
@@ -185,6 +187,7 @@ export class FakeApi {
     this.reportRequests = []
     this.reportGate = null
     this.reportGets = 0
+    this.reportLocales = ['pl', 'en']
     this.photoRequests = []
     this.nextPhotoId = 1
     this.nextTurnId = 1
@@ -496,6 +499,12 @@ export class FakeApi {
             ? this.questionTurn(next.ask, { ...extra, locale: body.locale })
             : this.adviceTurn(next.advice, body.locale, { ...extra, urgent: next.urgent ?? false })
         return HttpResponse.json(append(turn), { status: 201 })
+      }),
+      http.get(`${API}/api/v1/incidents/:id/damage-report/locales`, ({ params }) => {
+        const incident = this.incidents.find((i) => i.id === Number(params.id))
+        if (!incident) return problem(404, 'not_found', 'Incident not found')
+        const locales = incident.problem_type === 'pothole_damage' ? this.reportLocales : []
+        return HttpResponse.json({ locales })
       }),
       http.get(`${API}/api/v1/incidents/:id/damage-report`, ({ params }) => {
         this.reportGets++

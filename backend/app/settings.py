@@ -44,6 +44,10 @@ class Settings(BaseSettings):
     llm_record: bool = False
     # What demo mode replays, and where recording writes.
     llm_recordings_dir: Path = Path("recordings")
+    # Demo mode's simulated thinking (#143): a replayed AI turn arrives after this long, so the
+    # safety checklist is read first, as with a live model. Shorter after a clarifying question.
+    demo_thinking_s: Annotated[float, Field(ge=0, lt=TURN_BUDGET_CEILING_S)] = 7.0
+    demo_reply_thinking_s: Annotated[float, Field(ge=0, lt=TURN_BUDGET_CEILING_S)] = 4.0
 
     # Location context (ADR 0004). Never called in demo mode.
     nominatim_url: str = "https://nominatim.openstreetmap.org/"
@@ -84,6 +88,15 @@ class Settings(BaseSettings):
     def _overpass_attempt_fits_the_budget(self) -> Self:
         if self.overpass_timeout_s > self.overpass_budget_s:
             raise ValueError("OVERPASS_TIMEOUT_S must not exceed OVERPASS_BUDGET_S")
+        return self
+
+    @model_validator(mode="after")
+    def _demo_thinking_fits_the_turn_budget(self) -> Self:
+        # The simulated wait runs inside the turn budget: past it, every turn would time out.
+        if max(self.demo_thinking_s, self.demo_reply_thinking_s) >= self.llm_turn_budget_s:
+            raise ValueError(
+                "DEMO_THINKING_S and DEMO_REPLY_THINKING_S must be under LLM_TURN_BUDGET_S"
+            )
         return self
 
     @model_validator(mode="after")
