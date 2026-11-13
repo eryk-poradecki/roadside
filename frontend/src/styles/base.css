@@ -177,6 +177,8 @@ h2 {
   color: var(--muted);
   font-size: 0.875rem;
   font-weight: 700;
+  /* A two-word label like "Demo vehicle" stays on one line beside a long name. */
+  white-space: nowrap;
 }
 .badge-accent {
   background: oklch(0.82 0.15 78 / 0.16);

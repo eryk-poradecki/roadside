@@ -1,5 +1,5 @@
 import { Copy, ExternalLink, FileText, Info, Printer, RotateCw, Send, Sparkles } from 'lucide-react'
-import { useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import type { Locale } from '../api/aiTurns'
@@ -184,6 +184,7 @@ export function ReportEditor({
   onClaimantChange,
   onSaved,
   onRegenerate,
+  onDirtyChange,
 }: {
   incidentId: number
   report: DamageReportRead
@@ -198,6 +199,8 @@ export function ReportEditor({
   /** A save succeeded: an old drafting error no longer applies. */
   onSaved: () => void
   onRegenerate: (locale: Locale) => void
+  /** The letter on screen differs from the saved one, or no longer does. */
+  onDirtyChange?: (dirty: boolean) => void
 }) {
   const { t } = useTranslation()
   const bodyId = useId()
@@ -219,6 +222,10 @@ export function ReportEditor({
   }
   // The server trims the body, so whitespace at the ends is not an edit.
   const dirty = body.trim() !== report.body
+  useEffect(() => {
+    onDirtyChange?.(dirty)
+    return () => onDirtyChange?.(false)
+  }, [dirty, onDirtyChange])
   // Demo mode drafts again only in a recorded language; none recorded, no "Draft again".
   const offered = locales ?? LOCALES
   const regenLocale = offered.includes(locale) ? locale : offered[0]

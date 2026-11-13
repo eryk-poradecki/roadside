@@ -311,6 +311,32 @@ describe('damage report (ADR 0009)', () => {
       Reflect.deleteProperty(HTMLImageElement.prototype, 'decode')
     })
 
+    it('asks before Back drops unsaved letter edits, and stays if the driver cancels', async () => {
+      const { user, incident } = await openReport()
+      const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+      await user.type(letter(), ' Extra.')
+
+      await user.click(screen.getByRole('link', { name: en.common.back }))
+
+      expect(confirm).toHaveBeenCalledWith(en.report.unsavedConfirm)
+      expect(letter()).toHaveValue(`${STORED.body} Extra.`)
+
+      confirm.mockReturnValue(true)
+      await user.click(screen.getByRole('link', { name: en.common.back }))
+      expect(await screen.findByRole('region', { name: en.report.title })).toBeInTheDocument()
+      expect(fakeApi.reports.get(incident.id)?.body).toBe(STORED.body)
+    })
+
+    it('goes Back without asking when the letter has no unsaved edits', async () => {
+      const { user } = await openReport()
+      const confirm = vi.spyOn(window, 'confirm')
+
+      await user.click(screen.getByRole('link', { name: en.common.back }))
+
+      expect(await screen.findByRole('region', { name: en.report.title })).toBeInTheDocument()
+      expect(confirm).not.toHaveBeenCalled()
+    })
+
     it('keeps the print dialog closed if a photo fails, and lets the driver retry', async () => {
       const { user } = await openReport('draft', 'pothole_damage', [
         {

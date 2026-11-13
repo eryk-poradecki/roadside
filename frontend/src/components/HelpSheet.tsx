@@ -183,8 +183,8 @@ export function HelpSheet({
         </label>
         <textarea
           id={noteId}
-          className="field"
-          rows={2}
+          className="field sheet-note"
+          rows={3}
           maxLength={NOTE_MAX}
           placeholder={t('sheet.notePlaceholder')}
           readOnly={!!scenario}

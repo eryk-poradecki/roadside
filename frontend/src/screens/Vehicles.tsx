@@ -1,9 +1,10 @@
-import { Plus } from 'lucide-react'
-import { useState } from 'react'
+import { CarFront, Plus } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { ErrorNotice } from '../components/ErrorNotice'
 import { useConfig } from '../api/config'
+import { useDesktop } from '../lib/useMediaQuery'
 import {
   replacementBody,
   useDeleteVehicle,
@@ -13,7 +14,16 @@ import {
 } from '../api/vehicles'
 import './Vehicles.css'
 
-function VehicleCard({ vehicle, demoMode }: { vehicle: VehicleRead; demoMode: boolean }) {
+function VehicleCard({
+  vehicle,
+  demoMode,
+  open,
+}: {
+  vehicle: VehicleRead
+  demoMode: boolean
+  /** Its form is open beside the list (desktop). */
+  open: boolean
+}) {
   const { t } = useTranslation()
   const [confirming, setConfirming] = useState(false)
   const replace = useReplaceVehicle()
@@ -23,7 +33,7 @@ function VehicleCard({ vehicle, demoMode }: { vehicle: VehicleRead; demoMode: bo
   const readOnly = demoMode && vehicle.demo_profile != null
 
   return (
-    <li className="vehicle">
+    <li className="vehicle" aria-current={open ? 'true' : undefined}>
       <div className="vehicle-head">
         <div className="vehicle-title">
           <h2>{name}</h2>
@@ -67,7 +77,9 @@ function VehicleCard({ vehicle, demoMode }: { vehicle: VehicleRead; demoMode: bo
           </div>
           {remove.isError && <ErrorNotice error={remove.error} />}
         </div>
-      ) : (
+      ) : open ? null : (
+        // The open card's form beside it edits, sets the default and is the one place that
+        // changes it, so a card action can't race the form's draft (#67).
         <div className="vehicle-actions">
           {!readOnly && (
             <Link
@@ -113,8 +125,27 @@ function VehicleCard({ vehicle, demoMode }: { vehicle: VehicleRead; demoMode: bo
   )
 }
 
-export function Vehicles() {
+/** No vehicles yet: what adding one is for, and the way to add it. */
+function EmptyVehicles() {
   const { t } = useTranslation()
+  return (
+    <div className="vehicles-empty">
+      <span className="vehicles-empty-icon" aria-hidden="true">
+        <CarFront size={28} strokeWidth={1.75} />
+      </span>
+      <h2>{t('vehicles.emptyTitle')}</h2>
+      <p className="muted">{t('vehicles.empty')}</p>
+    </div>
+  )
+}
+
+/**
+ * The vehicle list with "Add a vehicle". `openId` marks the vehicle whose form is open beside
+ * it on desktop.
+ */
+function VehicleList({ openId }: { openId?: number | undefined }) {
+  const { t } = useTranslation()
+  const desktop = useDesktop()
   const {
     data: config,
     isPending: configPending,
@@ -145,14 +176,20 @@ export function Vehicles() {
         </>
       )}
 
-      {vehicles?.length === 0 && <p className="notice">{t('vehicles.empty')}</p>}
+      {/* Desktop shows it in the right column instead. */}
+      {vehicles?.length === 0 && !desktop && <EmptyVehicles />}
       {vehicles && vehicles.length > 0 && !vehicles.some((v) => v.is_default) && (
         <p className="notice">{t('vehicles.noDefault')}</p>
       )}
       {config && vehicles && vehicles.length > 0 && (
         <ul className="vehicle-list" aria-label={t('vehicles.listLabel')}>
           {vehicles.map((vehicle) => (
-            <VehicleCard key={vehicle.id} vehicle={vehicle} demoMode={config.demo_mode} />
+            <VehicleCard
+              key={vehicle.id}
+              vehicle={vehicle}
+              demoMode={config.demo_mode}
+              open={vehicle.id === openId}
+            />
           ))}
         </ul>
       )}
@@ -163,4 +200,40 @@ export function Vehicles() {
       </Link>
     </div>
   )
+}
+
+/**
+ * Desktop (ADR 0012, #67): the list on the left and `detail` (a vehicle's form, or a prompt
+ * to pick one) on the right. Mobile: `detail` alone, or the list where there is none. The
+ * slots keep their places in the tree, so crossing the breakpoint keeps what was typed.
+ */
+export function VehiclesSplit({
+  openId,
+  detail,
+}: {
+  openId?: number | undefined
+  detail: ReactNode | null
+}) {
+  const desktop = useDesktop()
+  return (
+    <div className="vehicles-split">
+      {(desktop || detail === null) && <VehicleList openId={openId} />}
+      {detail !== null && <div className="vehicles-detail">{detail}</div>}
+    </div>
+  )
+}
+
+/** `/vehicles`. */
+export function Vehicles() {
+  const { t } = useTranslation()
+  const desktop = useDesktop()
+  const { data: vehicles } = useVehicles()
+  // Nothing beside the list until it has loaded: no "pick one" from a list that isn't there.
+  const detail =
+    vehicles === undefined ? null : vehicles.length === 0 ? (
+      <EmptyVehicles />
+    ) : (
+      <p className="vehicles-pick">{t('vehicles.pick')}</p>
+    )
+  return <VehiclesSplit detail={desktop ? detail : null} />
 }
