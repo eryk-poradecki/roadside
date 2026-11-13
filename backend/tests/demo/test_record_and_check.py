@@ -6,8 +6,9 @@ reviewer's choice, and the pothole with its damage report draft.
 """
 
 import json
+import sqlite3
 from collections.abc import AsyncIterator, Awaitable, Callable
-from contextlib import AsyncExitStack
+from contextlib import AsyncExitStack, closing
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -241,7 +242,10 @@ async def test_the_demo_check_refuses_an_app_without_a_seeded_demo_vehicle(
     """A visitor can't pick a deleted demo vehicle, so the check doesn't make its own."""
     client = await demo(tmp_path / "empty")
     [octavia] = [v for v in (await client.get("/api/v1/vehicles")).json() if v["name"] == "Octavia"]
-    await client.delete(f"/api/v1/vehicles/{octavia['id']}")
+    # Simulate damaged storage: demo-mode API calls now protect these rows.
+    with closing(sqlite3.connect(tmp_path / "demo.db")) as conn:
+        conn.execute("DELETE FROM vehicles WHERE id = ?", (octavia["id"],))
+        conn.commit()
 
     with pytest.raises(NoDemoVehicle, match="Octavia"):
         await check(client, scenarios(), CHOICES)
@@ -253,7 +257,10 @@ async def test_the_demo_check_refuses_an_edited_demo_vehicle(
     """An edited demo vehicle no longer hits its recordings: say so, not a row of misses."""
     client = await demo(tmp_path / "empty")
     [octavia] = [v for v in (await client.get("/api/v1/vehicles")).json() if v["name"] == "Octavia"]
-    await client.put(f"/api/v1/vehicles/{octavia['id']}", json={"name": "Octavia"})
+    # Simulate a row changed outside demo mode.
+    with closing(sqlite3.connect(tmp_path / "demo.db")) as conn:
+        conn.execute("UPDATE vehicles SET fuel_type = NULL WHERE id = ?", (octavia["id"],))
+        conn.commit()
 
     with pytest.raises(NoDemoVehicle, match="Octavia"):
         await check(client, scenarios(), CHOICES)

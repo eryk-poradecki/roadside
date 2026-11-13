@@ -55,14 +55,16 @@ DEFAULT_DEMO_VEHICLE = "octavia_2015"
 
 
 async def seed_demo_vehicles(conn: aiosqlite.Connection, repo: VehicleRepository) -> int:
-    """Add the demo vehicles to an empty vehicles table; return how many were added.
-
-    Any vehicle at all means a visitor has been here, so nothing is added or overwritten.
-    """
+    """Add missing marked profiles, preserving every existing vehicle and default."""
     now = utc_now()
+    added = 0
     async with transaction(conn):
-        if await repo.list_all():
-            return 0
+        profiles = {v.demo_profile for v in await repo.list_all()}
+        has_default = await repo.has_default()
         for profile_id, body in DEMO_VEHICLES.items():
-            await repo.insert(body.to_facts(), profile_id == DEFAULT_DEMO_VEHICLE, now)
-    return len(DEMO_VEHICLES)
+            if profile_id in profiles:
+                continue
+            is_default = profile_id == DEFAULT_DEMO_VEHICLE and not has_default
+            await repo.insert(body.to_facts(), is_default, now, demo_profile=profile_id)
+            added += 1
+    return added

@@ -831,6 +831,10 @@ export type VehicleRead = {
      * Created At
      */
     created_at: string;
+    /**
+     * Demo Profile
+     */
+    demo_profile: string | null;
     fuel_type: FuelType | null;
     /**
      * Id

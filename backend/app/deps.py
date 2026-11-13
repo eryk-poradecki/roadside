@@ -44,8 +44,10 @@ async def get_connection(
 Connection = Annotated[aiosqlite.Connection, Depends(get_connection)]
 
 
-def get_vehicle_service(conn: Connection) -> VehicleService:
-    return VehicleService(conn, SqliteVehicleRepository(conn))
+def get_vehicle_service(
+    conn: Connection, settings: Annotated[Settings, Depends(get_settings)]
+) -> VehicleService:
+    return VehicleService(conn, SqliteVehicleRepository(conn), demo_mode=settings.demo_mode)
 
 
 def get_llm_provider(request: Request) -> LLMProvider:

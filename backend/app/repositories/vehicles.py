@@ -16,7 +16,9 @@ class VehicleRepository(Protocol):
     async def get(self, vehicle_id: int) -> Vehicle | None: ...
     async def has_default(self) -> bool: ...
     async def clear_default(self, now: str) -> None: ...
-    async def insert(self, facts: VehicleFacts, is_default: bool, now: str) -> int: ...
+    async def insert(
+        self, facts: VehicleFacts, is_default: bool, now: str, demo_profile: str | None = None
+    ) -> int: ...
     async def update(
         self, vehicle_id: int, facts: VehicleFacts, is_default: bool, now: str
     ) -> None: ...
@@ -59,6 +61,7 @@ def _to_domain(r: sqlite3.Row) -> Vehicle:
     )
     return Vehicle(
         id=r["id"],
+        demo_profile=r["demo_profile"],
         facts=facts,
         is_default=bool(r["is_default"]),
         created_at=r["created_at"],
@@ -72,14 +75,14 @@ class SqliteVehicleRepository:
 
     async def list_all(self) -> list[Vehicle]:
         cur = await self._conn.execute(
-            f"SELECT id, is_default, created_at, updated_at, {_COLUMNS} "  # noqa: S608
+            f"SELECT id, demo_profile, is_default, created_at, updated_at, {_COLUMNS} "  # noqa: S608
             "FROM vehicles ORDER BY is_default DESC, created_at ASC, id ASC"
         )
         return [_to_domain(r) for r in await cur.fetchall()]
 
     async def get(self, vehicle_id: int) -> Vehicle | None:
         cur = await self._conn.execute(
-            f"SELECT id, is_default, created_at, updated_at, {_COLUMNS} "  # noqa: S608
+            f"SELECT id, demo_profile, is_default, created_at, updated_at, {_COLUMNS} "  # noqa: S608
             "FROM vehicles WHERE id = ?",
             (vehicle_id,),
         )
@@ -95,11 +98,13 @@ class SqliteVehicleRepository:
             "UPDATE vehicles SET is_default = 0, updated_at = ? WHERE is_default = 1", (now,)
         )
 
-    async def insert(self, facts: VehicleFacts, is_default: bool, now: str) -> int:
+    async def insert(
+        self, facts: VehicleFacts, is_default: bool, now: str, demo_profile: str | None = None
+    ) -> int:
         cur = await self._conn.execute(
-            f"INSERT INTO vehicles ({_COLUMNS}, is_default, created_at, updated_at) "  # noqa: S608
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-            (*_values(facts), int(is_default), now, now),
+            f"INSERT INTO vehicles ({_COLUMNS}, is_default, created_at, updated_at, demo_profile) "  # noqa: S608
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            (*_values(facts), int(is_default), now, now, demo_profile),
         )
         if cur.lastrowid is None:
             raise RuntimeError("INSERT returned no row id")
