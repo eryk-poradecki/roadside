@@ -85,15 +85,7 @@ beforeAll(async () => {
     fetch: async (input: RequestInfo | URL, init?: RequestInit) => {
       if (!(input instanceof Request) || !input.body) return fetch(input, init)
       const { url, method, headers } = input
-      try {
-        return await fetch(
-          new Request(url, { method, headers, body: await input.arrayBuffer() }),
-          init,
-        )
-      } catch (error) {
-        console.error('[DEBUG-ci-photo]', url, error)
-        throw error
-      }
+      return fetch(new Request(url, { method, headers, body: await input.arrayBuffer() }), init)
     },
   })
   await initI18n()

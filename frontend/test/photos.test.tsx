@@ -105,9 +105,9 @@ describe('the first AI turn waits for the uploads', () => {
   })
 
   it('does not wait for a stalled upload for long', async () => {
+    const release = holdUploads()
     vi.useFakeTimers({ shouldAdvanceTime: true })
     try {
-      holdUploads()
       const { user, sheet } = await openSheet()
       await user.upload(within(sheet).getByLabelText('Add photos'), photo('tyre.jpg'))
       await user.click(within(sheet).getByRole('button', { name: 'Get help now' }))
@@ -122,7 +122,14 @@ describe('the first AI turn waits for the uploads', () => {
       expect(fakeApi.turnRequests).toHaveLength(1)
       expect(within(photosPanel()).getByText('Uploading…')).toBeInTheDocument()
     } finally {
+      release()
       vi.useRealTimers()
+      // The timeout stops waiting for advice, not the upload itself. Finish it before
+      // the next test resets the fake API and its upload script.
+      await waitFor(() => {
+        expect(within(photosPanel()).getAllByRole('img', { name: /^Photo \d$/ })).toHaveLength(1)
+        expect(within(photosPanel()).queryByText('Uploading…')).not.toBeInTheDocument()
+      })
     }
   })
 
