@@ -6,6 +6,9 @@ import { server } from './setup'
 import { atWidth } from './viewport'
 
 describe('demo vehicles', () => {
+  beforeEach(() => {
+    fakeApi.config.demo_mode = true
+  })
   it('waits for config before offering vehicle actions', async () => {
     const demo = fakeApi.seed({ name: 'Golf' })
     demo.demo_profile = 'golf_2017'

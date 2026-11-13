@@ -138,8 +138,8 @@ export class FakeApi {
   nearbyScript: NearbyScript[] = []
   /** Every `POST /incidents/:id/nearby` with its body. */
   nearbyRequests: { incidentId: number; body: { radius_km: number } }[] = []
-  /** What `GET /config` answers; tests switch demo mode off to upload files. */
-  config = { demo_mode: true, vision_enabled: false }
+  /** What `GET /config` answers; tests opt into demo mode where needed. */
+  config = { demo_mode: false, vision_enabled: false }
   /** Each incident's damage report, by incident id. */
   reports = new Map<number, DamageReportRead>()
   /** Outcomes of the next report drafts, in order; when empty, a draft is stored. */
@@ -177,7 +177,7 @@ export class FakeApi {
     this.geocodeLabel = null
     this.nearbyScript = []
     this.nearbyRequests = []
-    this.config = { demo_mode: true, vision_enabled: false }
+    this.config = { demo_mode: false, vision_enabled: false }
     this.photoScript = []
     this.photoGate = null
     this.reports = new Map()
@@ -346,6 +346,8 @@ export class FakeApi {
       http.get(`${API}/api/v1/config`, () =>
         HttpResponse.json({
           ...this.config,
+          demo_scenarios: [],
+          public_deploy: false,
           max_photos: 5,
           max_photo_bytes: 1000,
           sample_photos: SAMPLES,

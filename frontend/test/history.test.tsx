@@ -213,6 +213,7 @@ describe('incident upkeep', () => {
   })
 
   it('keeps demo scenario fields hidden while allowing a note edit', async () => {
+    fakeApi.config.demo_mode = true
     const vehicle = fakeApi.seed({ name: 'Golf' })
     const incident = fakeApi.seedIncident({
       problem_type: 'flat_tyre',

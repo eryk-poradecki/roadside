@@ -22,7 +22,9 @@ describe('desktop Start on a public host', () => {
       screen.getByRole('img', { name: 'QR code for https://roadside.example.com' }),
     ).toBeInTheDocument()
     const trial = screen.getByRole('region', { name: 'Or try it here' })
-    expect(within(trial).getByRole('heading', { name: 'What happened?' })).toBeInTheDocument()
+    expect(
+      await within(trial).findByRole('heading', { name: 'What happened?' }),
+    ).toBeInTheDocument()
     expect(within(trial).getByRole('link', { name: 'Call emergency number 112' })).toBeVisible()
   })
 
@@ -37,7 +39,7 @@ describe('desktop Start on a public host', () => {
     asDesktop()
     const { user } = renderApp('/')
     const trial = await screen.findByRole('region', { name: 'Or try it here' })
-    await user.click(within(trial).getByRole('button', { name: 'Flat tyre' }))
+    await user.click(await within(trial).findByRole('button', { name: 'Flat tyre' }))
     const sheet = await screen.findByRole('dialog', { name: 'Flat tyre' })
     await user.click(within(sheet).getByRole('button', { name: 'Get help now' }))
     expect(await screen.findByRole('region', { name: 'Do this first' })).toBeInTheDocument()

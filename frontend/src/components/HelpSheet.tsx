@@ -2,6 +2,7 @@ import { X } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
+import type { DemoScenario } from '../api/generated'
 import { useConfig } from '../api/config'
 import { useCreateIncident } from '../api/incidents'
 import { photoSrc, useAddPhoto, type PhotoSource } from '../api/photos'
@@ -19,6 +20,7 @@ import './HelpSheet.css'
 export const NOTE_MAX = 280
 
 type Props = {
+  scenario?: DemoScenario
   problemType: ProblemType
   vehicles: VehicleRead[]
   geo: GeoState
@@ -49,6 +51,7 @@ const revoke = (picked: Picked) => {
  * the checklist; the first AI turn waits for them (ADR 0002).
  */
 export function HelpSheet({
+  scenario,
   problemType,
   vehicles,
   geo,
@@ -56,7 +59,7 @@ export function HelpSheet({
   onCreated,
   onClose,
 }: Props) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const create = useCreateIncident()
   const addPhoto = useAddPhoto()
@@ -66,10 +69,18 @@ export function HelpSheet({
   const titleRef = useRef<HTMLHeadingElement>(null)
   // A request that finishes after the driver closed the sheet must not navigate them away.
   const mounted = useRef(true)
-  const [note, setNote] = useState('')
+  const [note, setNote] = useState(
+    scenario?.locales[i18n.resolvedLanguage ?? i18n.language]?.note ?? '',
+  )
   // Never parked unless the driver says so: the full checklist is the safe default.
-  const [situation, setSituation] = useState<Situation>('on_road')
-  const [photos, setPhotos] = useState<Picked[]>([])
+  const [situation, setSituation] = useState<Situation>(scenario?.situation ?? 'on_road')
+  const [photos, setPhotos] = useState<Picked[]>(() =>
+    (scenario?.sample_photo_ids ?? []).map((id) => ({
+      key: nextPickKey++,
+      source: { sampleId: id },
+      preview: photoSrc(config?.sample_photos.find((sample) => sample.id === id)?.url ?? ''),
+    })),
+  )
   // The latest list, for revoking previews on unmount.
   const photosRef = useRef(photos)
   useEffect(() => {
@@ -81,7 +92,13 @@ export function HelpSheet({
   const noteId = useId()
 
   const defaultId = vehicles.find((v) => v.is_default)?.id ?? null
-  const vehicleId = picked === undefined ? defaultId : picked
+  const vehicleId = scenario
+    ? (vehicles.find(
+        (v) => scenario.vehicle_profile !== null && v.demo_profile === scenario.vehicle_profile,
+      )?.id ?? null)
+    : picked === undefined
+      ? defaultId
+      : picked
   const vehicle = vehicles.find((v) => v.id === vehicleId) ?? null
   const label = problemKey(problemType, vehicle?.fuel_type)
   const Icon = TILE_ICONS[label]
@@ -104,7 +121,8 @@ export function HelpSheet({
 
   const submit = async () => {
     const location =
-      geo.status === 'found' ? { lat: geo.lat, lon: geo.lon, accuracy_m: geo.accuracy } : null
+      scenario?.location ??
+      (geo.status === 'found' ? { lat: geo.lat, lon: geo.lon, accuracy_m: geo.accuracy } : null)
     try {
       const incident = await create.create(
         {
@@ -158,7 +176,7 @@ export function HelpSheet({
           </button>
         </header>
 
-        <p className="sheet-intro">{t('sheet.intro')}</p>
+        {!scenario && <p className="sheet-intro">{t('sheet.intro')}</p>}
 
         <label className="note-label" htmlFor={noteId}>
           {t('sheet.noteLabel')}
@@ -169,6 +187,7 @@ export function HelpSheet({
           rows={2}
           maxLength={NOTE_MAX}
           placeholder={t('sheet.notePlaceholder')}
+          readOnly={!!scenario}
           value={note}
           onChange={(e) => {
             setNote(e.target.value)
@@ -186,13 +205,15 @@ export function HelpSheet({
             items={photos.map((photo) => ({
               key: photo.key,
               src: photo.preview,
-              onRemove: () => {
-                revoke(photo)
-                setPhotos((list) => list.filter((p) => p.key !== photo.key))
-              },
+              onRemove: scenario
+                ? undefined
+                : () => {
+                    revoke(photo)
+                    setPhotos((list) => list.filter((p) => p.key !== photo.key))
+                  },
             }))}
           />
-          {photos.length < maxPhotos && (
+          {!scenario && photos.length < maxPhotos && (
             <AddPhotos
               remaining={maxPhotos - photos.length}
               onPick={(sources) => {
@@ -208,31 +229,37 @@ export function HelpSheet({
           <VisionNote />
         </div>
 
-        <SituationPick value={situation} onChange={setSituation} />
+        <fieldset disabled={!!scenario} className="scenario-fields">
+          <SituationPick value={situation} onChange={setSituation} />
 
-        {vehicles.length > 0 && (
-          <fieldset className="vehicle-pick">
-            <legend className="note-label">{t('sheet.vehicleLabel')}</legend>
-            {[...vehicles, null].map((v) => (
-              <label key={v?.id ?? 'none'} className="choice">
-                <input
-                  type="radio"
-                  name="vehicle"
-                  checked={vehicleId === (v?.id ?? null)}
-                  onChange={() => {
-                    setPicked(v?.id ?? null)
-                  }}
-                />
-                <span>{v ? v.name : t('sheet.noVehicle')}</span>
-              </label>
-            ))}
-          </fieldset>
-        )}
-
+          {(vehicles.length > 0 || scenario) && (
+            <fieldset className="vehicle-pick">
+              <legend className="note-label">{t('sheet.vehicleLabel')}</legend>
+              {[...vehicles, null].map((v) => (
+                <label key={v?.id ?? 'none'} className="choice">
+                  <input
+                    type="radio"
+                    name="vehicle"
+                    checked={vehicleId === (v?.id ?? null)}
+                    onChange={() => {
+                      setPicked(v?.id ?? null)
+                    }}
+                  />
+                  <span>{v ? v.name : t('sheet.noVehicle')}</span>
+                </label>
+              ))}
+            </fieldset>
+          )}
+        </fieldset>
         {create.isError && <ErrorNotice error={create.error} />}
       </div>
 
       <div className="sheet-actions">
+        {scenario && (
+          <button type="button" className="btn btn-quiet" onClick={onClose}>
+            {t('demo.changeScenario')}
+          </button>
+        )}
         <button
           type="button"
           className="btn btn-primary"
