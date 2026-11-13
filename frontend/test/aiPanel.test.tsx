@@ -1,5 +1,5 @@
-import { cleanup, screen, within } from '@testing-library/react'
-import { delay, http, HttpResponse } from 'msw'
+import { cleanup, screen, waitFor, within } from '@testing-library/react'
+import { http } from 'msw'
 import { i18n } from '../src/i18n'
 import { en } from '../src/i18n/en'
 import { ADVICE, API, fakeApi } from './fakeApi'
@@ -61,17 +61,33 @@ describe('AI answer on the Result screen', () => {
   })
 
   it('shows a waiting state while the assistant works, with the checklist already there', async () => {
+    let finish!: () => void
+    const response = new Promise<void>((resolve) => {
+      finish = resolve
+    })
+    let arrived!: () => void
+    const requestStarted = new Promise<void>((resolve) => {
+      arrived = resolve
+    })
     server.use(
       http.post(`${API}/api/v1/incidents/:id/ai-turns`, async () => {
-        await delay('infinite')
-        return HttpResponse.json({})
+        arrived()
+        await response
+        // Fall through to the fake API, which stores the answer before returning it.
       }),
     )
     await getHelp()
 
-    expect(await within(aiPanel()).findByText(en.ai.loading)).toBeInTheDocument()
-    expect(aiPanel()).toHaveAttribute('aria-busy', 'true')
-    expect(within(checklist()).getByText(en.checklist.lists.tyre.first)).toBeInTheDocument()
+    try {
+      await requestStarted
+      expect(await within(aiPanel()).findByText(en.ai.loading)).toBeInTheDocument()
+      await waitFor(() => expect(aiPanel()).toHaveAttribute('aria-busy', 'true'))
+      expect(within(checklist()).getByText(en.checklist.lists.tyre.first)).toBeInTheDocument()
+    } finally {
+      // Finish this test's request before resetting the shared fake API for the next test.
+      finish()
+      await within(aiPanel()).findByText(ADVICE.cause)
+    }
   })
 
   it('a timed-out turn shows a translated message and "Try again"; the checklist stays', async () => {
