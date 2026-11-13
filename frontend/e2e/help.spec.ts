@@ -1,3 +1,4 @@
+import type { ConfigRead } from '../src/api/generated'
 import { expect, test } from '@playwright/test'
 
 test('a driver gets recorded help and finds the incident in History', async ({ page, request }) => {
@@ -16,15 +17,9 @@ test('a driver gets recorded help and finds the incident in History', async ({ p
   })
 
   // docs/demo-scenarios.md: battery_parked_night (EN), no photos, Golf.
-  const note =
-    "Left my lights on while shopping. Now it just clicks and won't start. The supermarket car park is nearly empty."
   await page.goto('/?lang=en')
-  await expect(page.getByRole('region', { name: 'Your location' })).toContainText('52.23000')
-  await page.getByRole('button', { name: 'Flat battery', exact: true }).click()
+  await page.getByRole('button', { name: /Car won't start after shopping/ }).click()
   const sheet = page.getByRole('dialog')
-  await sheet.getByLabel('Anything we should know?').fill(note)
-  await sheet.getByRole('radio', { name: 'Golf', exact: true }).check()
-  await sheet.getByRole('radio', { name: 'Parked (parking lot, driveway)' }).check()
   await sheet.getByRole('button', { name: 'Get help now' }).click()
 
   await expect(page).toHaveURL(/\/incidents\/\d+$/)
@@ -53,3 +48,87 @@ test('a driver gets recorded help and finds the incident in History', async ({ p
   await page.reload()
   await expect(page.getByRole('heading', { name: 'What to do' })).toBeVisible()
 })
+
+const scenarios = [
+  'tyre_parked_morning',
+  'battery_parked_night',
+  'fuel_almost_at_station',
+  'pothole_damaged_wheel',
+  'tyre_motorway_night',
+  'ev_wont_power_on',
+  'unknown_knocking_warning',
+  'smoke_engine_bay',
+]
+
+for (const locale of ['en', 'pl']) {
+  for (const id of scenarios) {
+    test(`${id} replays in ${locale} with geolocation denied`, async ({
+      page,
+      context,
+      request,
+    }) => {
+      await context.clearPermissions()
+      const cdp = await context.newCDPSession(page)
+      const { targetInfo } = await cdp.send('Target.getTargetInfo')
+      await cdp.send('Browser.setPermission', {
+        permission: { name: 'geolocation' },
+        setting: 'denied',
+        origin: 'http://localhost:18080',
+        browserContextId: targetInfo.browserContextId,
+      })
+      const configResponse = await request.get('/api/v1/config')
+      const config = (await configResponse.json()) as ConfigRead
+      const scenario = config.demo_scenarios.find((item) => item.id === id)
+      expect(scenario?.locales[locale]).toBeDefined()
+      const copy = scenario?.locales[locale]
+      if (!copy) throw new Error(`Missing recorded scenario ${id} in ${locale}`)
+      // Count any attempt, including one that the denied permission would reject.
+      await page.addInitScript(() => {
+        Object.assign(window, { geolocationCalls: 0 })
+        navigator.geolocation.getCurrentPosition = () => {
+          const state = window as unknown as { geolocationCalls: number }
+          state.geolocationCalls++
+          throw new Error('Demo must never ask for geolocation')
+        }
+      })
+      await page.route('**/*', async (route) => {
+        if (new URL(route.request().url()).origin === 'http://localhost:18080')
+          await route.continue()
+        else await route.abort()
+      })
+      await page.goto(`/?lang=${locale}`)
+      expect(
+        await page.evaluate(
+          async () => (await navigator.permissions.query({ name: 'geolocation' })).state,
+        ),
+      ).toBe('denied')
+      await page.getByRole('button', { name: `${copy.title} ${copy.summary}`, exact: true }).click()
+      const turnPromise = page.waitForResponse(
+        (response) =>
+          /\/incidents\/\d+\/ai-turns$/.test(response.url()) &&
+          response.request().method() === 'POST',
+      )
+      await page
+        .getByRole('dialog')
+        .getByRole('button', {
+          name: locale === 'en' ? 'Get help now' : 'Potrzebuję pomocy',
+        })
+        .click()
+      const turn = await turnPromise
+      expect(turn.status()).toBe(201)
+      const answer = (await turn.json()) as {
+        kind: string
+        advice: { cause: string } | null
+        question: { question: string } | null
+      }
+      const text = answer.kind === 'advice' ? answer.advice?.cause : answer.question?.question
+      if (!text) throw new Error('The first turn has no recorded answer')
+      await expect(page.getByText(text, { exact: true })).toBeVisible()
+      expect(
+        await page.evaluate(
+          () => (window as unknown as { geolocationCalls: number }).geolocationCalls,
+        ),
+      ).toBe(0)
+    })
+  }
+}

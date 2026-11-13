@@ -35,31 +35,6 @@ beforeEach(() => {
 })
 
 describe('photos in the help sheet', () => {
-  it('demo mode offers sample photos instead of a file picker', async () => {
-    const { user, sheet } = await openSheet()
-
-    expect(
-      within(sheet).getByText('Uploads are off in demo mode. Pick a sample photo instead.'),
-    ).toBeInTheDocument()
-    expect(within(sheet).queryByLabelText('Add photos')).not.toBeInTheDocument()
-
-    await user.click(within(sheet).getByRole('button', { name: 'Flat front tyre' }))
-    await user.click(within(sheet).getByRole('button', { name: 'Deep pothole in the road' }))
-    expect(within(sheet).getAllByRole('img', { name: /^Photo \d$/ })).toHaveLength(2)
-
-    // Removed one by one before sending.
-    await user.click(within(sheet).getByRole('button', { name: 'Remove photo 1' }))
-    expect(within(sheet).getAllByRole('img', { name: /^Photo \d$/ })).toHaveLength(1)
-
-    await user.click(within(sheet).getByRole('button', { name: 'Get help now' }))
-
-    expect(
-      await within(await resultPanel()).findByRole('img', { name: 'Photo 1' }),
-    ).toBeInTheDocument()
-    expect(fakeApi.photoRequests).toEqual([{ incidentId: 1, sampleId: 'pothole' }])
-    expect(within(photosPanel()).getByText('1 of 5')).toBeInTheDocument()
-  })
-
   it('uploads picked files one per request after the incident is created', async () => {
     fakeApi.config = { demo_mode: false, vision_enabled: false }
     const { user, sheet } = await openSheet()
@@ -106,8 +81,10 @@ describe('the first AI turn waits for the uploads', () => {
   it('asks only once every upload has settled', async () => {
     const release = holdUploads()
     const { user, sheet } = await openSheet()
-    await user.click(within(sheet).getByRole('button', { name: 'Flat front tyre' }))
-    await user.click(within(sheet).getByRole('button', { name: 'Deep pothole in the road' }))
+    await user.upload(within(sheet).getByLabelText('Add photos'), [
+      photo('tyre.jpg'),
+      photo('pothole.jpg'),
+    ])
     await user.click(within(sheet).getByRole('button', { name: 'Get help now' }))
 
     // One upload at a time: the second waits its turn, and counts as uploading.
@@ -132,7 +109,7 @@ describe('the first AI turn waits for the uploads', () => {
     try {
       holdUploads()
       const { user, sheet } = await openSheet()
-      await user.click(within(sheet).getByRole('button', { name: 'Flat front tyre' }))
+      await user.upload(within(sheet).getByLabelText('Add photos'), photo('tyre.jpg'))
       await user.click(within(sheet).getByRole('button', { name: 'Get help now' }))
       await waitFor(() => {
         expect(fakeApi.photoRequests).toHaveLength(1)
@@ -173,9 +150,23 @@ describe('the first AI turn waits for the uploads', () => {
 
 describe('photos on the incident', () => {
   it('demo mode keeps photos visible without add or remove controls', async () => {
-    const { user, sheet } = await openSheet()
-    await user.click(within(sheet).getByRole('button', { name: 'Flat front tyre' }))
-    await user.click(within(sheet).getByRole('button', { name: 'Get help now' }))
+    fakeApi.config.demo_mode = true
+    const incident = fakeApi.seedIncident(
+      { problem_type: 'pothole_damage' },
+      {
+        photos: [
+          {
+            id: 1,
+            url: '/api/v1/photos/1',
+            content_type: 'image/jpeg',
+            width: 1600,
+            height: 1200,
+            created_at: '2026-11-10T10:00:00Z',
+          },
+        ],
+      },
+    )
+    renderApp(`/incidents/${String(incident.id)}`)
     const panel = await resultPanel()
     expect(await within(panel).findByRole('img', { name: 'Photo 1' })).toBeInTheDocument()
     expect(within(panel).queryByRole('button', { name: 'Remove photo 1' })).not.toBeInTheDocument()

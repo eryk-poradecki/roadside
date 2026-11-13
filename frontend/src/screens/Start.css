@@ -194,3 +194,49 @@
   letter-spacing: -0.02em;
   text-wrap: balance;
 }
+
+.demo-notice {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+}
+.scenario-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.scenario {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  min-height: 48px;
+  padding: 16px 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.scenario span {
+  color: var(--muted);
+}
+.scenario:hover {
+  background: var(--surface);
+}
+.scenario-fields {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.scenario-fields > .vehicle-pick + .vehicle-pick {
+  margin-top: 14px;
+}
+.sheet-actions:has(.btn-quiet) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

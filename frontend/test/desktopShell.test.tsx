@@ -99,6 +99,8 @@ describe('desktop Start on localhost', () => {
     expect(screen.queryByRole('img', { name: /QR code/ })).not.toBeInTheDocument()
 
     const trial = screen.getByRole('region', { name: 'Try it here' })
-    expect(within(trial).getByRole('heading', { name: 'What happened?' })).toBeInTheDocument()
+    expect(
+      await within(trial).findByRole('heading', { name: 'What happened?' }),
+    ).toBeInTheDocument()
   })
 })
