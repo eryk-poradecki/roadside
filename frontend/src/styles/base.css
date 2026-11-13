@@ -278,3 +278,8 @@ h2 {
     transition: none;
   }
 }
+@media (prefers-reduced-motion: reduce) {
+  .btn:active {
+    transform: none;
+  }
+}

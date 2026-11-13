@@ -132,6 +132,13 @@
   gap: 12px;
   min-height: 48px;
 }
+.vform-check label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  cursor: pointer;
+}
 .vform-check input {
   width: 24px;
   height: 24px;
@@ -149,7 +156,7 @@
 @media (min-width: 1024px) {
   .vehicles-split {
     display: grid;
-    grid-template-columns: minmax(16rem, 0.7fr) minmax(0, 1fr);
+    grid-template-columns: minmax(20rem, 0.7fr) minmax(0, 1fr);
     align-items: start;
     gap: 24px clamp(28px, 3vw, 48px);
     width: 100%;

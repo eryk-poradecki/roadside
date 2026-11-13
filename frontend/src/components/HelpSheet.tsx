@@ -157,25 +157,20 @@ export function HelpSheet({
         onClose()
       }}
     >
+      {/* Outside the scrolling body: 112 and Close stay in view however far it scrolls. */}
+      <header className="sheet-head">
+        <span className="sheet-icon" aria-hidden="true">
+          <Icon size={26} strokeWidth={1.75} />
+        </span>
+        <h2 id={titleId} ref={titleRef} tabIndex={-1}>
+          {t(`start.tiles.${label}`)}
+        </h2>
+        <EmergencyLink className="sos-chip">112</EmergencyLink>
+        <button type="button" className="icon-btn" onClick={onClose} aria-label={t('sheet.close')}>
+          <X size={22} aria-hidden="true" />
+        </button>
+      </header>
       <div className="sheet-body">
-        <header className="sheet-head">
-          <span className="sheet-icon" aria-hidden="true">
-            <Icon size={26} strokeWidth={1.75} />
-          </span>
-          <h2 id={titleId} ref={titleRef} tabIndex={-1}>
-            {t(`start.tiles.${label}`)}
-          </h2>
-          <EmergencyLink className="sos-chip">112</EmergencyLink>
-          <button
-            type="button"
-            className="icon-btn"
-            onClick={onClose}
-            aria-label={t('sheet.close')}
-          >
-            <X size={22} aria-hidden="true" />
-          </button>
-        </header>
-
         {!scenario && <p className="sheet-intro">{t('sheet.intro')}</p>}
 
         <label className="note-label" htmlFor={noteId}>

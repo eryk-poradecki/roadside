@@ -61,6 +61,11 @@
   border-color: var(--amber);
   transform: scale(0.98);
 }
+@media (prefers-reduced-motion: reduce) {
+  .tile:not(:disabled):active {
+    transform: none;
+  }
+}
 .tile-wide .tile {
   min-height: 64px;
   flex-direction: row;
@@ -78,6 +83,12 @@
   align-items: start;
   gap: 40px clamp(56px, 6vw, 96px);
   flex: 1 0 auto;
+}
+@media (max-width: 1199px) {
+  .start-desk {
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 32px 40px;
+  }
 }
 .start-side {
   display: flex;
