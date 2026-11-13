@@ -16,7 +16,7 @@ from pathlib import Path
 
 import httpx
 
-from scripts.demo.check import NoDemoVehicle, NotDemoMode, check
+from scripts.demo.check import DemoCheckFailed, NoDemoVehicle, NotDemoMode, check
 from scripts.demo.record import load_choices
 from scripts.demo.report import check_markdown
 from scripts.demo.scenarios import load_scenarios
@@ -27,7 +27,7 @@ async def _main(args: argparse.Namespace) -> int:
     async with httpx.AsyncClient(base_url=args.base_url, timeout=30.0) as client:
         try:
             walks = await check(client, load_scenarios(), load_choices(args.choices))
-        except (NotDemoMode, NoDemoVehicle) as exc:
+        except (DemoCheckFailed, NotDemoMode, NoDemoVehicle) as exc:
             print(f"{args.base_url}: {exc}", file=sys.stderr)
             return 2
         except httpx.HTTPError as exc:

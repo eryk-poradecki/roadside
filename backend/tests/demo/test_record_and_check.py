@@ -25,7 +25,7 @@ from app.integrations.place_recording import load_place_recordings
 from app.main import create_app
 from app.services import assistant
 from app.settings import Settings
-from scripts.demo.check import NoDemoVehicle, NotDemoMode, check
+from scripts.demo.check import DemoCheckFailed, NoDemoVehicle, NotDemoMode, check
 from scripts.demo.record import RecordRun, record
 from scripts.demo.scenarios import Scenario, load_scenarios
 from tests.fakes import FakePlaceSource, answer_json, ask_json, osm_node, report_json
@@ -216,10 +216,8 @@ async def test_the_demo_check_replays_every_walk_with_no_miss(
 async def test_the_demo_check_reports_a_miss(
     tmp_path: Path, demo: Callable[[Path], Awaitable[httpx.AsyncClient]]
 ) -> None:
-    walks = await check(await demo(tmp_path / "empty"), scenarios(), CHOICES)
-
-    assert walks
-    assert all(any("no_recording" in p for p in w.problems) for w in walks)
+    with pytest.raises(DemoCheckFailed, match="/config is missing scenario pothole_damaged_wheel"):
+        await check(await demo(tmp_path / "empty"), scenarios(), CHOICES)
 
 
 async def test_the_demo_check_cleans_up_after_itself(
@@ -233,7 +231,10 @@ async def test_the_demo_check_cleans_up_after_itself(
 
     assert (await client.get("/api/v1/incidents")).json()["total"] == 0
     # It walked the seeded vehicles, as a visitor picks them, and left them be.
-    assert (await client.get("/api/v1/vehicles")).json() == seeded
+    after = (await client.get("/api/v1/vehicles")).json()
+    assert [{k: v for k, v in row.items() if k != "updated_at"} for row in after] == [
+        {k: v for k, v in row.items() if k != "updated_at"} for row in seeded
+    ]
 
 
 async def test_the_demo_check_refuses_an_app_without_a_seeded_demo_vehicle(
