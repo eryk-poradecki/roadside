@@ -116,6 +116,10 @@ export type ConfigRead = {
      */
     demo_mode: boolean;
     /**
+     * Demo Scenarios
+     */
+    demo_scenarios: Array<DemoScenario>;
+    /**
      * Max Photo Bytes
      */
     max_photo_bytes: number;
@@ -123,6 +127,10 @@ export type ConfigRead = {
      * Max Photos
      */
     max_photos: number;
+    /**
+     * Public Deploy
+     */
+    public_deploy: boolean;
     /**
      * Sample Photos
      */
@@ -194,6 +202,51 @@ export type DamageReportRead = {
  * DamageReportStatus
  */
 export type DamageReportStatus = 'draft' | 'sent';
+
+/**
+ * DemoScenario
+ */
+export type DemoScenario = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Locales
+     */
+    locales: {
+        [key: string]: DemoScenarioLocale;
+    };
+    location: LocationRead;
+    problem_type: ProblemType;
+    /**
+     * Sample Photo Ids
+     */
+    sample_photo_ids: Array<string>;
+    situation: Situation;
+    /**
+     * Vehicle Profile
+     */
+    vehicle_profile: string | null;
+};
+
+/**
+ * DemoScenarioLocale
+ */
+export type DemoScenarioLocale = {
+    /**
+     * Note
+     */
+    note: string;
+    /**
+     * Summary
+     */
+    summary: string;
+    /**
+     * Title
+     */
+    title: string;
+};
 
 /**
  * FuelType

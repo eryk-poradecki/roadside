@@ -15,6 +15,7 @@ from app.repositories.incidents import SqliteIncidentRepository
 from app.repositories.nearby import SqliteNearbyRepository
 from app.repositories.photos import PhotoFiles, SqlitePhotoRepository
 from app.repositories.vehicles import SqliteVehicleRepository
+from app.schemas.meta import DemoScenario
 from app.services.assistant import AssistantService, TurnLocks
 from app.services.damage_reports import DamageReportService
 from app.services.incidents import IncidentService
@@ -199,3 +200,8 @@ def get_damage_report_service(
         settings.llm_turn_budget_s,
         location,
     )
+
+
+def get_demo_scenarios(request: Request) -> list[DemoScenario]:
+    scenarios: list[DemoScenario] = request.app.state.demo_scenarios
+    return scenarios

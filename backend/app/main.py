@@ -8,6 +8,7 @@ from fastapi.routing import APIRoute
 
 from app.db.connection import connect
 from app.db.migrate import migrate
+from app.demo_scenarios import recorded_scenarios
 from app.errors import install_error_handlers
 from app.integrations.llm.factory import build_provider
 from app.integrations.nominatim import NominatimGeocoder
@@ -109,6 +110,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.place_source = place_source
     app.state.place_recordings = place_recordings
     app.state.place_recorder = place_recorder
+    app.state.demo_scenarios = (
+        recorded_scenarios(settings.llm_recordings_dir, place_recordings, provider)
+        if settings.demo_mode
+        else []
+    )
 
     api = APIRouter(prefix="/api/v1")
     api.include_router(meta.config_router)
