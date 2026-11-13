@@ -134,7 +134,7 @@ DEMO_SCENARIOS: tuple[DemoScenario, ...] = (
         locales={
             "en": DemoScenarioLocale(
                 title="Flat tyre on the motorway",
-                summary="An Octavia stops on the hard shoulder with a flat tyre at night.",
+                summary="A Golf stops on the hard shoulder with a flat tyre at night.",
                 note=(
                     "Front-left tyre went flat on the motorway. I'm on the hard shoulder, it's "
                     "dark and cars are passing really fast."
@@ -142,7 +142,7 @@ DEMO_SCENARIOS: tuple[DemoScenario, ...] = (
             ),
             "pl": DemoScenarioLocale(
                 title="Przebita opona na autostradzie",
-                summary="Octavia stoi nocą na pasie awaryjnym z przebitą oponą.",
+                summary="Golf stoi nocą na pasie awaryjnym z przebitą oponą.",
                 note=(
                     "Złapałem gumę w lewym przednim kole na autostradzie. Stoję na pasie "
                     "awaryjnym, jest ciemno, a auta jadą bardzo szybko."
