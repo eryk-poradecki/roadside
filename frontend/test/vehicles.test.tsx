@@ -6,6 +6,37 @@ import { server } from './setup'
 import { atWidth } from './viewport'
 
 describe('demo vehicles', () => {
+  it('waits for config before offering vehicle actions', async () => {
+    const demo = fakeApi.seed({ name: 'Golf' })
+    demo.demo_profile = 'golf_2017'
+    let releaseConfig = () => {}
+    const configGate = new Promise<void>((resolve) => {
+      releaseConfig = resolve
+    })
+    let vehiclesRead = false
+    server.use(
+      http.get(`${API}/api/v1/config`, async () => {
+        await configGate
+        return HttpResponse.json({ ...fakeApi.config })
+      }),
+      http.get(`${API}/api/v1/vehicles`, () => {
+        vehiclesRead = true
+        return HttpResponse.json([demo])
+      }),
+    )
+    renderApp('/vehicles')
+    try {
+      await waitFor(() => {
+        expect(vehiclesRead).toBe(true)
+      })
+      expect(screen.queryByRole('link', { name: 'Edit Golf' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Delete Golf' })).not.toBeInTheDocument()
+    } finally {
+      releaseConfig()
+    }
+    expect(await screen.findByText('Demo vehicle')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Delete Golf' })).not.toBeInTheDocument()
+  })
   it('keeps marked vehicles editable when demo mode is off', async () => {
     fakeApi.config.demo_mode = false
     const demo = fakeApi.seed({ name: 'Golf' })

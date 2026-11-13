@@ -37,7 +37,7 @@ function VehicleCard({ vehicle, demoMode }: { vehicle: VehicleRead; demoMode: bo
         </div>
       </div>
 
-      {confirming ? (
+      {confirming && !readOnly ? (
         <div
           className="vehicle-confirm"
           role="group"
@@ -115,7 +115,12 @@ function VehicleCard({ vehicle, demoMode }: { vehicle: VehicleRead; demoMode: bo
 
 export function Vehicles() {
   const { t } = useTranslation()
-  const { data: config } = useConfig()
+  const {
+    data: config,
+    isPending: configPending,
+    isError: configIsError,
+    error: configError,
+  } = useConfig()
   const { data: vehicles, isPending, isError, error } = useVehicles()
 
   return (
@@ -129,7 +134,8 @@ export function Vehicles() {
 
       {config?.demo_mode && <p className="notice">{t('demo.vehiclesHint')}</p>}
 
-      {isPending && <p className="muted">{t('common.loading')}</p>}
+      {(isPending || configPending) && <p className="muted">{t('common.loading')}</p>}
+      {configIsError && <ErrorNotice error={configError} />}
       {isError && (
         <>
           <p className="notice notice-error" role="alert">
@@ -143,10 +149,10 @@ export function Vehicles() {
       {vehicles && vehicles.length > 0 && !vehicles.some((v) => v.is_default) && (
         <p className="notice">{t('vehicles.noDefault')}</p>
       )}
-      {vehicles && vehicles.length > 0 && (
+      {config && vehicles && vehicles.length > 0 && (
         <ul className="vehicle-list" aria-label={t('vehicles.listLabel')}>
           {vehicles.map((vehicle) => (
-            <VehicleCard key={vehicle.id} vehicle={vehicle} demoMode={config?.demo_mode === true} />
+            <VehicleCard key={vehicle.id} vehicle={vehicle} demoMode={config.demo_mode} />
           ))}
         </ul>
       )}
