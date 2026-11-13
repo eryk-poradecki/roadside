@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { ErrorNotice } from '../components/ErrorNotice'
+import { useConfig } from '../api/config'
 import {
   replacementBody,
   useDeleteVehicle,
@@ -12,13 +13,14 @@ import {
 } from '../api/vehicles'
 import './Vehicles.css'
 
-function VehicleCard({ vehicle }: { vehicle: VehicleRead }) {
+function VehicleCard({ vehicle, demoMode }: { vehicle: VehicleRead; demoMode: boolean }) {
   const { t } = useTranslation()
   const [confirming, setConfirming] = useState(false)
   const replace = useReplaceVehicle()
   const remove = useDeleteVehicle()
   const subtitle = [vehicle.make_model, vehicle.year].filter((part) => part !== null).join(' · ')
   const name = vehicle.name
+  const readOnly = demoMode && vehicle.demo_profile != null
 
   return (
     <li className="vehicle">
@@ -27,7 +29,12 @@ function VehicleCard({ vehicle }: { vehicle: VehicleRead }) {
           <h2>{name}</h2>
           {subtitle && <p className="muted">{subtitle}</p>}
         </div>
-        {vehicle.is_default && <span className="badge badge-accent">{t('vehicles.default')}</span>}
+        <div className="vehicle-badges">
+          {readOnly && <span className="badge">{t('demo.vehicleLabel')}</span>}
+          {vehicle.is_default && (
+            <span className="badge badge-accent">{t('vehicles.default')}</span>
+          )}
+        </div>
       </div>
 
       {confirming ? (
@@ -62,13 +69,15 @@ function VehicleCard({ vehicle }: { vehicle: VehicleRead }) {
         </div>
       ) : (
         <div className="vehicle-actions">
-          <Link
-            className="btn btn-quiet"
-            to={`/vehicles/${String(vehicle.id)}`}
-            aria-label={t('vehicles.editLabel', { name })}
-          >
-            {t('vehicles.edit')}
-          </Link>
+          {!readOnly && (
+            <Link
+              className="btn btn-quiet"
+              to={`/vehicles/${String(vehicle.id)}`}
+              aria-label={t('vehicles.editLabel', { name })}
+            >
+              {t('vehicles.edit')}
+            </Link>
+          )}
           {!vehicle.is_default && (
             <button
               type="button"
@@ -85,16 +94,18 @@ function VehicleCard({ vehicle }: { vehicle: VehicleRead }) {
               {t('vehicles.setDefault')}
             </button>
           )}
-          <button
-            type="button"
-            className="btn btn-quiet"
-            aria-label={t('vehicles.deleteLabel', { name })}
-            onClick={() => {
-              setConfirming(true)
-            }}
-          >
-            {t('vehicles.delete')}
-          </button>
+          {!readOnly && (
+            <button
+              type="button"
+              className="btn btn-quiet"
+              aria-label={t('vehicles.deleteLabel', { name })}
+              onClick={() => {
+                setConfirming(true)
+              }}
+            >
+              {t('vehicles.delete')}
+            </button>
+          )}
         </div>
       )}
       {replace.isError && <ErrorNotice error={replace.error} />}
@@ -104,6 +115,7 @@ function VehicleCard({ vehicle }: { vehicle: VehicleRead }) {
 
 export function Vehicles() {
   const { t } = useTranslation()
+  const { data: config } = useConfig()
   const { data: vehicles, isPending, isError, error } = useVehicles()
 
   return (
@@ -114,6 +126,8 @@ export function Vehicles() {
           <p className="muted">{t('vehicles.count', { count: vehicles.length })}</p>
         )}
       </div>
+
+      {config?.demo_mode && <p className="notice">{t('demo.vehiclesHint')}</p>}
 
       {isPending && <p className="muted">{t('common.loading')}</p>}
       {isError && (
@@ -132,7 +146,7 @@ export function Vehicles() {
       {vehicles && vehicles.length > 0 && (
         <ul className="vehicle-list" aria-label={t('vehicles.listLabel')}>
           {vehicles.map((vehicle) => (
-            <VehicleCard key={vehicle.id} vehicle={vehicle} />
+            <VehicleCard key={vehicle.id} vehicle={vehicle} demoMode={config?.demo_mode === true} />
           ))}
         </ul>
       )}

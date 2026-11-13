@@ -37,6 +37,12 @@
 .vehicle-title {
   min-width: 0;
 }
+.vehicle-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
 .vehicle-title h2 {
   overflow-wrap: anywhere;
 }

@@ -56,5 +56,6 @@ export function replacementBody(vehicle: VehicleRead): VehicleCreate {
   delete body.id
   delete body.created_at
   delete body.updated_at
+  delete body.demo_profile
   return body as VehicleCreate
 }
