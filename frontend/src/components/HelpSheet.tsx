@@ -21,6 +21,11 @@ import './HelpSheet.css'
 /** Same cap as the API's `note`. */
 export const NOTE_MAX = 280
 
+/** Only help creation falls back to static safety steps when the API is unavailable. */
+const isHelpUnavailable = (error: unknown) =>
+  isApiError(error) &&
+  (error.reason === 'offline' || [502, 503, 504].includes(error.problem.status))
+
 type Props = {
   scenario?: DemoScenario
   problemType: ProblemType
@@ -150,8 +155,7 @@ export function HelpSheet({
       if (mounted.current)
         void navigate(`/incidents/${String(incident.id)}`, { state: { fromHelp: true } })
     } catch (error) {
-      if (mounted.current && isApiError(error) && error.reason === 'offline')
-        setOfflineResult({ body, label })
+      if (mounted.current && isHelpUnavailable(error)) setOfflineResult({ body, label })
       // Shown below from `create.error`. A re-tap reuses the key, so it can't duplicate.
     }
   }
@@ -270,7 +274,14 @@ export function HelpSheet({
       </div>
 
       <div className="sheet-actions">
-        {create.isError && <ErrorNotice error={create.error} />}
+        {create.isError &&
+          (isHelpUnavailable(create.error) ? (
+            <p className="notice notice-error" role="alert">
+              {t('errors.offline')}
+            </p>
+          ) : (
+            <ErrorNotice error={create.error} />
+          ))}
         {scenario && (
           <button type="button" className="btn btn-quiet" onClick={onClose}>
             {t('demo.changeScenario')}
