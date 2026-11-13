@@ -16,6 +16,17 @@ export const en = {
   language: 'Language',
   languageNames: { en: 'English', pl: 'Polski' },
   common: { back: 'Back', cancel: 'Cancel', retry: 'Try again', loading: 'Loading…' },
+  demo: {
+    notice:
+      'This demo runs without a live AI model. Answers are pre-recorded for the scenarios below. Feel free to browse the app.',
+    publicNotice: 'Anything entered here is visible to other visitors until the nightly reset.',
+    scenariosHeading: 'Choose a scenario',
+    changeScenario: 'Change scenario',
+    noScenarios: 'No scenarios have been recorded in this language yet.',
+    vehicleLabel: 'Demo vehicle',
+    vehiclesHint:
+      'Demo scenarios use the demo vehicles. Vehicles you add here are for trying the screen.',
+  },
   nav: {
     label: 'Main',
     help: 'Help',
@@ -503,6 +514,7 @@ export const en = {
     photo_limit: 'This incident already has the most photos it can have.',
     photo_too_large: 'That photo is too large. Try a smaller one.',
     unsupported_media_type: 'That file is not a photo we can use. Send a JPEG, PNG or WebP.',
+    demo_vehicle_read_only: 'Demo vehicles can only be made the default in demo mode.',
     demo_uploads_disabled: 'Uploads are off in demo mode. Pick a sample photo instead.',
     unknown_sample: 'That sample photo is not available.',
   },

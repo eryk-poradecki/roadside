@@ -29,6 +29,7 @@ import {
   type TurnInputsRead,
 } from '../api/aiTurns'
 import type { FuelType } from '../api/generated/types.gen'
+import { useConfig } from '../api/config'
 import { isApiError } from '../api/client'
 import type { IncidentRead } from '../api/incidents'
 import { usePhotosUploading } from '../api/photos'
@@ -213,6 +214,7 @@ function Ask({
   onReply: (reply: ReplyCreate) => void
 }) {
   const { t } = useTranslation()
+  const allowFreeText = useConfig().data?.demo_mode === false
   const id = useId()
   const [other, setOther] = useState('')
   const heading = useRef<HTMLHeadingElement>(null)
@@ -256,32 +258,34 @@ function Ask({
           </button>
         ))}
       </div>
-      <form className="ask-other" onSubmit={submit}>
-        <label htmlFor={`${id}-other`} className="note-label">
-          {t('ai.otherLabel')}
-        </label>
-        <div className="ask-other-row">
-          <input
-            id={`${id}-other`}
-            className="field"
-            value={other}
-            maxLength={NOTE_MAX}
-            placeholder={t('ai.otherPlaceholder')}
-            enterKeyHint="send"
-            onChange={(e) => {
-              setOther(e.target.value)
-            }}
-          />
-          <button
-            type="submit"
-            className="icon-btn icon-btn-lg"
-            disabled={!other.trim()}
-            aria-label={t('ai.send')}
-          >
-            <Send size={20} aria-hidden="true" />
-          </button>
-        </div>
-      </form>
+      {allowFreeText && (
+        <form className="ask-other" onSubmit={submit}>
+          <label htmlFor={`${id}-other`} className="note-label">
+            {t('ai.otherLabel')}
+          </label>
+          <div className="ask-other-row">
+            <input
+              id={`${id}-other`}
+              className="field"
+              value={other}
+              maxLength={NOTE_MAX}
+              placeholder={t('ai.otherPlaceholder')}
+              enterKeyHint="send"
+              onChange={(e) => {
+                setOther(e.target.value)
+              }}
+            />
+            <button
+              type="submit"
+              className="icon-btn icon-btn-lg"
+              disabled={!other.trim()}
+              aria-label={t('ai.send')}
+            >
+              <Send size={20} aria-hidden="true" />
+            </button>
+          </div>
+        </form>
+      )}
       <button
         type="button"
         className="btn btn-quiet ask-skip"

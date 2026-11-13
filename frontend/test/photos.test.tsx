@@ -172,18 +172,32 @@ describe('the first AI turn waits for the uploads', () => {
 })
 
 describe('photos on the incident', () => {
+  it('demo mode keeps photos visible without add or remove controls', async () => {
+    const { user, sheet } = await openSheet()
+    await user.click(within(sheet).getByRole('button', { name: 'Flat front tyre' }))
+    await user.click(within(sheet).getByRole('button', { name: 'Get help now' }))
+    const panel = await resultPanel()
+    expect(await within(panel).findByRole('img', { name: 'Photo 1' })).toBeInTheDocument()
+    expect(within(panel).queryByRole('button', { name: 'Remove photo 1' })).not.toBeInTheDocument()
+    expect(
+      within(panel).queryByRole('button', { name: 'Deep pothole in the road' }),
+    ).not.toBeInTheDocument()
+    expect(within(panel).queryByLabelText('Add photos')).not.toBeInTheDocument()
+  })
+
   it('adds a photo later and removes photos one by one', async () => {
+    fakeApi.config.demo_mode = false
     const incident = fakeApi.seedIncident({ problem_type: 'pothole_damage' })
     const { user } = renderApp(`/incidents/${String(incident.id)}`)
 
     const panel = await screen.findByRole('region', { name: 'Photos' })
     expect(within(panel).getByText('No photos yet. Add some to document the damage.'))
-    await user.click(await within(panel).findByRole('button', { name: 'Deep pothole in the road' }))
-    await user.click(within(panel).getByRole('button', { name: 'Flat front tyre' }))
+    await user.upload(await within(panel).findByLabelText('Add photos'), photo('pothole.jpg'))
+    await user.upload(within(panel).getByLabelText('Add photos'), photo('tyre.jpg'))
     await waitFor(() => {
       expect(within(panel).getAllByRole('img', { name: /^Photo \d$/ })).toHaveLength(2)
     })
-    expect(fakeApi.photoRequests.map((r) => r.sampleId)).toEqual(['pothole', 'flat_tyre'])
+    expect(fakeApi.photoRequests.map((r) => r.file?.type)).toEqual(['image/jpeg', 'image/jpeg'])
 
     await user.click(within(panel).getByRole('button', { name: 'Remove photo 1' }))
 
@@ -196,11 +210,12 @@ describe('photos on the incident', () => {
   })
 
   it('hides "add" once the incident has five photos', async () => {
+    fakeApi.config.demo_mode = false
     const incident = fakeApi.seedIncident({ problem_type: 'pothole_damage' })
     const { user } = renderApp(`/incidents/${String(incident.id)}`)
     const panel = await screen.findByRole('region', { name: 'Photos' })
     for (let i = 0; i < 5; i++)
-      await user.click(await within(panel).findByRole('button', { name: 'Flat front tyre' }))
+      await user.upload(await within(panel).findByLabelText('Add photos'), photo('tyre.jpg'))
 
     expect(
       await within(panel).findByText('That is the most photos one incident can have.'),
@@ -211,10 +226,11 @@ describe('photos on the incident', () => {
 
   it('a failed upload can be tried again when the connection was the problem', async () => {
     fakeApi.photoScript = [{ status: 503, reason: 'database_unavailable' }]
+    fakeApi.config.demo_mode = false
     const incident = fakeApi.seedIncident({ problem_type: 'flat_tyre' })
     const { user } = renderApp(`/incidents/${String(incident.id)}`)
     const panel = await screen.findByRole('region', { name: 'Photos' })
-    await user.click(await within(panel).findByRole('button', { name: 'Flat front tyre' }))
+    await user.upload(await within(panel).findByLabelText('Add photos'), photo('tyre.jpg'))
 
     const failed = await within(panel).findByRole('alert')
     await user.click(within(failed).getByRole('button', { name: 'Try again' }))

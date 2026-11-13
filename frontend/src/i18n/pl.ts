@@ -26,6 +26,18 @@ export const pl: Localised<Translation> & {
   language: 'Język',
   languageNames: { en: 'English', pl: 'Polski' },
   common: { back: 'Wstecz', cancel: 'Anuluj', retry: 'Spróbuj ponownie', loading: 'Ładowanie…' },
+  demo: {
+    notice:
+      'To demo działa bez modelu AI na żywo. Odpowiedzi dla poniższych scenariuszy zostały nagrane wcześniej. Rozejrzyj się po aplikacji.',
+    publicNotice:
+      'Wszystko, co tu wpiszesz, jest widoczne dla innych odwiedzających do nocnego resetu.',
+    scenariosHeading: 'Wybierz scenariusz',
+    changeScenario: 'Zmień scenariusz',
+    noScenarios: 'Nie ma jeszcze nagranych scenariuszy w tym języku.',
+    vehicleLabel: 'Pojazd demo',
+    vehiclesHint:
+      'Scenariusze demo korzystają z pojazdów demo. Dodane tu pojazdy służą do wypróbowania tego ekranu.',
+  },
   nav: {
     label: 'Główna nawigacja',
     help: 'Pomoc',
@@ -522,6 +534,7 @@ export const pl: Localised<Translation> & {
     photo_limit: 'To zdarzenie ma już najwięcej zdjęć, ile może mieć.',
     photo_too_large: 'To zdjęcie jest za duże. Spróbuj mniejszego.',
     unsupported_media_type: 'Tego pliku nie możemy użyć jako zdjęcia. Wyślij JPEG, PNG lub WebP.',
+    demo_vehicle_read_only: 'W trybie demo pojazd demo można tylko ustawić jako domyślny.',
     demo_uploads_disabled:
       'W trybie demo wysyłanie plików jest wyłączone. Wybierz przykładowe zdjęcie.',
     unknown_sample: 'To przykładowe zdjęcie jest niedostępne.',
