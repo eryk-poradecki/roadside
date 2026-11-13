@@ -4,7 +4,14 @@ import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 import type { IncidentRead } from '../api/incidents'
 import { useUpdateIncident } from '../api/incidents'
-import { reportPath, StartReport, StatusBadge, type DraftOnArrival } from './DamageReport'
+import { useConfig } from '../api/config'
+import {
+  reportPath,
+  StartReport,
+  StatusBadge,
+  useOfferedLocales,
+  type DraftOnArrival,
+} from './DamageReport'
 import { ErrorNotice } from './ErrorNotice'
 
 /**
@@ -19,6 +26,8 @@ export function DamageReportCard({ incident }: { incident: IncidentRead }) {
   const navigate = useNavigate()
   const status = incident.damage_report_status
   const path = reportPath(incident.id)
+  const offered = status === null && incident.problem_type === 'pothole_damage'
+  const locales = useOfferedLocales(incident, offered)
 
   if (status !== null) {
     return (
@@ -40,6 +49,7 @@ export function DamageReportCard({ incident }: { incident: IncidentRead }) {
     <section className="panel" aria-labelledby={titleId}>
       <h2 id={titleId}>{t('report.title')}</h2>
       <StartReport
+        locales={locales}
         onDraft={(locale) => {
           const state: DraftOnArrival = { draftLocale: locale }
           void navigate(path, { state })
@@ -51,11 +61,15 @@ export function DamageReportCard({ incident }: { incident: IncidentRead }) {
 
 /**
  * On a flat-tyre incident: "Was this caused by a pothole?" switches the problem type, after
- * which the damage report card offers the report (ADR 0009).
+ * which the damage report card offers the report (ADR 0009). Not in demo mode.
  */
 export function PotholeHint({ incident }: { incident: IncidentRead }) {
   const { t } = useTranslation()
   const update = useUpdateIncident(incident.id)
+  const config = useConfig()
+  // Demo mode fixes the scenario (#131): a new problem type would drop its recorded places
+  // and answers, and no report is recorded for it (#143).
+  if (config.isPending || config.data?.demo_mode === true) return null
   return (
     <div className="notice report-hint">
       <p>

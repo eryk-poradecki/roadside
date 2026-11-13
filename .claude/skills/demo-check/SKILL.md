@@ -10,10 +10,10 @@ It also verifies each demo vehicle refuses fact changes and deletion with 403 `d
 
 ## 1. Start the stack in demo mode
 
-Compose reads `backend/.env`, which on the owner's machine may turn demo mode off. Layer an override that forces it back on, under a project of its own: its fresh data volume is what a first visitor gets, seeded demo vehicles included, and the owner's volume is never touched. Port 8080 must be free, so stop the owner's stack first if it is up.
+Compose reads `backend/.env`, which on the owner's machine may turn demo mode off. Layer an override that forces it back on, without the simulated thinking time, under a project of its own: its fresh data volume is what a first visitor gets, seeded demo vehicles included, and the owner's volume is never touched. Port 8080 must be free, so stop the owner's stack first if it is up.
 
 ```sh
-printf 'services:\n  backend:\n    environment:\n      DEMO_MODE: "true"\n      LLM_RECORD: "false"\n      LLM_PROVIDER: openai_compatible\n' \
+printf 'services:\n  backend:\n    environment:\n      DEMO_MODE: "true"\n      LLM_RECORD: "false"\n      LLM_PROVIDER: openai_compatible\n      DEMO_THINKING_S: "0"\n      DEMO_REPLY_THINKING_S: "0"\n' \
   | docker compose -p roadside-demo-check -f compose.yaml -f - up --build --detach --wait
 ```
 

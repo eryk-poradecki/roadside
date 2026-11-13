@@ -114,3 +114,34 @@ async def test_config_exposes_public_deploy(settings: Settings) -> None:
         body = (await client.get("/api/v1/config")).json()
     assert body["public_deploy"] is True
     assert body["demo_scenarios"] == []
+
+
+async def test_only_the_pothole_scenario_offers_a_recorded_report(settings: Settings) -> None:
+    """#143: the report is offered where a draft is recorded, and nowhere else."""
+    settings.llm_recordings_dir = RECORDINGS
+    async with running(settings) as client:
+        config = (await client.get("/api/v1/config")).json()
+        vehicles = (await client.get("/api/v1/vehicles")).json()
+        profiles = {v["demo_profile"]: v["id"] for v in vehicles}
+        offered = {}
+        for scenario in config["demo_scenarios"]:
+            response = await client.post(
+                "/api/v1/incidents",
+                json={
+                    "problem_type": scenario["problem_type"],
+                    "vehicle_id": profiles.get(scenario["vehicle_profile"]),
+                    "situation": scenario["situation"],
+                    "note": scenario["locales"]["en"]["note"],
+                    "location": scenario["location"],
+                },
+            )
+            incident = f"/api/v1/incidents/{response.json()['id']}"
+            for sample in scenario["sample_photo_ids"]:
+                await client.post(f"{incident}/photos", json={"sample_id": sample})
+            # A flat tyre's "Was this caused by a pothole?" makes it a pothole incident.
+            await client.patch(incident, json={"problem_type": "pothole_damage"})
+            locales = (await client.get(f"{incident}/damage-report/locales")).json()["locales"]
+            offered[scenario["id"]] = locales
+
+    assert offered.pop("pothole_damaged_wheel") == ["pl", "en"]
+    assert all(locales == [] for locales in offered.values()), offered

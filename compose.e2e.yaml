@@ -7,6 +7,9 @@ services:
       DEMO_MODE: "true"
       PUBLIC_DEPLOY: "true"
       LLM_RECORD: "false"
+      # No simulated thinking (#143): the smoke test checks the replay, not the pacing.
+      DEMO_THINKING_S: "0"
+      DEMO_REPLY_THINKING_S: "0"
     volumes: !reset []
     tmpfs:
       - /data:size=256m,uid=10001,gid=10001,mode=0700

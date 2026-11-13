@@ -4,7 +4,12 @@ from fastapi import APIRouter, Depends, Response
 
 from app.deps import get_damage_report_service
 from app.routers.incidents import IncidentId
-from app.schemas.damage_report import DamageReportCreate, DamageReportPatch, DamageReportRead
+from app.schemas.damage_report import (
+    DamageReportCreate,
+    DamageReportLocales,
+    DamageReportPatch,
+    DamageReportRead,
+)
 from app.services.damage_reports import DamageReportEdit, DamageReportService
 
 router = APIRouter(prefix="/incidents/{incident_id}/damage-report", tags=["damage-report"])
@@ -15,6 +20,18 @@ Service = Annotated[DamageReportService, Depends(get_damage_report_service)]
 async def get_damage_report(incident_id: IncidentId, service: Service) -> DamageReportRead:
     """The incident's damage report; 404 when the incident or the report doesn't exist."""
     return DamageReportRead.from_domain(await service.get(incident_id))
+
+
+@router.get("/locales", response_model=DamageReportLocales)
+async def get_damage_report_locales(
+    incident_id: IncidentId, service: Service
+) -> DamageReportLocales:
+    """The letter languages `POST` can draft in now; 404 when the incident doesn't exist.
+
+    Both for a pothole incident with a live model; in demo mode only those with a recorded
+    draft for the incident as it stands, so the app offers no draft that can only fail.
+    """
+    return DamageReportLocales(locales=await service.locales(incident_id))
 
 
 @router.post(

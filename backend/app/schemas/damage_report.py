@@ -61,3 +61,10 @@ class DamageReportRead(BaseModel):
             created_at=r.created_at,
             updated_at=r.updated_at,
         )
+
+
+class DamageReportLocales(BaseModel):
+    """The letter languages a draft can be made in now, Polish first. Empty for an incident
+    that isn't a pothole, and in demo mode for one with no recorded draft (#143)."""
+
+    locales: list[Locale]

@@ -177,3 +177,17 @@ def test_empty_frontend_origins_allows_no_cross_origin_caller(
     # The compose stack is same-origin behind nginx (ADR 0007, 0011), so it sets this empty.
     monkeypatch.setenv("FRONTEND_ORIGINS", "")
     assert Settings().frontend_origins == []
+
+
+def test_demo_mode_thinks_before_a_replayed_answer() -> None:
+    """#143: 7 s before a first turn, 4 s after a reply, unless set (the tests set 0)."""
+    defaults = Settings.model_fields
+    assert (defaults["demo_thinking_s"].default, defaults["demo_reply_thinking_s"].default) == (
+        7.0,
+        4.0,
+    )
+
+
+def test_demo_thinking_must_fit_the_turn_budget() -> None:
+    with pytest.raises(ValidationError, match="DEMO_THINKING_S"):
+        Settings(demo_thinking_s=10, llm_turn_budget_s=5)

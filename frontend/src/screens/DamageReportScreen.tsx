@@ -10,6 +10,7 @@ import {
   GenerateError,
   ReportEditor,
   StartReport,
+  useOfferedLocales,
 } from '../components/DamageReport'
 import { ErrorNotice } from '../components/ErrorNotice'
 import { EMPTY_CLAIMANT, loadClaimant, type Claimant } from '../lib/claimant'
@@ -36,6 +37,9 @@ export function DamageReportScreen() {
   // A report kept after a type change still shows; no other incident can have one.
   const canHave = pothole || (data?.damage_report_status ?? null) !== null
   const report = useDamageReport(id, canHave)
+  // For the start controls and "Draft again". The server offers none for an incident
+  // that isn't a pothole, so a kept report's screen never waits on them.
+  const locales = useOfferedLocales(data, canHave && report.isSuccess)
   const create = useCreateDamageReport(id)
   // Here, not in the editor, so a regenerated letter keeps the details typed for this visit.
   const [claimant, setClaimant] = useState<Claimant>(() => loadClaimant() ?? EMPTY_CLAIMANT)
@@ -116,6 +120,7 @@ export function DamageReportScreen() {
           busy={busy}
           // Only a pothole incident can be drafted again (ADR 0009).
           canRegenerate={pothole}
+          locales={locales}
           claimant={claimant}
           onClaimantChange={setClaimant}
           onSaved={create.reset}
@@ -127,6 +132,7 @@ export function DamageReportScreen() {
         !busy && (
           <section className="panel">
             <StartReport
+              locales={locales}
               onDraft={(locale) => {
                 void generate(locale)
               }}

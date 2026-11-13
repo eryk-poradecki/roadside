@@ -277,6 +277,7 @@ export const pl: Localised<Translation> & {
     confirmRegenerateYes: 'Tak, przygotuj ponownie',
     errorTitle: 'Nie udało się przygotować zgłoszenia',
     errorBody: 'Nic nie zostało zapisane.',
+    notInDemo: 'Niedostępne w tym scenariuszu demo.',
     noRecordingTitle: 'Brak nagranego zgłoszenia dla tego przypadku — tryb demo',
     noRecordingBody:
       'Demo odtwarza zgłoszenia nagrane dla ustalonych scenariuszy, a ten przypadek do nich nie należy.',
