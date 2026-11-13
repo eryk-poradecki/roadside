@@ -80,7 +80,7 @@ export const en = {
     accuracy: 'Accurate to ~{{meters}} m',
     approximate: 'Approximate location',
     approximateWithin: 'Within about {{km}} km',
-    noFix: 'You can still get help without it.',
+    noFix: 'You can still get help. Turn location on to see places nearby.',
     retry: 'Try again',
     north: 'N',
     south: 'S',
@@ -199,6 +199,7 @@ export const en = {
   ai: {
     title: 'Personalised steps',
     badge: 'AI',
+    answerLanguage: { en: 'Answer in English', pl: 'Answer in Polish' },
     loading: 'Working out the next steps for you…',
     loadingSub: 'The safety steps above work while you wait.',
     ask: 'Get steps from the assistant',

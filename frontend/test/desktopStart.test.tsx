@@ -19,7 +19,7 @@ describe('desktop Start on a public host', () => {
       await screen.findByRole('heading', { level: 1, name: 'Open it on your phone' }),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('img', { name: 'QR code for https://roadside.example.com' }),
+      await screen.findByRole('img', { name: 'QR code for https://roadside.example.com' }),
     ).toBeInTheDocument()
     const trial = screen.getByRole('region', { name: 'Or try it here' })
     expect(

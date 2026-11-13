@@ -39,7 +39,9 @@ import {
 } from '../lib/nearby'
 import { useErrorMessage } from './ErrorNotice'
 import { TyreIcon } from './icons'
-import { OSM_COPYRIGHT_URL, PlacesMap, type MapPin } from './map/PlacesMap'
+import { PlacesMap } from './map/LazyPlacesMap'
+import { OSM_COPYRIGHT_URL } from './map/osm'
+import type { MapPin } from './map/PlacesMap'
 import './NearbyPanel.css'
 
 const CATEGORY_ICON = { tyres: TyreIcon, fuel: Fuel, charging: PlugZap, repair: Wrench }

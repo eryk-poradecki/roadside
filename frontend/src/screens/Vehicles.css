@@ -24,8 +24,8 @@
   height: 52px;
   margin-bottom: 4px;
   border-radius: 999px;
-  background: oklch(0.82 0.15 78 / 0.16);
-  color: var(--amber);
+  background: var(--surface-2);
+  color: var(--text);
 }
 .vehicles-empty h2 {
   font-size: 1.25rem;

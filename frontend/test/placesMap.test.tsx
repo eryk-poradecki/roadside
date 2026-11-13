@@ -52,6 +52,17 @@ describe('PlacesMap with real Leaflet', () => {
     expect(container.querySelector('.pin')).toHaveTextContent('1')
   })
 
+  it('marks a pin that stands for several incidents with their count', () => {
+    const { container } = render(
+      <PlacesMap
+        pins={[{ id: '7', lat: 52.23, lon: 21.01, count: 3 }]}
+        label="Map of your incidents"
+        attribution={props.attribution}
+      />,
+    )
+    expect(container.querySelector('.pin-count')).toHaveTextContent('3')
+  })
+
   it('shows an empty map when nothing has a location', () => {
     const { container } = render(
       <PlacesMap pins={[]} label="Map of your incidents" attribution={props.attribution} />,

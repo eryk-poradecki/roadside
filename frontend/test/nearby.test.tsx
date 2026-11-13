@@ -51,7 +51,7 @@ describe('Nearby places on the Result screen', () => {
     expect(await within(await findPanel()).findByText('Wulkanizacja Nowa')).toBeInTheDocument()
     const nearby = panel()
     expect(within(nearby).getByText(en.nearby.badge)).toBeInTheDocument()
-    expect(within(nearby).getByText(en.nearby.attribution)).toBeInTheDocument()
+    expect(await within(nearby).findByText(en.nearby.attribution)).toBeInTheDocument()
     expect(chip(nearby, /^Tyres/)).toHaveAttribute('aria-pressed', 'true')
     expect(chip(nearby, /^All/)).toHaveAttribute('aria-pressed', 'false')
     // Only tyre shops, still nearest first.

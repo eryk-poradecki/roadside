@@ -163,7 +163,7 @@ export function StartReport({
 export function StatusBadge({ status }: { status: DamageReportRead['status'] }) {
   const { t } = useTranslation()
   return (
-    <span className={status === 'sent' ? 'badge' : 'badge badge-accent'}>
+    <span className={status === 'sent' ? 'badge' : 'badge badge-strong'}>
       {t(`report.status.${status}`)}
     </span>
   )

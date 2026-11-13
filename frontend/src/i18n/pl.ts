@@ -53,7 +53,7 @@ export const pl: Localised<Translation> & {
       battery: 'Rozładowany akumulator',
       fuel: 'Brak paliwa',
       charge: 'Rozładowane auto',
-      pothole: 'Dziura w drodze',
+      pothole: 'Dziura w\u00a0drodze',
       other: 'Coś innego',
     },
     desktop: {
@@ -90,7 +90,7 @@ export const pl: Localised<Translation> & {
     accuracy: 'Dokładność ok. {{meters}} m',
     approximate: 'Przybliżona lokalizacja',
     approximateWithin: 'W promieniu ok. {{km}} km',
-    noFix: 'Pomoc działa także bez niej.',
+    noFix: 'Pomoc działa także bez niej. Włącz lokalizację, aby zobaczyć miejsca w pobliżu.',
     retry: 'Spróbuj ponownie',
     north: 'N',
     south: 'S',
@@ -147,7 +147,7 @@ export const pl: Localised<Translation> & {
     emptyResolved: 'Nie masz jeszcze rozwiązanych zdarzeń.',
     loadFailed: 'Nie udało się wczytać Twoich zdarzeń.',
     more: 'Pokaż więcej',
-    reportChip: { draft: 'Zgłoszenie: projekt', sent: 'Zgłoszenie: wysłane' },
+    reportChip: { draft: 'Zgłoszenie: szkic', sent: 'Zgłoszenie: wysłane' },
   },
   incident: {
     saved: 'Zapisane w Twoich zdarzeniach',
@@ -211,6 +211,7 @@ export const pl: Localised<Translation> & {
   ai: {
     title: 'Kroki dopasowane do Ciebie',
     badge: 'AI',
+    answerLanguage: { en: 'Odpowiedź po angielsku', pl: 'Odpowiedź po polsku' },
     loading: 'Ustalamy dla Ciebie kolejne kroki…',
     loadingSub: 'Kroki bezpieczeństwa powyżej działają, gdy czekasz.',
     ask: 'Poproś asystenta o kroki',
@@ -251,7 +252,7 @@ export const pl: Localised<Translation> & {
   report: {
     title: 'Zgłoszenie szkody',
     intro:
-      'Zamień to zdarzenie w pismo do zarządcy drogi. Asystent przygotuje projekt z tego, co wpisałeś; Ty go sprawdzasz, dodajesz swoje dane i sam wysyłasz.',
+      'Zamień to zdarzenie w pismo do zarządcy drogi. Asystent przygotuje szkic z tego, co wpisałeś; Ty go sprawdzasz, dodajesz swoje dane i sam wysyłasz.',
     languageLabel: 'Język pisma',
     languages: { pl: 'polski', en: 'angielski' },
     draft: 'Przygotuj zgłoszenie',
@@ -259,8 +260,8 @@ export const pl: Localised<Translation> & {
     drafting: 'Przygotowuję zgłoszenie…',
     draftingSub: 'To może potrwać do minuty.',
     label:
-      'Projekt przygotowany przez asystenta — sprawdź przed wysłaniem. To nie porada prawna; wymagania przy zgłoszeniu szkody mogą się różnić.',
-    status: { draft: 'Projekt', sent: 'Wysłane' },
+      'Szkic przygotowany przez asystenta — sprawdź przed wysłaniem. To nie porada prawna; wymagania przy zgłoszeniu szkody mogą się różnić.',
+    status: { draft: 'Szkic', sent: 'Wysłane' },
     bodyLabel: 'Treść pisma',
     save: 'Zapisz zmiany',
     unsavedConfirm: 'Masz niezapisane zmiany w piśmie. Wyjść i je utracić?',
@@ -271,10 +272,10 @@ export const pl: Localised<Translation> & {
     copied: 'Skopiowano z Twoimi danymi. Dołącz zdjęcia przy wysyłce.',
     copyFailed: 'Nie udało się skopiować. Zaznacz treść pisma i skopiuj ją sam.',
     markSent: 'Oznacz jako wysłane',
-    markDraft: 'Przywróć projekt',
+    markDraft: 'Przywróć szkic',
     regenerate: 'Przygotuj ponownie',
     confirmRegenerate:
-      'Przygotować pismo od nowa? Nowa treść zastąpi obecną, razem z Twoimi zmianami, a zgłoszenie wróci do projektu.',
+      'Przygotować pismo od nowa? Nowa treść zastąpi obecną, razem z Twoimi zmianami, a zgłoszenie wróci do szkicu.',
     confirmRegenerateYes: 'Tak, przygotuj ponownie',
     errorTitle: 'Nie udało się przygotować zgłoszenia',
     errorBody: 'Nic nie zostało zapisane.',

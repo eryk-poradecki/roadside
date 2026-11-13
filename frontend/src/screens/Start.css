@@ -46,6 +46,10 @@
     background 160ms var(--ease),
     transform 160ms var(--ease);
 }
+/* Two-line labels split evenly ("Rozładowany / akumulator"), never one stranded word. */
+.tile > span {
+  text-wrap: balance;
+}
 .tile svg {
   color: var(--text);
   width: 40px;

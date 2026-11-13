@@ -124,6 +124,42 @@ describe('History beside a map on desktop', () => {
     })
   })
 
+  it('shows incidents at one spot as one pin, and selecting it highlights them all', async () => {
+    asDesktop()
+    const spot = { lat: 51.7996544, lon: 19.2774144 }
+    const tyre = fakeApi.seedIncident(
+      { problem_type: 'flat_tyre', location: spot },
+      { created_at: '2026-11-03T08:00:00.000Z' },
+    )
+    const battery = fakeApi.seedIncident(
+      { problem_type: 'flat_battery', location: { lat: 50.06, lon: 19.94 } },
+      { created_at: '2026-11-02T08:00:00.000Z' },
+    )
+    fakeApi.seedIncident(
+      { problem_type: 'other', location: spot },
+      { created_at: '2026-11-01T08:00:00.000Z' },
+    )
+    const { user } = renderApp('/incidents')
+    const tyreRow = await screen.findByRole('link', { name: /Flat tyre/ })
+    const batteryRow = screen.getByRole('link', { name: /Flat battery/ })
+    const otherRow = screen.getByRole('link', { name: /Something else/ })
+
+    expect(pinIds()).toBe(`${String(tyre.id)} ${String(battery.id)}`)
+    // The same pin number on both rows of the shared spot.
+    expect(otherRow.querySelector('.pin-ref')).toHaveTextContent('1')
+
+    await user.click(screen.getByRole('button', { name: `Pin ${String(tyre.id)}` }))
+    expect(tyreRow).toHaveClass('incident-row-selected')
+    expect(otherRow).toHaveClass('incident-row-selected')
+    expect(batteryRow).not.toHaveClass('incident-row-selected')
+
+    await user.hover(otherRow)
+    expect(map()).toHaveAttribute('data-selected', String(tyre.id))
+    await user.hover(batteryRow)
+    expect(map()).toHaveAttribute('data-selected', String(battery.id))
+    expect(otherRow).not.toHaveClass('incident-row-selected')
+  })
+
   it('highlights the incident whose pin is selected, and the pin of a pointed-at row', async () => {
     asDesktop()
     const first = fakeApi.seedIncident(

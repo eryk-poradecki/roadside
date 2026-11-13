@@ -42,7 +42,7 @@ function VehicleCard({
         <div className="vehicle-badges">
           {readOnly && <span className="badge">{t('demo.vehicleLabel')}</span>}
           {vehicle.is_default && (
-            <span className="badge badge-accent">{t('vehicles.default')}</span>
+            <span className="badge badge-strong">{t('vehicles.default')}</span>
           )}
         </div>
       </div>

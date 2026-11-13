@@ -105,7 +105,9 @@ describe('help request: Start → Get help now → Result', () => {
     stubGeolocation('denied')
     const { user } = renderApp('/')
     expect(await screen.findByText('Location is off')).toBeInTheDocument()
-    expect(screen.getByText('You can still get help without it.')).toBeInTheDocument()
+    expect(
+      screen.getByText('You can still get help. Turn location on to see places nearby.'),
+    ).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Something else' }))
     const sheet = await screen.findByRole('dialog', { name: 'Something else' })

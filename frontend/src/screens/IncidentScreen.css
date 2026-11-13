@@ -126,6 +126,11 @@
   gap: 12px;
   flex-wrap: wrap;
 }
+.panel-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
 .panel-ai {
   background: transparent;
   border: 1px solid var(--line);
