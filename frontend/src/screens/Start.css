@@ -46,6 +46,10 @@
     background 160ms var(--ease),
     transform 160ms var(--ease);
 }
+/* Two-line labels split evenly ("Rozładowany / akumulator"), never one stranded word. */
+.tile > span {
+  text-wrap: balance;
+}
 .tile svg {
   color: var(--text);
   width: 40px;
@@ -61,6 +65,11 @@
   border-color: var(--amber);
   transform: scale(0.98);
 }
+@media (prefers-reduced-motion: reduce) {
+  .tile:not(:disabled):active {
+    transform: none;
+  }
+}
 .tile-wide .tile {
   min-height: 64px;
   flex-direction: row;
@@ -74,9 +83,16 @@
   display: grid;
   grid-template-columns: minmax(0, 28rem) 400px;
   justify-content: center;
-  align-items: center;
+  align-content: start;
+  align-items: start;
   gap: 40px clamp(56px, 6vw, 96px);
   flex: 1 0 auto;
+}
+@media (max-width: 1199px) {
+  .start-desk {
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 32px 40px;
+  }
 }
 .start-side {
   display: flex;
@@ -178,15 +194,33 @@
   color: var(--muted);
   font-size: 1rem;
 }
-/* The mobile flow at phone width, framed so it reads as the phone, not as page content. */
+/* The mobile flow at phone width, framed as a phone (a bezel ring and a speaker slot) so the
+   narrow column reads as intentional, not as page content. */
 .trial {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  padding: 20px var(--gutter) var(--gutter);
+  margin: 10px;
+  padding: 32px var(--gutter) var(--gutter);
   background: var(--bg);
   border: 1px solid var(--line);
-  border-radius: 24px;
+  border-radius: 30px;
+  box-shadow:
+    0 0 0 9px var(--surface),
+    0 0 0 10px var(--line),
+    0 24px 56px oklch(0.05 0.01 255 / 0.45);
+}
+.trial::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  width: 56px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--line);
+  transform: translateX(-50%);
 }
 .trial .intro-heading {
   font-size: 2.25rem;

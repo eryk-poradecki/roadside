@@ -162,6 +162,30 @@ describe('AI answer on the Result screen', () => {
     expect(fakeApi.turnRequests).toEqual([])
   })
 
+  it('labels a stored answer in another language than the UI, and marks its language', async () => {
+    await i18n.changeLanguage('pl')
+    const incident = fakeApi.seedIncident({ problem_type: 'flat_battery' })
+    incident.ai_turns = [fakeApi.adviceTurn(ADVICE, 'en')]
+
+    renderApp(`/incidents/${String(incident.id)}`)
+
+    const panel = await screen.findByRole('region', { name: 'Kroki dopasowane do Ciebie' })
+    expect(await within(panel).findByText('Odpowiedź po angielsku')).toBeInTheDocument()
+    expect(within(panel).getByText(ADVICE.cause).closest('[lang]')).toHaveAttribute('lang', 'en')
+  })
+
+  it('adds no language label when the answer is in the UI language', async () => {
+    const incident = fakeApi.seedIncident({ problem_type: 'flat_battery' })
+    incident.ai_turns = [fakeApi.adviceTurn(ADVICE, 'en')]
+
+    renderApp(`/incidents/${String(incident.id)}`)
+
+    const panel = await screen.findByRole('region', { name: 'Personalised steps' })
+    expect(await within(panel).findByText(ADVICE.cause)).toBeInTheDocument()
+    expect(within(panel).queryByText('Answer in English')).not.toBeInTheDocument()
+    expect(within(panel).queryByText('Answer in Polish')).not.toBeInTheDocument()
+  })
+
   it('does not post again on its own after a failed turn and a remount', async () => {
     fakeApi.turnScript = [{ status: 504, reason: 'timeout' }]
     await getHelp()

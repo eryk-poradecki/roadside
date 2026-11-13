@@ -22,26 +22,18 @@
   border-radius: var(--r-sm);
 }
 
+/* Wrapped, never scrolled sideways: a selected chip is always in view (#67). */
 .chips {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  overflow-x: auto;
-  margin: 0 -18px;
-  padding: 2px 18px;
-  scrollbar-width: none;
-}
-@media (min-width: 1024px) {
-  .chips {
-    flex-wrap: wrap;
-    overflow-x: visible;
-  }
 }
 .chip {
   flex: none;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 44px;
+  min-height: 48px;
   padding: 0 14px;
   border-radius: 999px;
   border: 1px solid var(--line);
@@ -56,8 +48,8 @@
     border-color 160ms var(--ease);
 }
 .chip[aria-pressed='true'] {
-  background: var(--surface-2);
-  border-color: var(--text);
+  background: oklch(0.82 0.15 78 / 0.12);
+  border-color: var(--amber);
 }
 .chip-count {
   color: var(--muted);
@@ -88,7 +80,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 44px;
+  min-height: 48px;
   padding: 0 16px;
   border-radius: 999px;
   background: var(--surface-2);
@@ -172,8 +164,8 @@
   flex: none;
 }
 .place-actions .icon-btn {
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
 }
 a.icon-btn {
   color: var(--text);

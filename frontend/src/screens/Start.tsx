@@ -1,5 +1,5 @@
 import { Smartphone } from 'lucide-react'
-import { useId, useState } from 'react'
+import { lazy, Suspense, useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ConfigRead } from '../api/generated'
 import { useConfig } from '../api/config'
@@ -8,7 +8,6 @@ import { ErrorNotice } from '../components/ErrorNotice'
 import { EmergencyBar } from '../components/AppShell'
 import { HelpSheet } from '../components/HelpSheet'
 import { LocationReadout } from '../components/LocationReadout'
-import { QrCode } from '../components/QrCode'
 import { TILE_ICONS } from '../components/tiles'
 import { useGeolocation } from '../lib/geolocation'
 import { phoneReachable } from '../lib/phoneReachable'
@@ -16,6 +15,9 @@ import { PROBLEM_TYPES, problemKey, type ProblemType } from '../lib/problemType'
 import { useDesktop } from '../lib/useMediaQuery'
 import { uuid } from '../lib/uuid'
 import './Start.css'
+
+// Desktop only, so the QR encoder loads with the desktop Start, not with the app (#67).
+const QrCode = lazy(() => import('../components/QrCode').then((m) => ({ default: m.QrCode })))
 
 type HelpRequest = { type: ProblemType; key: string; scenarioKey?: string }
 type FlowState = {
@@ -48,7 +50,9 @@ export function Start() {
         <section className="start-side">
           <h1>{t('start.desktop.qrHeading')}</h1>
           <p className="lede">{t('start.desktop.qrBody')}</p>
-          <QrCode value={origin} label={t('start.desktop.qrLabel', { url: origin })} />
+          <Suspense fallback={<div className="qr" aria-hidden="true" />}>
+            <QrCode value={origin} label={t('start.desktop.qrLabel', { url: origin })} />
+          </Suspense>
           <p className="start-origin">{window.location.host}</p>
         </section>
       ) : (

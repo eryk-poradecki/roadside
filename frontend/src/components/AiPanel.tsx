@@ -86,6 +86,12 @@ export function AiPanel({
   const starting = autoStart && !started && turn.isIdle && !autoStartClaimed(incident)
   // The answer is in the UI language only, never the note's (ADR 0004).
   const locale: Locale = i18n.resolvedLanguage === 'pl' ? 'pl' : 'en'
+  // The language the stored answer was written in: the latest AI turn's. It is fixed when
+  // the turn is taken, so after a language switch it can differ from the UI.
+  const answered = [...incident.ai_turns]
+    .reverse()
+    .find((aiTurn) => aiTurn.kind !== 'reply' && aiTurn.locale !== null)
+  const otherLanguage = answered?.locale && answered.locale !== locale ? answered.locale : undefined
 
   const ask = (reply?: ReplyCreate) => {
     turn.take(locale, reply).catch(() => {
@@ -104,17 +110,27 @@ export function AiPanel({
     <section className="panel panel-ai" aria-labelledby="ai-title" aria-busy={inFlight}>
       <div className="panel-head">
         <h2 id="ai-title">{t('ai.title')}</h2>
-        <span className="badge badge-ai">
-          <Sparkles size={14} aria-hidden="true" />
-          {t('ai.badge')}
+        <span className="panel-badges">
+          {otherLanguage && (
+            <span className="badge">{t(`ai.answerLanguage.${otherLanguage}`)}</span>
+          )}
+          <span className="badge badge-ai">
+            <Sparkles size={14} aria-hidden="true" />
+            {t('ai.badge')}
+          </span>
         </span>
       </div>
 
-      {replied.length > 0 && <Replies items={replied} />}
+      {replied.length > 0 && <Replies items={replied} lang={otherLanguage} />}
 
       <div className="ai-body" aria-live="polite">
         {adviceTurn?.advice ? (
-          <Advice advice={adviceTurn.advice} inputs={adviceTurn.inputs} noVehicles={noVehicles} />
+          <Advice
+            advice={adviceTurn.advice}
+            inputs={adviceTurn.inputs}
+            noVehicles={noVehicles}
+            lang={otherLanguage}
+          />
         ) : inFlight || starting ? (
           <div className="ai-loading">
             <p className="ai-line">
@@ -186,10 +202,10 @@ export function AiPanel({
 }
 
 /** The questions already asked, each with the driver's reply, above what came next. */
-function Replies({ items }: { items: QuestionWithReply[] }) {
+function Replies({ items, lang }: { items: QuestionWithReply[]; lang?: Locale | undefined }) {
   const { t } = useTranslation()
   return (
-    <ul className="turns" aria-label={t('ai.yourReplies')}>
+    <ul className="turns" aria-label={t('ai.yourReplies')} lang={lang}>
       {items.map(({ id, question, reply }) => (
         <li key={id} className="turn-done">
           <span>{question}</span>
@@ -358,10 +374,13 @@ function Advice({
   advice,
   inputs,
   noVehicles,
+  lang,
 }: {
   advice: AdviceRead
   inputs: TurnInputsRead | null
   noVehicles: boolean
+  /** The answer's language when it isn't the UI's: set on the AI-written text only. */
+  lang?: Locale | undefined
 }) {
   const { t } = useTranslation()
   return (
@@ -371,11 +390,13 @@ function Advice({
           <span className="dx-label">{t(`ai.dxLabel.${advice.confidence}`)}</span>
           <ConfidenceMark confidence={advice.confidence} />
         </div>
-        <p className="dx-cause">{advice.cause}</p>
+        <p className="dx-cause" lang={lang}>
+          {advice.cause}
+        </p>
         {advice.alternatives.length > 0 && (
           <div className="dx-alt">
             <span>{t('ai.alsoCould')}</span>
-            <ul>
+            <ul lang={lang}>
               {advice.alternatives.map((alt) => (
                 <li key={alt}>{alt}</li>
               ))}
@@ -388,7 +409,8 @@ function Advice({
         <p className="photo-line">
           <Camera size={18} aria-hidden="true" />
           <span>
-            <strong>{t('ai.photoSeen')}:</strong> {advice.photo_observation}
+            <strong>{t('ai.photoSeen')}:</strong>{' '}
+            <span lang={lang}>{advice.photo_observation}</span>
           </span>
         </p>
       )}
@@ -396,7 +418,7 @@ function Advice({
 
       <div className="steps-block">
         <h3>{t('ai.stepsTitle')}</h3>
-        <ol className="steps">
+        <ol className="steps" lang={lang}>
           {advice.steps.map((step, i) => (
             <li key={`${String(i)}-${step}`}>
               <span className="step-n" aria-hidden="true">
@@ -410,7 +432,7 @@ function Advice({
 
       <div className="escalate">
         <h3>{t('ai.escalateTitle')}</h3>
-        <ul>
+        <ul lang={lang}>
           {advice.escalate_if.map((condition) => (
             <li key={condition}>{condition}</li>
           ))}

@@ -124,6 +124,12 @@ function Result({
   // A resolved record keeps its answer but no longer calls for 112 first.
   const urgent = adviceTurn?.urgent === true && !resolved
 
+  const report = (
+    <>
+      {incident.problem_type === 'flat_tyre' && <PotholeHint incident={incident} />}
+      <DamageReportCard incident={incident} />
+    </>
+  )
   return (
     <div className="result">
       <div className="topbar">
@@ -202,12 +208,14 @@ function Result({
         </div>
 
         <div className="result-col">
+          {/* Desktop is where the report gets finished, so it leads the column there (#67);
+              at the roadside it waits below the places. */}
+          {desktop && report}
           <NearbyPanel incident={incident} fuelType={vehicle?.fuel_type} />
 
           {!desktop && <PhotosPanel incident={incident} />}
 
-          {incident.problem_type === 'flat_tyre' && <PotholeHint incident={incident} />}
-          <DamageReportCard incident={incident} />
+          {!desktop && report}
 
           <Upkeep incident={incident} />
         </div>

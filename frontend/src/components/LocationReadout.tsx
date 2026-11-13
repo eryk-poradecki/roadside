@@ -42,16 +42,19 @@ export function LocationReadout({ geo, onRetry }: { geo: GeoState; onRetry?: () 
           </button>
         )}
       </div>
-      <div className="coords" aria-hidden={!found}>
-        <p className="coord">
-          <span>{found ? Math.abs(found.lat).toFixed(digits) : EMPTY}</span>
-          <small>° {t(found && found.lat < 0 ? 'location.south' : 'location.north')}</small>
-        </p>
-        <p className="coord">
-          <span>{found ? Math.abs(found.lon).toFixed(digits) : EMPTY}</span>
-          <small>° {t(found && found.lon < 0 ? 'location.west' : 'location.east')}</small>
-        </p>
-      </div>
+      {/* No placeholder numbers once there is no fix to wait for: they read as data. */}
+      {geo.status !== 'denied' && geo.status !== 'unavailable' && (
+        <div className="coords" aria-hidden={!found}>
+          <p className="coord">
+            <span>{found ? Math.abs(found.lat).toFixed(digits) : EMPTY}</span>
+            <small>° {t(found && found.lat < 0 ? 'location.south' : 'location.north')}</small>
+          </p>
+          <p className="coord">
+            <span>{found ? Math.abs(found.lon).toFixed(digits) : EMPTY}</span>
+            <small>° {t(found && found.lon < 0 ? 'location.west' : 'location.east')}</small>
+          </p>
+        </div>
+      )}
       {found ? (
         <p className="readout-foot">
           {approximate

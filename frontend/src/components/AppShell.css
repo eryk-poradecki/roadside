@@ -233,8 +233,8 @@
   background: var(--bg);
 }
 .desk-side .lang button {
-  min-width: 44px;
-  min-height: 44px;
+  min-width: 48px;
+  min-height: 48px;
 }
 .desk-side .lang button[aria-pressed='true'] {
   background: var(--surface-2);
@@ -248,7 +248,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 44px;
+  min-height: 48px;
   padding: 0 12px;
   border-radius: var(--r-sm);
   color: var(--muted);

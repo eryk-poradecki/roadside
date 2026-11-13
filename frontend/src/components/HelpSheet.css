@@ -46,7 +46,7 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 20px var(--gutter) 16px;
+  padding: 16px var(--gutter);
   overflow: auto;
   min-height: 0;
 }
@@ -59,9 +59,12 @@
   outline: none;
 }
 .sheet-head {
+  flex: none;
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 16px var(--gutter) 12px;
+  border-bottom: 1px solid var(--line);
 }
 .sheet-head h2 {
   flex: 1;
@@ -137,14 +140,58 @@
   font-weight: 700;
   cursor: pointer;
 }
+/* Selected reads at a glance: amber border, a faint amber fill and a filled amber dot, not
+   only a border change around a grey native radio. */
 .choice:has(input:checked) {
   border-color: var(--amber);
+  background: oklch(0.82 0.15 78 / 0.12);
 }
 .choice input {
-  width: 20px;
-  height: 20px;
+  appearance: none;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
   margin: 0;
-  accent-color: var(--amber);
+  border: 2px solid var(--muted);
+  border-radius: 999px;
+  background: transparent;
+}
+.choice input:checked {
+  border-color: var(--amber);
+  background: var(--amber);
+}
+.choice input:checked::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--on-amber);
+}
+.choice input:focus-visible {
+  outline-offset: 3px;
+}
+@media (forced-colors: active) {
+  .choice input:checked {
+    background: SelectedItem;
+  }
+  .choice input:checked::before {
+    background: SelectedItemText;
+  }
+}
+
+/* At least three lines to write in; the sheet scrolls, so no resize handle. */
+.sheet-note {
+  min-height: calc(3lh + 26px);
+  resize: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet[open],
+  .sheet::backdrop {
+    animation-name: fade-in;
+  }
 }
 
 @media (min-width: 560px) {
@@ -184,4 +231,11 @@
 }
 .sheet-photos .note-label {
   margin-bottom: -2px;
+}
+
+/* After the desktop modal-in rule, so it wins: a fade with no movement. */
+@media (prefers-reduced-motion: reduce) {
+  .sheet[open] {
+    animation-name: fade-in;
+  }
 }

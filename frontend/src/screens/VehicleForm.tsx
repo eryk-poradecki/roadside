@@ -21,6 +21,8 @@ import {
   type VehicleDraft,
 } from '../lib/vehicleDraft'
 import { en } from '../i18n/en'
+import { useDesktop } from '../lib/useMediaQuery'
+import { VehiclesSplit } from './Vehicles'
 import './Vehicles.css'
 
 const FUEL_TYPES = Object.keys(
@@ -289,15 +291,30 @@ function VehicleEditor({ vehicle, initial }: { vehicle?: VehicleRead; initial: V
   )
 }
 
+/**
+ * Mobile: its own screen with Back. Desktop: the right column beside the list (#67), so the
+ * heading steps down a level and Cancel closes the form.
+ */
 function Frame({ heading, children }: { heading: string; children: ReactNode }) {
   const { t } = useTranslation()
+  const desktop = useDesktop()
   return (
     <div className="vform-page">
-      <Link to="/vehicles" className="back">
-        <ArrowLeft size={20} aria-hidden="true" />
-        {t('common.back')}
-      </Link>
-      <h1>{heading}</h1>
+      {/* Two slots either way, so crossing the breakpoint doesn't remount the form. */}
+      {desktop ? (
+        <div className="vform-head">
+          <h2>{heading}</h2>
+          <Link to="/vehicles" className="btn btn-quiet">
+            {t('common.cancel')}
+          </Link>
+        </div>
+      ) : (
+        <Link to="/vehicles" className="back">
+          <ArrowLeft size={20} aria-hidden="true" />
+          {t('common.back')}
+        </Link>
+      )}
+      {!desktop && <h1>{heading}</h1>}
       {children}
     </div>
   )
@@ -334,8 +351,8 @@ function EditVehicle({ id }: { id: number }) {
 
 export function VehicleForm() {
   const { id } = useParams()
-  if (id === undefined) return <NewVehicle />
+  if (id === undefined) return <VehiclesSplit detail={<NewVehicle />} />
   const numeric = Number(id)
   if (!Number.isInteger(numeric) || numeric < 1) return <Navigate to="/vehicles" replace />
-  return <EditVehicle id={numeric} />
+  return <VehiclesSplit openId={numeric} detail={<EditVehicle key={numeric} id={numeric} />} />
 }

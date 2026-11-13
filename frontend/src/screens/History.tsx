@@ -5,7 +5,8 @@ import { useTranslation } from 'react-i18next'
 import { useIncidents, type IncidentStatus, type IncidentSummary } from '../api/incidents'
 import { useVehicles, type VehicleRead } from '../api/vehicles'
 import { ErrorNotice } from '../components/ErrorNotice'
-import { PlacesMap, type MapPin as Pin } from '../components/map/PlacesMap'
+import { PlacesMap } from '../components/map/LazyPlacesMap'
+import type { MapPin as Pin } from '../components/map/PlacesMap'
 import { TILE_ICONS } from '../components/tiles'
 import { formatCoords } from '../lib/place'
 import { problemKey } from '../lib/problemType'
@@ -38,15 +39,33 @@ export function History() {
       .flatMap((page) => page.items)
       .filter((i) => !seen.has(i.id) && seen.add(i.id))
   }, [incidents.data])
-  // Pins in list order; an incident without a location stays list-only.
-  const pins = useMemo(
-    () =>
-      items.flatMap((i): Pin[] =>
-        i.location ? [{ id: String(i.id), lat: i.location.lat, lon: i.location.lon }] : [],
-      ),
-    [items],
-  )
+  // Pins in list order, one per spot: incidents at the same coordinates share a pin, named
+  // after the first of them and marked with their count. One without a location stays
+  // list-only. `pinOf` maps each located incident to its pin.
+  const { pins, pinOf } = useMemo(() => {
+    const pins: Pin[] = []
+    const atSpot = new Map<string, Pin>()
+    const pinOf = new Map<string, string>()
+    for (const i of items) {
+      if (!i.location) continue
+      const { lat, lon } = i.location
+      const spot = `${lat.toFixed(6)},${lon.toFixed(6)}`
+      let pin = atSpot.get(spot)
+      if (!pin) {
+        pin = { id: String(i.id), lat, lon, count: 0 }
+        atSpot.set(spot, pin)
+        pins.push(pin)
+      }
+      pin.count = (pin.count ?? 0) + 1
+      pinOf.set(String(i.id), pin.id)
+    }
+    return { pins, pinOf }
+  }, [items])
   const pinNumber = useMemo(() => new Map(pins.map((p, n) => [p.id, n + 1])), [pins])
+  // A pointed-at row selects its pin, and with it every incident at that spot.
+  const point = (id: string) => {
+    setSelected(pinOf.get(id) ?? id)
+  }
   const vehicleById = useMemo(
     () => new Map((vehicles.data ?? []).map((v) => [v.id, v])),
     [vehicles.data],
@@ -102,21 +121,29 @@ export function History() {
       {incidents.isSuccess && items.length === 0 && <p className="notice">{empty}</p>}
       {items.length > 0 && (
         <ul className="incident-list" aria-label={t('history.listLabel')}>
-          {items.map((incident) => (
-            <IncidentRow
-              key={incident.id}
-              incident={incident}
-              vehicle={
-                incident.vehicle_id === null ? null : (vehicleById.get(incident.vehicle_id) ?? null)
-              }
-              formatDate={formatDate}
-              {...(desktop && {
-                pin: pinNumber.get(String(incident.id)),
-                selected: selected === String(incident.id),
-                onPoint: setSelected,
-              })}
-            />
-          ))}
+          {items.map((incident) => {
+            const id = String(incident.id)
+            const pinId = pinOf.get(id)
+            return (
+              <IncidentRow
+                key={incident.id}
+                incident={incident}
+                vehicle={
+                  incident.vehicle_id === null
+                    ? null
+                    : (vehicleById.get(incident.vehicle_id) ?? null)
+                }
+                formatDate={formatDate}
+                {...(desktop && {
+                  pin: pinId === undefined ? undefined : pinNumber.get(pinId),
+                  selected: selected !== null && (pinId ?? id) === selected,
+                  // Of a shared spot, only the first row scrolls into view.
+                  lead: pinId === undefined || pinId === id,
+                  onPoint: point,
+                })}
+              />
+            )
+          })}
         </ul>
       )}
 
@@ -158,6 +185,7 @@ function IncidentRow({
   formatDate,
   pin,
   selected = false,
+  lead = true,
   onPoint,
 }: {
   incident: IncidentSummary
@@ -167,6 +195,8 @@ function IncidentRow({
   pin?: number | undefined
   /** Desktop: highlighted, as its pin is. */
   selected?: boolean
+  /** Desktop: the row that scrolls into view when its pin is picked. */
+  lead?: boolean
   /** Desktop: pointing at or focusing the row highlights its pin. */
   onPoint?: (id: string) => void
 }) {
@@ -174,8 +204,8 @@ function IncidentRow({
   const row = useRef<HTMLAnchorElement>(null)
   // A pin picked on the map brings its row into view.
   useEffect(() => {
-    if (selected) row.current?.scrollIntoView({ block: 'nearest' })
-  }, [selected])
+    if (selected && lead) row.current?.scrollIntoView({ block: 'nearest' })
+  }, [selected, lead])
   const key = problemKey(incident.problem_type, vehicle?.fuel_type)
   const Icon = TILE_ICONS[key]
   const resolved = incident.status === 'resolved'
@@ -204,7 +234,7 @@ function IncidentRow({
         <span className="incident-body">
           <span className="incident-top">
             <h2>{t(`start.tiles.${key}`)}</h2>
-            <span className={resolved ? 'badge' : 'badge badge-accent'}>
+            <span className={resolved ? 'badge' : 'badge badge-strong'}>
               {resolved ? t('incident.resolved') : t('incident.open')}
             </span>
           </span>

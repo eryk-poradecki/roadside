@@ -5,7 +5,9 @@ import './map.css'
 
 /** The one module that imports Leaflet (ADR 0008). */
 
-export const OSM_COPYRIGHT_URL = 'https://www.openstreetmap.org/copyright'
+import { OSM_COPYRIGHT_URL } from './osm'
+
+export { OSM_COPYRIGHT_URL }
 const DEFAULT_TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
 /** Poland, for a map with nothing to frame. */
 const EMPTY_VIEW = { center: [52, 19.4] as L.LatLngTuple, zoom: 6 }
@@ -16,7 +18,8 @@ const tileUrl = (): string => {
   return typeof value === 'string' && value !== '' ? value : DEFAULT_TILE_URL
 }
 
-export type MapPin = { id: string; lat: number; lon: number }
+/** `count`: how many incidents share this spot (History), shown on the pin when above 1. */
+export type MapPin = { id: string; lat: number; lon: number; count?: number }
 
 type Props = {
   pins: MapPin[]
@@ -40,10 +43,12 @@ type Props = {
 
 const escapeHtml = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${String(c.charCodeAt(0))};`)
 
-const pinIcon = (n: number, active: boolean) =>
+const pinIcon = (n: number, active: boolean, count = 1) =>
   L.divIcon({
     className: '',
-    html: `<span class="pin${active ? ' pin-active' : ''}">${String(n)}</span>`,
+    html: `<span class="pin${active ? ' pin-active' : ''}">${String(n)}${
+      count > 1 ? `<span class="pin-count">${String(count)}</span>` : ''
+    }</span>`,
     iconSize: [32, 32],
     iconAnchor: [16, 16],
   })
@@ -145,7 +150,7 @@ export function PlacesMap({
     pins.forEach((p, i) => {
       const active = p.id === selected
       const marker = L.marker([p.lat, p.lon], {
-        icon: pinIcon(i + 1, active),
+        icon: pinIcon(i + 1, active, p.count),
         keyboard: false,
         interactive: interactive && onSelect !== undefined,
         zIndexOffset: active ? 1000 : 0,

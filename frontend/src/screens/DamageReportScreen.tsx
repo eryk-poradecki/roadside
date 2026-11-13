@@ -43,6 +43,19 @@ export function DamageReportScreen() {
   const create = useCreateDamageReport(id)
   // Here, not in the editor, so a regenerated letter keeps the details typed for this visit.
   const [claimant, setClaimant] = useState<Claimant>(() => loadClaimant() ?? EMPTY_CLAIMANT)
+  // Unsaved letter edits: Back asks before dropping them.
+  const [dirty, setDirty] = useState(false)
+  // A reload or a closed tab asks too, in the browser's own words.
+  useEffect(() => {
+    if (!dirty) return
+    const ask = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+    }
+    window.addEventListener('beforeunload', ask)
+    return () => {
+      window.removeEventListener('beforeunload', ask)
+    }
+  }, [dirty])
 
   const generate = (locale: Locale, replace = false) =>
     create.generate(locale, replace).then(
@@ -64,7 +77,13 @@ export function DamageReportScreen() {
 
   const incidentPath = `/incidents/${String(id)}`
   const back = (
-    <Link to={incidentPath} className="back">
+    <Link
+      to={incidentPath}
+      className="back"
+      onClick={(e) => {
+        if (dirty && !window.confirm(t('report.unsavedConfirm'))) e.preventDefault()
+      }}
+    >
       <ArrowLeft size={20} aria-hidden="true" />
       {t('common.back')}
     </Link>
@@ -124,6 +143,7 @@ export function DamageReportScreen() {
           claimant={claimant}
           onClaimantChange={setClaimant}
           onSaved={create.reset}
+          onDirtyChange={setDirty}
           onRegenerate={(locale) => {
             void generate(locale, true)
           }}

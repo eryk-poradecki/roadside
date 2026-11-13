@@ -30,6 +30,19 @@ describe('location readout', () => {
     expect(card()).toHaveTextContent('Within about 5 km')
   })
 
+  it.each(['denied', 'unavailable'] as const)(
+    'shows a clear state with no placeholder coordinates when location is %s',
+    (status) => {
+      const retry = vi.fn()
+      render(<LocationReadout geo={{ status }} onRetry={retry} />)
+      expect(card()).not.toHaveTextContent('°')
+      expect(card()).toHaveTextContent(
+        'You can still get help. Turn location on to see places nearby.',
+      )
+      expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
+    },
+  )
+
   it('says it in Polish too', async () => {
     await i18n.changeLanguage('pl')
     render(

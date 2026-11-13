@@ -3,7 +3,7 @@ import { http, HttpResponse } from 'msw'
 import { API, fakeApi, problem } from './fakeApi'
 import { renderApp } from './render'
 import { server } from './setup'
-import { atWidth } from './viewport'
+import { asDesktop, atWidth } from './viewport'
 
 describe('demo vehicles', () => {
   beforeEach(() => {
@@ -301,5 +301,47 @@ describe('API errors', () => {
 
     expect(await screen.findByText(/Some details aren't valid/)).toBeInTheDocument()
     expect(screen.queryByText('Invalid request')).not.toBeInTheDocument()
+  })
+})
+
+describe('vehicles on desktop (ADR 0012, #67)', () => {
+  beforeEach(() => {
+    asDesktop()
+  })
+
+  it('shows the list beside a prompt to pick a vehicle', async () => {
+    fakeApi.seed({ name: 'Golf' })
+    renderApp('/vehicles')
+
+    expect(await screen.findByRole('list', { name: 'Your vehicles' })).toBeInTheDocument()
+    expect(screen.getByText('Pick a vehicle to edit it, or add a new one.')).toBeInTheDocument()
+  })
+
+  it('edits a vehicle beside the list, which marks it as the one open', async () => {
+    const golf = fakeApi.seed({ name: 'Golf' })
+    fakeApi.seed({ name: 'Mini' })
+    const { user } = renderApp(`/vehicles/${String(golf.id)}`)
+
+    const list = await screen.findByRole('list', { name: 'Your vehicles' })
+    const card = within(list).getByRole('heading', { name: 'Golf' }).closest('li')
+    expect(card).toHaveAttribute('aria-current', 'true')
+    // The form beside it is where this vehicle changes: no card action races its draft.
+    expect(screen.queryByRole('button', { name: 'Delete Golf' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Set Golf as default' })).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Edit vehicle' })).toBeInTheDocument()
+    const name = await screen.findByLabelText(/^Name/)
+    expect(name).toHaveValue('Golf')
+
+    await user.click(within(list).getByRole('link', { name: 'Edit Mini' }))
+    expect(await screen.findByLabelText(/^Name/)).toHaveValue('Mini')
+  })
+
+  it('adds a vehicle beside the list', async () => {
+    fakeApi.seed({ name: 'Golf' })
+    renderApp('/vehicles/new')
+
+    expect(await screen.findByRole('list', { name: 'Your vehicles' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'New vehicle' })).toBeInTheDocument()
+    expect(await screen.findByLabelText(/^Name/)).toHaveValue('')
   })
 })

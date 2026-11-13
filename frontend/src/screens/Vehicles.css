@@ -1,7 +1,38 @@
 /* Page wrappers: no box on mobile, where the shell lays the screen out. */
+.vehicles-split,
+.vehicles-detail,
 .vehicles-page,
 .vform-page {
   display: contents;
+}
+
+/* No vehicles yet: an icon, a title and why adding one helps, above "Add a vehicle". */
+.vehicles-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 24px 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+}
+.vehicles-empty-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 4px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+}
+.vehicles-empty h2 {
+  font-size: 1.25rem;
+}
+.vehicles-empty p {
+  max-width: 40ch;
+  text-wrap: pretty;
 }
 
 .vehicles-head {
@@ -101,42 +132,70 @@
   gap: 12px;
   min-height: 48px;
 }
+.vform-check label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  cursor: pointer;
+}
 .vform-check input {
   width: 24px;
   height: 24px;
   accent-color: var(--amber);
 }
 
-/* Desktop (ADR 0012): one column, the same width for the list and the form, each card on one
-   row. The form's field groups lay their fields out in two columns. */
+/* The card whose form is open beside the list (desktop). */
+.vehicle[aria-current='true'] {
+  border-color: var(--amber);
+  box-shadow: inset 3px 0 0 var(--amber);
+}
+
+/* Desktop (ADR 0012, #67): the list on the left, the open vehicle's form (or a prompt to pick
+   one) on the right. The form's field groups go to two columns where the column is wide. */
 @media (min-width: 1024px) {
+  .vehicles-split {
+    display: grid;
+    grid-template-columns: minmax(20rem, 0.7fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 24px clamp(28px, 3vw, 48px);
+    width: 100%;
+    max-width: 80rem;
+  }
   .vehicles-page,
   .vform-page {
     display: flex;
     flex-direction: column;
     gap: 24px;
-    width: 100%;
-    max-width: 52rem;
+    min-width: 0;
   }
-  .vform-page > .back {
-    align-self: flex-start;
-    margin: -12px 0 -12px;
+  .vehicles-detail {
+    display: block;
+    min-width: 0;
+    container-type: inline-size;
+    padding: 24px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
   }
-  .vehicle {
-    flex-direction: row;
-    flex-wrap: wrap;
+  .vehicles-detail .vehicles-empty {
+    padding: 8px 0;
+    border: 0;
+  }
+  .vehicles-pick {
+    color: var(--muted);
+  }
+  .vform-head {
+    display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px 24px;
-    padding: 16px 16px 16px 20px;
+    gap: 16px;
   }
-  .vehicle-head {
-    flex: 1 1 16rem;
-    justify-content: flex-start;
-    align-items: center;
+  .vform-head h2 {
+    font-size: 1.5rem;
   }
-  .vehicle-confirm {
-    flex: 1 1 100%;
+  .vform-head .btn {
+    width: auto;
   }
   .vehicles-page > .btn-primary,
   .vform .btn-primary {
@@ -145,15 +204,19 @@
     min-width: 14rem;
   }
   .vform {
-    gap: 32px;
+    gap: 28px;
   }
+  .vform fieldset {
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+  }
+}
+@container (min-width: 34rem) {
   .vform fieldset {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: start;
     gap: 18px 24px;
-    padding-top: 24px;
-    border-top: 1px solid var(--line);
   }
   .vform legend {
     float: left;
