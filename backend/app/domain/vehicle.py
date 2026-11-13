@@ -49,3 +49,4 @@ class Vehicle:
     is_default: bool
     created_at: str
     updated_at: str
+    demo_profile: str | None = None

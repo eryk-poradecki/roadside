@@ -65,6 +65,7 @@ class VehicleUpdate(VehicleCreate):
 
 
 class VehicleRead(BaseModel):
+    demo_profile: str | None
     id: int
     name: str
     make_model: str | None
@@ -87,6 +88,7 @@ class VehicleRead(BaseModel):
     def from_domain(cls, v: Vehicle) -> "VehicleRead":
         return cls(
             id=v.id,
+            demo_profile=v.demo_profile,
             is_default=v.is_default,
             created_at=v.created_at,
             updated_at=v.updated_at,

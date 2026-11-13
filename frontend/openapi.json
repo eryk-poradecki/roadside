@@ -1618,6 +1618,17 @@
             "title": "Created At",
             "type": "string"
           },
+          "demo_profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Demo Profile"
+          },
           "fuel_type": {
             "anyOf": [
               {
@@ -1743,6 +1754,7 @@
           }
         },
         "required": [
+          "demo_profile",
           "id",
           "name",
           "make_model",

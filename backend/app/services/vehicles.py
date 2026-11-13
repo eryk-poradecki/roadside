@@ -2,16 +2,19 @@ import aiosqlite
 
 from app.db.connection import transaction
 from app.domain.vehicle import Vehicle
-from app.errors import NotFoundError
+from app.errors import AppError, NotFoundError
 from app.repositories.vehicles import VehicleRepository
 from app.schemas.vehicle import VehicleCreate, VehicleUpdate
 from app.services.clock import utc_now
 
 
 class VehicleService:
-    def __init__(self, conn: aiosqlite.Connection, repo: VehicleRepository) -> None:
+    def __init__(
+        self, conn: aiosqlite.Connection, repo: VehicleRepository, *, demo_mode: bool
+    ) -> None:
         self._conn = conn
         self._repo = repo
+        self._demo_mode = demo_mode
 
     async def list(self) -> list[Vehicle]:
         return await self._repo.list_all()
@@ -40,6 +43,12 @@ class VehicleService:
             current = await self._repo.get(vehicle_id)
             if current is None:
                 raise NotFoundError("Vehicle")
+            if (
+                self._demo_mode
+                and current.demo_profile is not None
+                and data.to_facts() != current.facts
+            ):
+                raise AppError(403, "demo_vehicle_read_only", "Demo vehicles are read-only")
             is_default = current.is_default if data.is_default is None else data.is_default
             if is_default and not current.is_default:
                 await self._repo.clear_default(now)
@@ -49,5 +58,8 @@ class VehicleService:
     async def delete(self, vehicle_id: int) -> None:
         # Deleting the default leaves no default until the driver picks one.
         async with transaction(self._conn):
+            current = await self.get(vehicle_id)
+            if self._demo_mode and current.demo_profile is not None:
+                raise AppError(403, "demo_vehicle_read_only", "Demo vehicles cannot be deleted")
             if not await self._repo.delete(vehicle_id):
                 raise NotFoundError("Vehicle")
