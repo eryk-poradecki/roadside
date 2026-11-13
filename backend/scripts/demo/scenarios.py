@@ -3,9 +3,9 @@ walk them (#63).
 
 The document is the source: each `## Scenario` heading has a fenced YAML block. What the
 document leaves to the runner sits here: the fixed demo vehicles as API bodies (the ones demo
-mode seeds, with canaries planted), and where and when each scenario happens. The points are
-public roads, chosen because Nominatim classifies them as the scenario's `road_class`; the
-recordings never store them (ADR 0004, #58).
+mode seeds, with canaries planted), and when each scenario happens. Points come from the app
+catalogue: public roads chosen because Nominatim classifies them as the scenario's
+`road_class`. Recordings never store them (ADR 0004, #58).
 """
 
 import re
@@ -16,6 +16,7 @@ from typing import Any
 
 import yaml
 
+from app.demo_scenarios import DEMO_SCENARIOS
 from app.domain.ai_turn import Locale
 from app.schemas.vehicle import VehicleCreate
 from app.services.assistant import LOCAL_TZ
@@ -56,23 +57,20 @@ class Place:
     at: time
 
 
-_CITY_STREET = (52.4085, 16.9100)  # Adama Mickiewicza, Poznań: residential, city
-_VILLAGE_MAIN_ROAD = (52.4567, 16.6934)  # Poznańska, Tarnowo Podgórne: primary, village
-_VILLAGE_TERTIARY = (52.4203, 20.7722)  # Warszawska, Góra: tertiary, village
-_MOTORWAY = (52.3286, 15.8498)  # A2: motorway, countryside
-_NATIONAL_ROAD = (52.1006, 21.5015)  # DK50, Rudzienko: primary (a village, not countryside)
-_LIVING_STREET = (52.4064, 16.9252)  # Święty Marcin, Poznań: living street, city
+_TIMES = {
+    "tyre_parked_morning": time(8, 30),
+    "battery_parked_night": time(22, 30),
+    "fuel_almost_at_station": time(13, 0),
+    "pothole_damaged_wheel": time(13, 0),
+    "tyre_motorway_night": time(23, 0),
+    "ev_wont_power_on": time(10, 0),
+    "unknown_knocking_warning": time(13, 0),
+    "smoke_engine_bay": time(13, 0),
+}
 
 PLACES: dict[str, Place] = {
-    "tyre_parked_morning": Place(*_CITY_STREET, 10, time(8, 30)),
-    "battery_parked_night": Place(*_CITY_STREET, 10, time(22, 30)),
-    "fuel_almost_at_station": Place(*_VILLAGE_MAIN_ROAD, 10, time(13, 0)),
-    "pothole_damaged_wheel": Place(*_VILLAGE_TERTIARY, 10, time(13, 0)),
-    "tyre_motorway_night": Place(*_MOTORWAY, 10, time(23, 0)),
-    "ev_wont_power_on": Place(*_LIVING_STREET, 10, time(10, 0)),
-    # A fix too coarse to trust any road: road_class is forced to unknown.
-    "unknown_knocking_warning": Place(52.3600, 20.6200, 1000, time(13, 0)),
-    "smoke_engine_bay": Place(*_NATIONAL_ROAD, 10, time(13, 0)),
+    s.id: Place(s.location.lat, s.location.lon, float(s.location.accuracy_m or 0), _TIMES[s.id])
+    for s in DEMO_SCENARIOS
 }
 
 

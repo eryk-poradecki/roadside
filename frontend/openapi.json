@@ -251,6 +251,13 @@
             "title": "Demo Mode",
             "type": "boolean"
           },
+          "demo_scenarios": {
+            "items": {
+              "$ref": "#/components/schemas/DemoScenario"
+            },
+            "title": "Demo Scenarios",
+            "type": "array"
+          },
           "max_photo_bytes": {
             "title": "Max Photo Bytes",
             "type": "integer"
@@ -258,6 +265,10 @@
           "max_photos": {
             "title": "Max Photos",
             "type": "integer"
+          },
+          "public_deploy": {
+            "title": "Public Deploy",
+            "type": "boolean"
           },
           "sample_photos": {
             "items": {
@@ -273,6 +284,8 @@
         },
         "required": [
           "demo_mode",
+          "public_deploy",
+          "demo_scenarios",
           "vision_enabled",
           "max_photos",
           "max_photo_bytes",
@@ -364,6 +377,88 @@
         ],
         "title": "DamageReportStatus",
         "type": "string"
+      },
+      "DemoScenario": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "locales": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DemoScenarioLocale"
+            },
+            "propertyNames": {
+              "enum": [
+                "pl",
+                "en"
+              ]
+            },
+            "title": "Locales",
+            "type": "object"
+          },
+          "location": {
+            "$ref": "#/components/schemas/LocationRead"
+          },
+          "problem_type": {
+            "$ref": "#/components/schemas/ProblemType"
+          },
+          "sample_photo_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Sample Photo Ids",
+            "type": "array"
+          },
+          "situation": {
+            "$ref": "#/components/schemas/Situation"
+          },
+          "vehicle_profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vehicle Profile"
+          }
+        },
+        "required": [
+          "id",
+          "locales",
+          "problem_type",
+          "vehicle_profile",
+          "situation",
+          "sample_photo_ids",
+          "location"
+        ],
+        "title": "DemoScenario",
+        "type": "object"
+      },
+      "DemoScenarioLocale": {
+        "properties": {
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "summary",
+          "note"
+        ],
+        "title": "DemoScenarioLocale",
+        "type": "object"
       },
       "FuelType": {
         "enum": [

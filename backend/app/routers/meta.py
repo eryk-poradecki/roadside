@@ -3,11 +3,11 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from fastapi.responses import FileResponse
 
-from app.deps import Connection, get_llm_provider, get_settings
+from app.deps import Connection, get_demo_scenarios, get_llm_provider, get_settings
 from app.domain.sample_photo import SAMPLE_PHOTOS, find_sample
 from app.errors import AppError, NotFoundError
 from app.integrations.llm.base import LLMProvider
-from app.schemas.meta import ConfigRead, HealthRead, SamplePhoto
+from app.schemas.meta import ConfigRead, DemoScenario, HealthRead, SamplePhoto
 from app.schemas.photo import sample_photo_url
 from app.settings import Settings
 
@@ -28,9 +28,12 @@ async def health(conn: Connection) -> HealthRead:
 async def read_config(
     settings: Annotated[Settings, Depends(get_settings)],
     provider: Annotated[LLMProvider, Depends(get_llm_provider)],
+    scenarios: Annotated[list[DemoScenario], Depends(get_demo_scenarios)],
 ) -> ConfigRead:
     return ConfigRead(
         demo_mode=settings.demo_mode,
+        public_deploy=settings.public_deploy,
+        demo_scenarios=scenarios,
         # Whether photos reach a model: what the provider in use can do, not what was asked
         # for. Demo mode sends them nowhere, even when it replays recordings made with vision.
         vision_enabled=not settings.demo_mode and provider.vision and provider.max_images > 0,
