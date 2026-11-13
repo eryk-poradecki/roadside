@@ -85,26 +85,28 @@ export function History() {
 
   const list = (
     <>
-      <div className="history-head">
-        <h1>{t('history.heading')}</h1>
-        {total !== undefined && total > 0 && (
-          <p className="muted">{t('history.count', { count: total })}</p>
-        )}
-      </div>
+      <div className="history-controls">
+        <div className="history-head">
+          <h1>{t('history.heading')}</h1>
+          {total !== undefined && total > 0 && (
+            <p className="muted">{t('history.count', { count: total })}</p>
+          )}
+        </div>
 
-      <div className="segmented" role="group" aria-label={t('history.filterLabel')}>
-        {FILTERS.map(({ value, key }) => (
-          <button
-            key={key}
-            type="button"
-            aria-pressed={status === value}
-            onClick={() => {
-              setStatus(value)
-            }}
-          >
-            {t(`history.filters.${key}`)}
-          </button>
-        ))}
+        <div className="segmented" role="group" aria-label={t('history.filterLabel')}>
+          {FILTERS.map(({ value, key }) => (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={status === value}
+              onClick={() => {
+                setStatus(value)
+              }}
+            >
+              {t(`history.filters.${key}`)}
+            </button>
+          ))}
+        </div>
       </div>
 
       {incidents.isPending && <p className="muted">{t('common.loading')}</p>}

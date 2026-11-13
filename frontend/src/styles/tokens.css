@@ -8,6 +8,7 @@
   --amber: oklch(0.82 0.15 78);
   --amber-press: oklch(0.76 0.15 78);
   --on-amber: oklch(0.2 0.03 70);
+  --in-progress: oklch(0.8 0.1 245);
   --danger: oklch(0.8 0.11 25);
   --sos-bg: oklch(0.34 0.085 25);
   --sos-line: oklch(0.5 0.12 25);

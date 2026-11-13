@@ -267,10 +267,45 @@ describe('help request: Start → Get help now → Result', () => {
       expect(await screen.findByRole('alert', {}, { timeout: 5000 })).toHaveTextContent(
         /You're offline/,
       )
-      expect(screen.getByRole('button', { name: 'Get help now' })).toBeEnabled()
+      expect(screen.getByText('Not saved — try again when you have signal')).toBeInTheDocument()
+      expect(within(checklist()).getByText(en.checklist.lists.tyre.first)).toBeInTheDocument()
+      expect(screen.getAllByRole('link', { name: 'Call emergency number 112' })[0]).toHaveAttribute(
+        'href',
+        'tel:112',
+      )
+      expect(screen.getByRole('button', { name: 'Try again' })).toBeEnabled()
     } finally {
       onlineManager.setOnline(true)
     }
+  })
+
+  it('retries an offline result with the same request and chosen checklist', async () => {
+    const leaf = fakeApi.seed({ name: 'Leaf', fuel_type: 'electric' })
+    const attempts: { key: string | null; body: unknown }[] = []
+    server.use(
+      http.post(`${API}/api/v1/incidents`, async ({ request }) => {
+        attempts.push({ key: request.headers.get('Idempotency-Key'), body: await request.json() })
+        return HttpResponse.error()
+      }),
+    )
+    const { user } = renderApp('/')
+    await user.click(await screen.findByRole('button', { name: 'Out of charge' }))
+    await user.type(screen.getByLabelText('Anything we should know?'), 'At home')
+    await user.click(screen.getByRole('radio', { name: 'Parked (parking lot, driveway)' }))
+    await user.click(screen.getByRole('button', { name: 'Get help now' }))
+    await screen.findByText('Not saved — try again when you have signal', {}, { timeout: 5000 })
+    expect(within(checklist()).getByText(en.checklist.parkedLists.charge.first)).toBeInTheDocument()
+    expect(screen.queryByText('Saved to your incidents')).not.toBeInTheDocument()
+    server.resetHandlers()
+    await user.click(screen.getByRole('button', { name: 'Try again' }))
+    await screen.findByText('Saved to your incidents')
+    expect(fakeApi.incidents).toHaveLength(1)
+    expect(fakeApi.incidentRequests[0]).toEqual({ key: attempts[0]?.key, body: attempts[0]?.body })
+    expect(fakeApi.incidentRequests[0]?.body).toMatchObject({
+      vehicle_id: leaf.id,
+      note: 'At home',
+      situation: 'parked',
+    })
   })
 
   it('stays on Start when the driver closes the sheet before the request finishes', async () => {

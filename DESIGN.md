@@ -23,6 +23,7 @@ Both are **the same app**: same visual language, same components. Desktop change
 - **Mood:** a well-designed navigation/car dashboard at night — quiet, competent, trustworthy.
 - **Avoid:** road-sign / reflective-vest aesthetics, driving-school website look, purple gradients, generic SaaS cards, emoji-heavy UI.
 - **Color:** deep graphite/near-black neutrals; **one warm accent** (e.g. soft amber) used sparingly for primary actions and the user's location — not as a "warning" theme. Semantic red only for genuine danger/emergency.
+- **In progress:** `--in-progress: oklch(0.8 0.1 245)` is informational blue for the icon and main text of AI and Nearby progress indicators. It means work is under way; it is not an additional accent or action colour.
 - **Typography:** one clean, highly legible sans with good numerals; clear hierarchy; avoid default Inter look-alike styling.
 - **Shape & motion:** soft but not bubbly corners; minimal, purposeful motion (state changes, loading the AI answer), nothing decorative.
 - **Map:** muted, dark map style so markers and the accent stand out.
@@ -44,7 +45,7 @@ Both are **the same app**: same visual language, same components. Desktop change
 ## Navigation
 
 - **One app shell, bottom tab bar with three tabs:** Help (Start), History, Vehicles. Not a hamburger menu: hidden navigation costs an extra tap and hurts discoverability.
-- **The tab bar shows only on top-level screens** (Start, History, Vehicles). Flow screens (the help sheet, Result, Incident detail, the vehicle form) hide it and use Back plus their own bottom dock. **The 112 control stays on every screen.**
+- **The tab bar shows only on top-level screens** (Start, History, Vehicles). Flow screens (the help sheet, Result, Incident detail, the vehicle form) hide it and use Back plus their own bottom dock. **On mobile, 112 stays on Help, Result / incident detail, incident edit and History. It is hidden on Vehicles, vehicle forms and damage reports: these are at-home tasks where a red bottom action invites Save mis-taps (ADR 0012, amendment #146).**
 - **On Start, 112 must not become a second full-height bottom row.** Put it either in a compact bar directly above the tab bar or in the content above the tiles. Pick one, and show both in the prototype only if it's unclear.
 - **Desktop (≥1024 px):** same routes. The tabs become a sidebar shown on every route, with the same components in a different layout (one app, two moments). Desktop has no dock and **no global 112**: 112 shows only in the open incident's header and in the Start screen's trial column. This is a deliberate exception to the rule above; see [ADR 0012](docs/adr/0012-desktop-experience.md).
 - **Result and Incident detail are the same route** (`/incidents/:id`): Result is the incident viewed right after creation, and History links to the same place.

@@ -10,13 +10,23 @@ describe('app shell', () => {
     fakeApi.seed({ name: 'Golf' })
   })
 
-  it.each([...TOP_LEVEL, ...FLOW])('shows the 112 control on %s', async (route) => {
+  it.each(['/', '/incidents', '/incidents/1'])('shows the 112 control on %s', async (route) => {
     renderApp(route)
     expect(await screen.findByRole('link', { name: 'Call emergency number 112' })).toHaveAttribute(
       'href',
       'tel:112',
     )
   })
+
+  it.each(['/vehicles', '/vehicles/new', '/vehicles/1', '/incidents/1/report'])(
+    'hides the 112 control on at-home screen %s',
+    (route) => {
+      renderApp(route)
+      expect(
+        screen.queryByRole('link', { name: 'Call emergency number 112' }),
+      ).not.toBeInTheDocument()
+    },
+  )
 
   it.each(TOP_LEVEL)('shows the tab bar on top-level screen %s', async (route) => {
     renderApp(route)

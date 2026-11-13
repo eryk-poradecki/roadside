@@ -449,8 +449,8 @@ describe('damage report (ADR 0009)', () => {
         'href',
         `/incidents/${String(incident.id)}`,
       )
-      // The 112 control stays, as on every screen.
-      expect(screen.getByRole('link', { name: /112/ })).toBeInTheDocument()
+      // At-home report actions have no emergency dock (#146).
+      expect(screen.queryByRole('link', { name: /112/ })).not.toBeInTheDocument()
     })
 
     it('ranks Copy first, Mark as sent second and Draft again last', async () => {
