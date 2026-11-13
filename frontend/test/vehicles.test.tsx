@@ -3,6 +3,113 @@ import { http, HttpResponse } from 'msw'
 import { API, fakeApi, problem } from './fakeApi'
 import { renderApp } from './render'
 import { server } from './setup'
+import { atWidth } from './viewport'
+
+describe('demo vehicles', () => {
+  it('waits for config before offering vehicle actions', async () => {
+    const demo = fakeApi.seed({ name: 'Golf' })
+    demo.demo_profile = 'golf_2017'
+    let releaseConfig = () => {}
+    const configGate = new Promise<void>((resolve) => {
+      releaseConfig = resolve
+    })
+    let vehiclesRead = false
+    server.use(
+      http.get(`${API}/api/v1/config`, async () => {
+        await configGate
+        return HttpResponse.json({ ...fakeApi.config })
+      }),
+      http.get(`${API}/api/v1/vehicles`, () => {
+        vehiclesRead = true
+        return HttpResponse.json([demo])
+      }),
+    )
+    renderApp('/vehicles')
+    try {
+      await waitFor(() => {
+        expect(vehiclesRead).toBe(true)
+      })
+      expect(screen.queryByRole('link', { name: 'Edit Golf' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Delete Golf' })).not.toBeInTheDocument()
+    } finally {
+      releaseConfig()
+    }
+    expect(await screen.findByText('Demo vehicle')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Delete Golf' })).not.toBeInTheDocument()
+  })
+  it('keeps marked vehicles editable when demo mode is off', async () => {
+    fakeApi.config.demo_mode = false
+    const demo = fakeApi.seed({ name: 'Golf' })
+    demo.demo_profile = 'golf_2017'
+    renderApp('/vehicles')
+    expect(await screen.findByRole('link', { name: 'Edit Golf' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Delete Golf' })).toBeInTheDocument()
+    expect(screen.queryByText('Demo vehicle')).not.toBeInTheDocument()
+    expect(screen.queryByText(/Demo scenarios use the demo vehicles/)).not.toBeInTheDocument()
+  })
+
+  it('shows the specific read-only error when a stale vehicle form is refused', async () => {
+    const demo = fakeApi.seed({ name: 'Golf' })
+    demo.demo_profile = 'golf_2017'
+    server.use(
+      http.put(`${API}/api/v1/vehicles/:id`, () =>
+        problem(403, 'demo_vehicle_read_only', 'Internal detail'),
+      ),
+    )
+    const { user } = renderApp(`/vehicles/${String(demo.id)}`)
+    await user.type(await screen.findByLabelText(/^Name/), ' GTI')
+    await user.click(screen.getByRole('button', { name: 'Save vehicle' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Demo vehicles can only be made the default in demo mode.',
+    )
+    expect(screen.queryByText('Something went wrong. Please try again.')).not.toBeInTheDocument()
+  })
+
+  it('can make a demo vehicle the default without sending its read-only marker', async () => {
+    fakeApi.seed({ name: 'My vehicle' })
+    const demo = fakeApi.seed({ name: 'Golf' })
+    demo.demo_profile = 'golf_2017'
+    server.use(
+      http.put(`${API}/api/v1/vehicles/${String(demo.id)}`, async ({ request }) => {
+        const body = (await request.json()) as Record<string, unknown>
+        if ('demo_profile' in body) return problem(422, 'validation_error', 'Extra field')
+        if (body.is_default !== true) return problem(403, 'demo_vehicle_read_only', 'Read only')
+        fakeApi.vehicles = fakeApi.vehicles.map((v) => ({ ...v, is_default: v.id === demo.id }))
+        return HttpResponse.json({ ...demo, is_default: true })
+      }),
+    )
+    const { user } = renderApp('/vehicles')
+    await user.click(await screen.findByRole('button', { name: 'Set Golf as default' }))
+    await waitFor(() => {
+      const card = screen.getByRole('heading', { name: 'Golf' }).closest('li')
+      if (!card) throw new Error('Golf must be in a vehicle card')
+      expect(within(card).getByText('Default')).toBeInTheDocument()
+      expect(within(card).getByText('Demo vehicle')).toBeInTheDocument()
+    })
+  })
+  it.each([390, 1280, 1440, 1920])('protects only marked vehicles at %i px', async (width) => {
+    atWidth(width)
+    const demo = fakeApi.seed({ name: 'Golf' })
+    demo.demo_profile = 'golf_2017'
+    fakeApi.seed({ name: 'My vehicle' })
+    renderApp('/vehicles')
+
+    const list = await screen.findByRole('list', { name: 'Your vehicles' })
+    const cards = within(list).getAllByRole('listitem')
+    const golf = cards.find((card) => within(card).queryByRole('heading', { name: 'Golf' }))
+    if (!golf) throw new Error('Golf must be in the vehicle list')
+    expect(within(golf).getByText('Demo vehicle')).toBeInTheDocument()
+    expect(within(golf).queryByRole('link', { name: 'Edit Golf' })).not.toBeInTheDocument()
+    expect(within(golf).queryByRole('button', { name: 'Delete Golf' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Edit My vehicle' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Delete My vehicle' })).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Demo scenarios use the demo vehicles. Vehicles you add here are for trying the screen.',
+      ),
+    ).toBeInTheDocument()
+  })
+})
 
 describe('vehicle form', () => {
   it('requires a name and sends nothing until it is given', async () => {
