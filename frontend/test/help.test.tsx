@@ -279,6 +279,37 @@ describe('help request: Start → Get help now → Result', () => {
     }
   })
 
+  it.each([502, 503, 504])(
+    'shows unsaved safety steps and retries after an HTTP %s gateway failure',
+    async (status) => {
+      let failedKey: string | null = null
+      server.use(
+        http.post(`${API}/api/v1/incidents`, ({ request }) => {
+          failedKey = request.headers.get('Idempotency-Key')
+          return new HttpResponse('<html>Service unavailable</html>', {
+            status,
+            headers: { 'Content-Type': 'text/html' },
+          })
+        }),
+      )
+      const { user } = renderApp('/')
+      await user.click(await screen.findByRole('button', { name: 'Flat tyre' }))
+      await user.click(screen.getByRole('button', { name: 'Get help now' }))
+      await screen.findByText('Not saved — try again when you have signal', {}, { timeout: 4500 })
+      expect(screen.getByRole('alert')).toHaveTextContent(en.errors.offline)
+      expect(within(checklist()).getByText(en.checklist.lists.tyre.first)).toBeInTheDocument()
+      const result = screen.getByRole('dialog', { name: 'Flat tyre' })
+      expect(
+        within(result).getByRole('link', { name: 'Call emergency number 112' }),
+      ).toHaveAttribute('href', 'tel:112')
+      server.resetHandlers()
+      await user.click(screen.getByRole('button', { name: 'Try again' }))
+      await screen.findByText('Saved to your incidents')
+      expect(fakeApi.incidentRequests[0]?.key).toBe(failedKey)
+      expect(fakeApi.incidents).toHaveLength(1)
+    },
+  )
+
   it('retries an offline result with the same request and chosen checklist', async () => {
     const leaf = fakeApi.seed({ name: 'Leaf', fuel_type: 'electric' })
     const attempts: { key: string | null; body: unknown }[] = []

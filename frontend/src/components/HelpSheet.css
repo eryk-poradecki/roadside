@@ -55,6 +55,9 @@
   background: var(--surface);
   border-top: 1px solid var(--line);
 }
+.sheet-actions > .notice {
+  margin-bottom: var(--gutter);
+}
 .sheet h2:focus {
   outline: none;
 }
