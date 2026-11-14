@@ -300,6 +300,12 @@
   flex-wrap: wrap;
   gap: 8px;
 }
+.ask-options .chip {
+  max-width: 100%;
+  padding-block: 8px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
 .chip-lg {
   display: inline-flex;
   align-items: center;
