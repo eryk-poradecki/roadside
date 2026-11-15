@@ -5,14 +5,17 @@ import {
   useContext,
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react'
 import { createPortal } from 'react-dom'
-import { Link, Outlet, useLocation } from 'react-router'
+import { Link, NavigationType, Outlet, useLocation, useNavigationType } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { useOffline } from '../api/offline'
+import { isFromHelp } from '../lib/fromHelp'
 import { useDesktop } from '../lib/useMediaQuery'
 import { LanguageSwitch } from './LanguageSwitch'
 import { RoadMark } from './icons'
@@ -126,7 +129,9 @@ function Wordmark() {
  */
 export function AppShell({ dock }: { dock?: ReactNode }) {
   const desktop = useDesktop()
-  const { pathname } = useLocation()
+  const location = useLocation()
+  const { pathname, key } = location
+  const navigationType = useNavigationType()
   const emergency = !pathname.startsWith('/vehicles') && !pathname.endsWith('/report')
   const [claimed, claim] = useCounter()
   const [urgent, claimUrgent] = useCounter()
@@ -135,6 +140,20 @@ export function AppShell({ dock }: { dock?: ReactNode }) {
     () => ({ node, urgent, claim, claimUrgent }),
     [node, urgent, claim, claimUrgent],
   )
+
+  // Both layout routes render this shell, so its scroller outlives a navigation. A new
+  // incident's Result would open at the offset of the screen before it (a long scenario list,
+  // a scrolled form), hiding the checklist: start it at the top. Other navigation keeps the
+  // offset as before (e.g. History → Result → Back).
+  const columnRef = useRef<HTMLDivElement>(null)
+  const bodyRef = useRef<HTMLElement>(null)
+  const newResult = navigationType === NavigationType.Push && isFromHelp(location.state)
+  useLayoutEffect(() => {
+    if (!newResult) return
+    // Mobile scrolls `<main>`, desktop the column around it.
+    for (const scroller of [columnRef.current, bodyRef.current])
+      if (scroller) scroller.scrollTop = 0
+  }, [newResult, key])
 
   return (
     <DockSlotContext.Provider value={slot}>
@@ -151,9 +170,9 @@ export function AppShell({ dock }: { dock?: ReactNode }) {
             <LanguageSwitch />
           </header>
         )}
-        <div className={desktop ? 'desk-main' : 'shell-main'}>
+        <div className={desktop ? 'desk-main' : 'shell-main'} ref={columnRef}>
           <OfflineBanner />
-          <main className="shell-body">
+          <main className="shell-body" ref={bodyRef}>
             <Outlet />
           </main>
           {!desktop && (

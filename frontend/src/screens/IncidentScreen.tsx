@@ -28,6 +28,7 @@ import { DamageReportCard, PotholeHint } from '../components/DamageReportCard'
 import { ErrorNotice } from '../components/ErrorNotice'
 import { NearbyPanel } from '../components/NearbyPanel'
 import { PhotosPanel } from '../components/PhotosPanel'
+import { isFromHelp } from '../lib/fromHelp'
 import { SafetyChecklist } from '../components/SafetyChecklist'
 import { TILE_ICONS } from '../components/tiles'
 import { formatCoords } from '../lib/place'
@@ -45,7 +46,7 @@ export function IncidentScreen() {
   const incident = useIncident(id)
   const vehicles = useVehicles()
   const state: unknown = useLocation().state
-  const fromHelp = typeof state === 'object' && state !== null && 'fromHelp' in state
+  const fromHelp = isFromHelp(state)
 
   const back = (
     <Link to={fromHelp ? '/' : '/incidents'} className="back">

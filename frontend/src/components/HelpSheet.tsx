@@ -9,6 +9,7 @@ import { useConfig } from '../api/config'
 import { useCreateIncident, type IncidentCreate } from '../api/incidents'
 import { photoSrc, useAddPhoto, type PhotoSource } from '../api/photos'
 import type { VehicleRead } from '../api/vehicles'
+import { FROM_HELP } from '../lib/fromHelp'
 import type { GeoState } from '../lib/geolocation'
 import { problemKey, type ProblemType, type ProblemKey } from '../lib/problemType'
 import { EmergencyLink } from './AppShell'
@@ -80,8 +81,12 @@ export function HelpSheet({
     body: IncidentCreate
     label: ProblemKey
   } | null>(null)
+  const bodyRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    if (offlineResult) titleRef.current?.focus()
+    if (!offlineResult) return
+    // The result replaces the form in the same scroller: start at its top, not the form's offset.
+    if (bodyRef.current) bodyRef.current.scrollTop = 0
+    titleRef.current?.focus()
   }, [offlineResult])
   const [note, setNote] = useState(
     scenario?.locales[i18n.resolvedLanguage ?? i18n.language]?.note ?? '',
@@ -152,8 +157,7 @@ export function HelpSheet({
       photos.forEach(revoke)
       setPhotos([])
       onCreated()
-      if (mounted.current)
-        void navigate(`/incidents/${String(incident.id)}`, { state: { fromHelp: true } })
+      if (mounted.current) void navigate(`/incidents/${String(incident.id)}`, { state: FROM_HELP })
     } catch (error) {
       if (mounted.current && isHelpUnavailable(error)) setOfflineResult({ body, label })
       // Shown below from `create.error`. A re-tap reuses the key, so it can't duplicate.
@@ -183,7 +187,7 @@ export function HelpSheet({
           <X size={22} aria-hidden="true" />
         </button>
       </header>
-      <div className="sheet-body">
+      <div className="sheet-body" ref={bodyRef}>
         {offlineResult ? (
           <>
             <p role="status">{t('sheet.notSaved')}</p>
