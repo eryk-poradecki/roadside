@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="96" viewBox="0 0 360 96" role="img" aria-label="Roadside">
+  <rect width="360" height="96" rx="24" fill="#16191f"/>
+  <g fill="#f9b73f" transform="translate(22 14) scale(2.8)">
+    <path d="M6.8 22 17.2 22 16 17H8Z"/>
+    <path d="M9.2 14.8H14.8L14.2 11H9.8Z"/>
+    <path d="M10.5 8.8H13.5L13.1 6.2H10.9Z"/>
+    <path d="M11.4 4.5H12.6L12.45 3H11.55Z"/>
+  </g>
+  <text x="104" y="63" fill="#f3f4f7" font-family="'Atkinson Hyperlegible Next', 'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="44" font-weight="800" letter-spacing="-0.6">Roadside</text>
+</svg>

@@ -7,18 +7,21 @@ This repo vendors a few third-party agent skills so reviewers can see exactly wh
 - **Source:** https://github.com/mattpocock/skills
 - **License:** MIT, see [`.claude/skills/LICENSE-mattpocock-skills`](../.claude/skills/LICENSE-mattpocock-skills)
 - **Location in this repo:** `.claude/skills/`
+- **Version:** `code-review` and `grill-with-docs` are copied unmodified from plugin version 1.3.1, commit [`49dd158`](https://github.com/mattpocock/skills/commit/49dd158d1076134a641b33efb035946536778336)
 
-| Skill                      | Role in this project                                                  | Changes                                                                                  |
-| -------------------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `wayfinder`                | Plans the work as a map of decision tickets on GitHub Issues          | _Planned:_ route UI `prototype` tickets to Impeccable instead of `prototype` (see below) |
-| `setup-matt-pocock-skills` | Configures the issue tracker (GitHub Issues) used by the other skills | None                                                                                     |
-| `grilling`                 | Resolves wayfinder decision tickets through a guided Q&A              | None                                                                                     |
-| `domain-modeling`          | Used alongside `grilling` to shape the domain model                   | None                                                                                     |
-| `research`                 | Resolves research tickets (e.g. external API capabilities)            | None                                                                                     |
-| `to-spec`                  | Collapses a cleared wayfinder map into one spec                       | None                                                                                     |
-| `to-tickets`               | Slices the spec into implementation tickets                           | None                                                                                     |
-| `implement`                | Implements a ticket                                                   | None                                                                                     |
-| `tdd`                      | Test-first workflow used by `implement`                               | None                                                                                     |
+| Skill                      | Role in this project                                                                                                   | Changes                                                                                  |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `wayfinder`                | Plans the work as a map of decision tickets on GitHub Issues                                                           | _Planned:_ route UI `prototype` tickets to Impeccable instead of `prototype` (see below) |
+| `setup-matt-pocock-skills` | Configures the issue tracker (GitHub Issues) used by the other skills                                                  | None                                                                                     |
+| `grill-with-docs`          | Entry point for a grilling session: loads `grilling` and `domain-modeling`, so decisions land in ADRs and `CONTEXT.md` | None                                                                                     |
+| `grilling`                 | Resolves wayfinder decision tickets through a guided Q&A                                                               | None                                                                                     |
+| `domain-modeling`          | Used alongside `grilling` to shape the domain model                                                                    | None                                                                                     |
+| `research`                 | Resolves research tickets (e.g. external API capabilities)                                                             | None                                                                                     |
+| `to-spec`                  | Collapses a cleared wayfinder map into one spec                                                                        | None                                                                                     |
+| `to-tickets`               | Slices the spec into implementation tickets                                                                            | None                                                                                     |
+| `implement`                | Implements a ticket                                                                                                    | None                                                                                     |
+| `tdd`                      | Test-first workflow used by `implement`                                                                                | None                                                                                     |
+| `code-review`              | Reviews a branch against the repo standards and the originating issue, in two subagents; run at the end of `implement` | None                                                                                     |
 
 **Not vendored:** `prototype`. UI exploration uses Impeccable, so the project has a single design system instead of two competing ones.
 
