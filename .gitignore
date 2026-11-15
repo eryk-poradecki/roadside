@@ -3,6 +3,7 @@
 .claude/skills/impeccable/scripts/bin/
 .agents/skills/impeccable/scripts/bin/
 .claude/worktrees/
+.impeccable/
 # python
 __pycache__/
 .venv/
