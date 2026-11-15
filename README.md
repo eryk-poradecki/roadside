@@ -20,6 +20,10 @@ Roadside is a roadside assistant for drivers: say what happened, get safety step
 advice fitted to your car and real places nearby, and keep every incident for later. Try the
 [live demo](https://roadside.eryk-poradecki.dev) (notes [below](#live-demo)) or watch the [demo video](docs/roadside-demo.mp4).
 
+
+https://github.com/user-attachments/assets/dab9cf95-f164-45de-a985-ad2756e2a991
+
+
 ## What it does
 
 Roadside is built for two moments. **At the roadside**, on a phone, often at night and under
