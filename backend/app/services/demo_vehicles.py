@@ -15,9 +15,9 @@ from app.repositories.vehicles import VehicleRepository
 from app.schemas.vehicle import VehicleCreate
 from app.services.clock import utc_now
 
-# `has_assistance` needs a non-blank phone. With no digit in it the app never offers to call
-# it, so it can't be mistaken for a real number; the word reads the same in Polish.
-DEMO_ASSISTANCE_PHONE = "demo"
+# `has_assistance` needs a non-blank phone, and the recorded answers point at the Call assistance
+# button, which needs a digit. Obviously fake: Polish numbers never start with 000.
+DEMO_ASSISTANCE_PHONE = "+48 000 000 000"
 
 # By the document's profile id, in its table's order. API bodies, so they pass the same
 # validation as a visitor's own vehicle.

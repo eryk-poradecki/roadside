@@ -48,16 +48,14 @@ async def test_a_fresh_demo_database_lists_the_three_demo_vehicles(tmp_path: Pat
     assert all(v["registration"] is None and v["policy_number"] is None for v in vehicles)
 
 
-async def test_the_minis_assistance_phone_is_a_placeholder_no_one_can_dial(
+async def test_the_minis_assistance_phone_is_an_obviously_fake_number(
     tmp_path: Path,
 ) -> None:
     async with running(demo_settings(tmp_path)) as client:
         vehicles = {v["name"]: v for v in (await client.get(VEH)).json()}
 
-    # Non-blank, so the MINI has assistance; no digit, so the app never offers to call it.
-    phone = vehicles["MINI"]["assistance_phone"]
-    assert phone.strip()
-    assert not any(ch.isdigit() for ch in phone)
+    # Has digits, so the Call assistance button the recordings mention renders; never a real one.
+    assert vehicles["MINI"]["assistance_phone"] == "+48 000 000 000"
     assert vehicles["Golf"]["assistance_phone"] is None
     assert vehicles["Octavia"]["assistance_phone"] is None
 
