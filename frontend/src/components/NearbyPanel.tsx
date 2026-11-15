@@ -48,8 +48,8 @@ import './NearbyPanel.css'
 const CATEGORY_ICON = { tyres: TyreIcon, fuel: Fuel, charging: PlugZap, repair: Wrench }
 const PREVIEW_ROWS = 3
 const OSM_FIX_URL = 'https://www.openstreetmap.org/fixthemap'
-/** The full map's height cap on desktop, as in NearbyPanel.css. */
-const FULLMAP_MAX_HEIGHT = 960
+/** The full map's share of the window's height on desktop, as in NearbyPanel.css. */
+const FULLMAP_DESKTOP_HEIGHT = 0.9
 
 const placeId = (p: PlaceRead) => `${p.osm_type}/${String(p.osm_id)}`
 
@@ -509,11 +509,11 @@ function FullMap({
   const shown = useShown(places, selected)
   const pins = usePins(shown)
   const desktop = useDesktop()
-  // The sheet covers 46% of the view; on desktop the view is capped (NearbyPanel.css).
+  // The sheet covers 46% of the view; on desktop the view is 90% of the window (NearbyPanel.css).
   const sheetHeight =
     typeof window === 'undefined'
       ? 0
-      : Math.min(window.innerHeight, desktop ? FULLMAP_MAX_HEIGHT : Infinity) * 0.46
+      : window.innerHeight * (desktop ? FULLMAP_DESKTOP_HEIGHT : 1) * 0.46
 
   useEffect(() => {
     ref.current?.showModal()

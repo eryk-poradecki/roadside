@@ -250,14 +250,13 @@ a.icon-btn {
 }
 
 /*
- * Desktop: zooming out makes 100dvh very tall, so the 520 px column turned into a long strip
- * with the whole list unrolled under the map. Cap the view's height and center it; the sheet
- * keeps its share of the view, not of the window, so the list still scrolls inside it.
- * Keep the cap in step with FULLMAP_MAX_HEIGHT in NearbyPanel.tsx.
+ * Desktop: a centered view at 90% of the window's height rather than border to border; the
+ * sheet keeps its share of the view, not of the window, so the list scrolls inside it.
+ * Keep the 90% in step with FULLMAP_DESKTOP_HEIGHT in NearbyPanel.tsx.
  */
 @media (min-width: 1024px) {
   .fullmap {
-    height: min(100dvh, 960px);
+    height: 90dvh;
     margin: auto;
   }
   .fullmap-sheet {
