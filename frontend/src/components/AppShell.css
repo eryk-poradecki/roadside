@@ -281,6 +281,11 @@
   gap: 16px;
   padding: 40px 48px 56px;
 }
+/* Above any sticky screen header (History's controls are z-index 2) so it is never covered. */
+.desk-main > .offline {
+  position: relative;
+  z-index: 3;
+}
 .desk-main .shell-body {
   flex: 1 0 auto;
   overflow: visible;
